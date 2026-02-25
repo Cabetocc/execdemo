@@ -12,7 +12,7 @@ import requests
 import time
 from pathlib import Path
 
-WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook-test/stock-analysis"
+WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook/stock-analysis"
 LATEST_FILE = Path("data/latest.md")
 
 def read_latest():
