@@ -51,11 +51,9 @@ if generate:
                     progress.progress(100)
                     break
 
-            # If it didn't update in time, tell the user what to do
             if updated == before:
                 status.warning("Still processing. Please wait a bit longer and press Generate again (or refresh).")
 
-        # Refresh the page so the rest of the app renders with the new file
         st.rerun()
 
 
@@ -143,7 +141,7 @@ def create_app():
             color='Segment',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        fig_margin.update_yaxes(range=[0, 100], suffix="%")
+        fig_margin.update_yaxes(range=[0, 100], ticksuffix="%")
         st.plotly_chart(fig_margin, use_container_width=True)
 
     st.subheader("Cash Flow Generation (Illustrative)")
