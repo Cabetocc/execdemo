@@ -60,376 +60,331 @@ if generate:
 
 
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import textwrap
+import plotly.express as px
+import re
 
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="IBM Financial Analysis",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+# --- App Configuration ---
+st.set_page_config(page_title="AstraZeneca (AZN) Financial Ecosystem Analysis", layout="wide")
 
 # --- Helper Functions ---
+def extract_key_metrics(text):
+    """Extracts key financial metrics using regex, if present."""
+    metrics = {}
+    # Example: Search for "Gross Profit Margin: ~80%" or "R&D Investment: ~20-25% of revenue"
+    # This is a basic example, more sophisticated NLP could be used for broader extraction
+    patterns = {
+        "Gross Margin": r"Gross Margin:.*?([\d\.\%]+)",
+        "R&D Investment": r"R&D Investment:.*?([\d\.\%\s]+)",
+        "Revenue Concentration": r"Revenue concentration.*?([\w\s]+$)",
+        "Operating Cash Flow": r"Strong Operating Cash Flow",
+        "Dividend Policy": r"Dividend Policy:.*?([\w\s]+)",
+        "M&A Activity": r"M&A Activity:.*?([\w\s]+)",
+        "Alexion Acquisition": r"Alexion Acquisition:.*?([\w\s]+)$",
+    }
+    for key, pattern in patterns.items():
+        match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+        if match:
+            value = match.group(1).strip()
+            # Clean up common extractions
+            if "of revenue" in value:
+                value = value.replace("of revenue", "").strip()
+            if "%" in value and not value.startswith("%"):
+                value = value.replace("%", "").strip()
+            metrics[key] = value
+    return metrics
 
-def wrap_text(text, width=50):
-    """Wraps text to a specified width for better display in Streamlit."""
-    return textwrap.fill(text, width=width)
+def create_section_header(title):
+    """Creates a formatted section header."""
+    st.header(title)
+    st.markdown("---")
 
-def format_currency(value):
-    """Formats numbers into a readable currency string."""
-    if abs(value) >= 1e9:
-        return f"${value / 1e9:.2f}B"
-    elif abs(value) >= 1e6:
-        return f"${value / 1e6:.2f}M"
-    elif abs(value) >= 1e3:
-        return f"${value / 1e3:.2f}K"
-    return f"${value:.2f}"
+def add_chart(data, x_col, y_col, title, chart_type="bar"):
+    """Adds a Plotly chart to the Streamlit app."""
+    if data is None or data.empty:
+        st.warning(f"No data available to create '{title}' chart.")
+        return
 
-def format_growth(value):
-    """Formats numbers into a readable percentage string."""
-    return f"{value:.2f}%"
+    try:
+        if chart_type == "bar":
+            fig = px.bar(data, x=x_col, y=y_col, title=title, labels={x_col: x_col, y_col: y_col})
+        elif chart_type == "line":
+            fig = px.line(data, x=x_col, y=y_col, title=title, markers=True, labels={x_col: x_col, y_col: y_col})
+        elif chart_type == "pie":
+            fig = px.pie(data, names=x_col, values=y_col, title=title)
+        else:
+            st.error(f"Unsupported chart type: {chart_type}")
+            return
 
-def create_revenue_chart(data):
-    """Creates a bar chart for revenue breakdown."""
-    fig = go.Figure(data=[
-        go.Bar(name='Revenue (2023)', x=data['Segment'], y=data['Revenue_Billions'],
-               marker_color=data['Color'])
-    ])
+        fig.update_layout(
+            title_x=0.5,
+            xaxis_title=x_col.replace('_', ' ').title(),
+            yaxis_title=y_col.replace('_', ' ').title(),
+            hovermode="x unified"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as e:
+        st.error(f"Error creating chart '{title}': {e}")
 
-    fig.update_layout(
-        title_text='IBM Revenue Breakdown by Segment (2023)',
-        xaxis_title='Segment',
-        yaxis_title='Revenue (Billions USD)',
-        legend_title='Segment',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white',
-        hovermode='x unified'
-    )
-    return fig
+# --- Main App Logic ---
+def app():
+    st.title("AstraZeneca (AZN) Financial Ecosystem Analysis")
 
-def create_profitability_chart(data):
-    """Creates a line chart for profitability metrics."""
-    fig = go.Figure()
+    analysis_text = """
+### **Comprehensive Financial Ecosystem Analysis: AstraZeneca PLC (AZN)**
 
-    fig.add_trace(go.Scatter(
-        x=data['Year'], y=data['Gross_Margin'], mode='lines+markers', name='Gross Margin (%)',
-        line=dict(color='cyan', width=2), marker=dict(color='cyan')
-    ))
-    fig.add_trace(go.Scatter(
-        x=data['Year'], y=data['Operating_Margin'], mode='lines+markers', name='Operating Margin (%)',
-        line=dict(color='magenta', width=2), marker=dict(color='magenta')
-    ))
+AstraZeneca (AZN) is a global biopharmaceutical company headquartered in Cambridge, UK, with a primary listing on the London Stock Exchange and a secondary listing on NASDAQ. It focuses on the discovery, development, and commercialization of prescription medicines, primarily in oncology, cardiovascular, renal & metabolism (CVRM), respiratory & immunology, and rare diseases.
 
-    fig.update_layout(
-        title_text='IBM Profitability Trends (Gross & Operating Margins)',
-        xaxis_title='Year',
-        yaxis_title='Margin (%)',
-        legend_title='Metric',
-        hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white'
-    )
-    return fig
+---
 
-def create_cashflow_chart(data):
-    """Creates a bar chart for cash flow metrics."""
-    fig = make_subplots(rows=1, cols=2, subplot_titles=('Operating Cash Flow', 'Free Cash Flow'))
+### **1. Key Financial Relationships & Metrics**
 
-    fig.add_trace(go.Bar(
-        name='Operating Cash Flow (Billions USD)',
-        x=data['Year'], y=data['Operating_Cash_Flow_Billions'],
-        marker_color='teal'
-    ), row=1, col=1)
+**Revenue Drivers:**
+- **Blockbuster Drugs:** Key products like Tagrisso (oncology), Farxiga (diabetes/CVRM), and Imfinzi (oncology) drive a significant portion of revenue. Farxiga, for example, has shown robust growth due to expanded indications (heart failure, CKD).
+- **Geographic Mix:** Strong presence in **Emerging Markets** (especially China) and the **US**, with Europe also contributing substantially. Currency fluctuations (USD/GBP/EUR) impact reported revenues.
+- **COVID-19 Vaccine:** While Vaxzevria sales have declined, it previously provided a revenue boost and expanded the company’s global footprint.
 
-    fig.add_trace(go.Bar(
-        name='Free Cash Flow (Billions USD)',
-        x=data['Year'], y=data['Free_Cash_Flow_Billions'],
-        marker_color='gold'
-    ), row=1, col=2)
+**Profitability & Margins:**
+- **Gross Margin:** Typically high (~80%) due to the proprietary nature of pharmaceuticals, but can be pressured by product mix, generics competition, and pricing negotiations.
+- **R&D Investment:** AZN reinvests heavily in R&D (~20-25% of revenue) to fuel its pipeline, impacting short-term earnings but critical for long-term growth.
+- **Operating Leverage:** As products scale, margins can expand, but ongoing investment in launches and pipeline limits near-term margin expansion.
 
-    fig.update_layout(
-        title_text='IBM Cash Flow Generation',
-        yaxis1_title='Billions USD',
-        yaxis2_title='Billions USD',
-        legend_title='Metric',
-        hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white',
-        height=450 # Adjust height for better readability
-    )
-    return fig
+**Cash Flow & Capital Allocation:**
+- **Strong Operating Cash Flow:** Supports dividend payments, share buybacks, and business development.
+- **Dividend Policy:** Known for a progressive dividend policy, appealing to income-focused investors.
+- **M&A Activity:** Strategic acquisitions (e.g., Alexion in 2021 for $39B) enhance therapeutic reach (rare diseases) but increase leverage and integration complexity.
 
-def create_shareholder_return_chart(data):
-    """Creates a bar chart for shareholder returns."""
-    fig = go.Figure()
+---
 
-    fig.add_trace(go.Bar(
-        name='Dividends Paid (Billions USD)',
-        x=data['Year'], y=data['Dividends_Paid_Billions'],
-        marker_color='forestgreen'
-    ))
-    fig.add_trace(go.Bar(
-        name='Share Buybacks (Billions USD)',
-        x=data['Year'], y=data['Share_Buybacks_Billions'],
-        marker_color='indianred'
-    ))
+### **2. Market Dependencies & Risks**
 
-    fig.update_layout(
-        title_text='IBM Shareholder Returns',
-        xaxis_title='Year',
-        yaxis_title='Billions USD',
-        legend_title='Activity',
-        hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white'
-    )
-    return fig
+**Regulatory Environment:**
+- **FDA (US), EMA (EU), NMPA (China):** Drug approvals, label expansions, and safety monitoring are critical. Regulatory setbacks can significantly impact stock performance.
+- **Pricing & Reimbursement:** Increasing pressure from governments and payers, especially in the US (Medicare drug price negotiation under the Inflation Reduction Act) and Europe, can affect pricing power.
 
-# --- Sample Data (Replace with actual fetched data if available) ---
-# This data is illustrative and based on the analysis provided.
-# In a real application, this would come from APIs like Yahoo Finance, financial data providers, etc.
+**Patent Expirations:**
+- **Key Patents:** Loss of exclusivity (LOE) for major drugs (e.g., Nexium, Crestor in past years) leads to generic competition and revenue erosion. Ongoing pipeline innovation is essential to offset this.
 
-# Revenue Data
-revenue_data_2023 = pd.DataFrame({
-    'Segment': [
-        'Cloud & Cognitive Software',
-        'Consulting',
-        'Infrastructure',
-        'Financing'
-    ],
-    'Revenue_Billions': [45.7, 36.7, 25.0, 3.2],
-    'Color': ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'] # Consistent colors
-})
-revenue_data_2023['Revenue_Billions'] = revenue_data_2023['Revenue_Billions'].astype(float)
-revenue_data_2023['Revenue_Billions_Formatted'] = revenue_data_2023['Revenue_Billions'].apply(format_currency)
+**Clinical Trial Outcomes:**
+- **Pipeline Success/Failure:** Positive Phase III data (e.g., recent successes in oncology) can drive stock upside, while failures lead to sharp declines. The market closely monitors trial readouts.
 
-# Profitability Data
-profitability_data = pd.DataFrame({
-    'Year': [2021, 2022, 2023],
-    'Gross_Margin': [52.3, 53.2, 55.9],
-    'Operating_Margin': [12.0, 13.9, 15.3]
-})
-profitability_data['Gross_Margin_Formatted'] = profitability_data['Gross_Margin'].apply(format_growth)
-profitability_data['Operating_Margin_Formatted'] = profitability_data['Operating_Margin'].apply(format_growth)
+---
+
+### **3. Sector Connections & Competitor Relationships**
+
+**Therapeutic Area Competition:**
+- **Oncology:** Competes with **Merck (MRK)** (Keytruda), **Bristol-Myers Squibb (BMY)** (Opdivo), **Roche (RHHBY)**, and **Pfizer (PFE)**. AZN’s focus on targeted therapies (e.g., Tagrisso for EGFR-mutated NSCLC) creates both competition and collaboration opportunities.
+- **CVRM & Diabetes:** Faces **Novo Nordisk (NVO)** and **Eli Lilly (LLY)** in diabetes/Obesity, and **Novartis (NVS)** in cardiovascular. Farxiga competes with Jardiance (Boehringer Ingelheim/Eli Lilly) in heart failure/CKD.
+- **Respiratory:** Competes with **GSK** and **Sanofi** in asthma/COPD.
+- **Rare Diseases (post-Alexion):** Competes with **Roche, Takeda, and Biogen** in complement-mediated diseases.
+
+**Collaborations & Partnerships:**
+- **Daiichi Sankyo:** Landmark partnership for Enhertu (HER2-targeting ADC) in oncology, with significant revenue-sharing.
+- **Oxford University:** COVID-19 vaccine collaboration.
+- **Small Biotech Alliances:** Frequent partnerships to access innovative early-stage assets (e.g., with Ionis Pharmaceuticals in CVRM).
+
+---
+
+### **4. Economic & Macroeconomic Factors**
+
+**Global Economic Health:**
+- **Recession Resilience:** Pharmaceuticals are generally defensive, but economic downturns can pressure healthcare budgets and affect drug pricing/access.
+- **Inflation:** Impacts manufacturing costs, R&D expenses, and supply chain logistics. AZN’s pricing power can partially offset this.
+
+**Currency Exchange Rates:**
+- As a UK-domiciled company reporting in USD, **GBP/USD fluctuations** significantly impact translated revenues and earnings. A weaker GBP boosts reported results from international sales.
+
+**Interest Rates:**
+- Higher rates increase the cost of debt, affecting AZN’s financing costs for M&A and capital projects. They also impact valuation multiples for growth stocks, including biopharma.
+
+**Geopolitical Factors:**
+- **US-China Tensions:** AZN’s significant sales in China (~13% of revenue) could be affected by trade policies or IP disputes.
+- **Brexit:** Ongoing regulatory divergence between the UK and EU may create operational complexities.
+
+---
+
+### **5. ESG & Societal Factors**
+
+**Environmental:** Focus on reducing carbon footprint and sustainable manufacturing.
+**Social:** Drug pricing ethics, access to medicines in low-income countries, and diversity in clinical trials.
+**Governance:** Strong board oversight, but executive compensation and M&A decisions (like Alexion’s premium) are scrutinized.
+
+---
+
+### **6. Stock Performance Drivers**
+
+- **Earnings Reports:** Quarterly revenue/earnings beats or misses, especially guidance updates.
+- **Pipeline Milestones:** Clinical trial results, regulatory submissions, and approvals.
+- **M&A Rumors/Deals:** Speculation or announcements of acquisitions.
+- **Macro Sentiment:** Sector rotation (into/out of healthcare), interest rate expectations, and currency moves.
+
+---
+
+### **Conclusion**
+
+AstraZeneca operates in a complex ecosystem where **innovation (R&D productivity), regulatory navigation, and competitive dynamics** are paramount. Its transition to a biopharma leader with a robust oncology and CVRM portfolio, supplemented by strategic M&A (Alexion), positions it for growth, but not without risks. Investors must monitor:
+1. **Pipeline execution** and clinical trial outcomes.
+2. **Pricing pressures** from US and international payers.
+3. **Currency and macroeconomic headwinds**.
+4. **Competitive threats** in key therapeutic areas.
+
+AZN’s defensive qualities (dividend, essential medicines) provide stability, while its growth pipeline offers upside, making it a **core holding in global healthcare portfolios**, albeit with sector-specific volatility.
+"""
+
+    st.markdown(analysis_text)
+
+    # --- Extract and Display Key Metrics ---
+    st.sidebar.title("Key Metrics Extracted")
+    extracted_metrics = extract_key_metrics(analysis_text)
+
+    if extracted_metrics:
+        for key, value in extracted_metrics.items():
+            st.sidebar.metric(label=key, value=value)
+    else:
+        st.sidebar.warning("No specific financial metrics automatically extracted.")
+
+    # --- Visualizations ---
+    st.header("Visualizations")
+    st.markdown("Visualizing key aspects of AstraZeneca's financial ecosystem.")
+
+    # Example DataFrames (replace with actual data if available)
+    # Data for illustrative purposes, based on analysis text context
+    revenue_drivers_data = pd.DataFrame({
+        'Therapeutic Area': ['Oncology', 'CVRM', 'Rare Diseases (Alexion)', 'Respiratory', 'Vaccines'],
+        'Approximate % of Revenue (Illustrative)': [40, 30, 15, 10, 5] # Hypothetical percentages
+    })
+
+    competitor_focus_data = pd.DataFrame({
+        'Competitor': ['Merck (MRK)', 'Bristol-Myers Squibb (BMY)', 'Roche (RHHBY)', 'Pfizer (PFE)', 'Novo Nordisk (NVO)', 'Eli Lilly (LLY)'],
+        'Therapeutic Area Focus': ['Oncology', 'Oncology', 'Oncology/Diagnostics', 'Oncology/Vaccines', 'Diabetes/Obesity', 'Diabetes/Obesity/CNS'],
+        'Competition Type': ['Head-to-Head (Oncology)', 'Head-to-Head (Oncology)', 'Head-to-Head (Oncology)', 'Head-to-Head (Oncology)', 'Head-to-Head (CVRM)', 'Head-to-Head (CVRM)']
+    })
+
+    market_dependency_data = pd.DataFrame({
+        'Market': ['US', 'Emerging Markets', 'Europe', 'China'],
+        'Importance': ['High', 'High', 'Medium', 'High'],
+        'Revenue Share (Illustrative)': [40, 25, 20, 15] # Hypothetical percentages
+    })
+
+    economic_factors_data = pd.DataFrame({
+        'Economic Factor': ['Global Economic Health', 'Inflation', 'Currency Exchange Rates', 'Interest Rates', 'Geopolitical Stability'],
+        'Impact on AZN': ['Defensive but budget pressure', 'Increases costs, potential price pass-through', 'Translation gains/losses', 'Higher financing costs, valuation impact', 'Supply chain & market access risks']
+    })
+
+    # Chart 1: Revenue Drivers by Therapeutic Area
+    if not revenue_drivers_data.empty:
+        add_chart(revenue_drivers_data, x_col='Therapeutic Area', y_col='Approximate % of Revenue (Illustrative)', title="Illustrative Revenue Drivers by Therapeutic Area", chart_type="pie")
+
+    # Chart 2: Key Competitors and their Focus
+    if not competitor_focus_data.empty:
+        add_chart(competitor_focus_data, x_col='Competitor', y_col='Therapeutic Area Focus', title="Illustrative Key Competitor Focus Areas", chart_type="bar") # Can be adapted for more detail
+
+    # Chart 3: Market Dependencies
+    if not market_dependency_data.empty:
+        add_chart(market_dependency_data, x_col='Market', y_col='Revenue Share (Illustrative)', title="Illustrative Geographic Revenue Share", chart_type="bar")
+
+    # Chart 4: Economic Factors Impact
+    if not economic_factors_data.empty:
+        # Creating a simple visual for economic factors, as direct plotting might be complex
+        st.subheader("Impact of Economic Factors")
+        for index, row in economic_factors_data.iterrows():
+            st.markdown(f"- **{row['Economic Factor']}**: {row['Impact on AZN']}")
 
 
-# Cash Flow Data
-cashflow_data = pd.DataFrame({
-    'Year': [2021, 2022, 2023],
-    'Operating_Cash_Flow_Billions': [13.4, 12.0, 14.2],
-    'Free_Cash_Flow_Billions': [11.4, 9.3, 11.2]
-})
-cashflow_data['Operating_Cash_Flow_Billions_Formatted'] = cashflow_data['Operating_Cash_Flow_Billions'].apply(format_currency)
-cashflow_data['Free_Cash_Flow_Billions_Formatted'] = cashflow_data['Free_Cash_Flow_Billions'].apply(format_currency)
+    st.header("Detailed Sections")
 
+    # Section 1: Key Financial Relationships & Metrics
+    create_section_header("1. Key Financial Relationships & Metrics")
+    st.markdown("""
+    **Revenue Drivers:**
+    - **Blockbuster Drugs:** Key products like Tagrisso (oncology), Farxiga (diabetes/CVRM), and Imfinzi (oncology) drive a significant portion of revenue. Farxiga, for example, has shown robust growth due to expanded indications (heart failure, CKD).
+    - **Geographic Mix:** Strong presence in **Emerging Markets** (especially China) and the **US**, with Europe also contributing substantially. Currency fluctuations (USD/GBP/EUR) impact reported revenues.
+    - **COVID-19 Vaccine:** While Vaxzevria sales have declined, it previously provided a revenue boost and expanded the company’s global footprint.
 
-# Shareholder Returns Data
-shareholder_data = pd.DataFrame({
-    'Year': [2021, 2022, 2023],
-    'Dividends_Paid_Billions': [6.5, 6.7, 7.1],
-    'Share_Buybacks_Billions': [3.0, 2.0, 1.5] # Example figures
-})
-shareholder_data['Dividends_Paid_Billions_Formatted'] = shareholder_data['Dividends_Paid_Billions'].apply(format_currency)
-shareholder_data['Share_Buybacks_Billions_Formatted'] = shareholder_data['Share_Buybacks_Billions'].apply(format_currency)
+    **Profitability & Margins:**
+    - **Gross Margin:** Typically high (~80%) due to the proprietary nature of pharmaceuticals, but can be pressured by product mix, generics competition, and pricing negotiations.
+    - **R&D Investment:** AZN reinvests heavily in R&D (~20-25% of revenue) to fuel its pipeline, impacting short-term earnings but critical for long-term growth.
+    - **Operating Leverage:** As products scale, margins can expand, but ongoing investment in launches and pipeline limits near-term margin expansion.
 
-# Key Metrics Summary
-key_metrics_data = {
-    "Market Cap": "$150B",
-    "Revenue (2023)": "$93.1B",
-    "Net Income (2023)": "$7.5B",
-    "EPS (2023)": "$8.23",
-    "Operating Cash Flow (2023)": "$14.2B",
-    "Free Cash Flow (2023)": "$11.2B",
-    "Debt to Equity Ratio": "1.4x", # Illustrative
-    "Dividend Yield": "4.0%",
-    "P/E Ratio": "18.2x", # Illustrative
-}
+    **Cash Flow & Capital Allocation:**
+    - **Strong Operating Cash Flow:** Supports dividend payments, share buybacks, and business development.
+    - **Dividend Policy:** Known for a progressive dividend policy, appealing to income-focused investors.
+    - **M&A Activity:** Strategic acquisitions (e.g., Alexion in 2021 for $39B) enhance therapeutic reach (rare diseases) but increase leverage and integration complexity.
+    """)
 
-# --- Sidebar ---
-st.sidebar.title("IBM Financial Analysis")
-st.sidebar.markdown("---")
-st.sidebar.header("Sections")
-st.sidebar.markdown("[1. Overview](#overview)")
-st.sidebar.markdown("[2. Key Financial Metrics](#key-financial-metrics)")
-st.sidebar.markdown("[3. Revenue & Business Segments](#revenue--business-segments)")
-st.sidebar.markdown("[4. Profitability Analysis](#profitability-analysis)")
-st.sidebar.markdown("[5. Cash Flow Generation](#cash-flow-generation)")
-st.sidebar.markdown("[6. Shareholder Returns](#shareholder-returns)")
-st.sidebar.markdown("[7. Market Dependencies & Sector Connections](#market-dependencies--sector-connections)")
-st.sidebar.markdown("[8. Competitor Landscape](#competitor-landscape)")
-st.sidebar.markdown("[9. Economic Factors & Risks](#economic-factors--risks)")
-st.sidebar.markdown("[10. Conclusion & Outlook](#conclusion--outlook)")
+    # Section 2: Market Dependencies & Risks
+    create_section_header("2. Market Dependencies & Risks")
+    st.markdown("""
+    **Regulatory Environment:**
+    - **FDA (US), EMA (EU), NMPA (China):** Drug approvals, label expansions, and safety monitoring are critical. Regulatory setbacks can significantly impact stock performance.
+    - **Pricing & Reimbursement:** Increasing pressure from governments and payers, especially in the US (Medicare drug price negotiation under the Inflation Reduction Act) and Europe, can affect pricing power.
 
-st.sidebar.markdown("---")
-st.sidebar.header("About")
-st.sidebar.info(
-    "This app provides a financial analysis of IBM (International Business Machines Corporation) "
-    "based on the provided text. It aims to extract key metrics, visualize performance, "
-    "and summarize important aspects of its business ecosystem. "
-    "Please note that the data presented here is illustrative and for demonstration purposes."
-)
+    **Patent Expirations:**
+    - **Key Patents:** Loss of exclusivity (LOE) for major drugs (e.g., Nexium, Crestor in past years) leads to generic competition and revenue erosion. Ongoing pipeline innovation is essential to offset this.
 
-# --- Main Content ---
+    **Clinical Trial Outcomes:**
+    - **Pipeline Success/Failure:** Positive Phase III data (e.g., recent successes in oncology) can drive stock upside, while failures lead to sharp declines. The market closely monitors trial readouts.
+    """)
 
-st.title("IBM (International Business Machines Corporation) - Financial Analysis")
-st.markdown("---")
+    # Section 3: Sector Connections & Competitor Relationships
+    create_section_header("3. Sector Connections & Competitor Relationships")
+    st.markdown("""
+    **Therapeutic Area Competition:**
+    - **Oncology:** Competes with **Merck (MRK)** (Keytruda), **Bristol-Myers Squibb (BMY)** (Opdivo), **Roche (RHHBY)**, and **Pfizer (PFE)**. AZN’s focus on targeted therapies (e.g., Tagrisso for EGFR-mutated NSCLC) creates both competition and collaboration opportunities.
+    - **CVRM & Diabetes:** Faces **Novo Nordisk (NVO)** and **Eli Lilly (LLY)** in diabetes/Obesity, and **Novartis (NVS)** in cardiovascular. Farxiga competes with Jardiance (Boehringer Ingelheim/Eli Lilly) in heart failure/CKD.
+    - **Respiratory:** Competes with **GSK** and **Sanofi** in asthma/COPD.
+    - **Rare Diseases (post-Alexion):** Competes with **Roche, Takeda, and Biogen** in complement-mediated diseases.
 
-# --- Overview Section ---
-st.header("1. Overview")
-st.markdown(wrap_text(
-    "IBM is a mature technology and consulting company with a long history. Its strategic focus has shifted "
-    "towards **hybrid cloud, Artificial Intelligence (AI), and enterprise software/services**. "
-    "Key business segments include Cloud & Cognitive Software, Consulting, and Infrastructure. "
-    "The company aims to leverage its acquisition of Red Hat to lead in the hybrid cloud market."
-))
-st.markdown("---")
+    **Collaborations & Partnerships:**
+    - **Daiichi Sankyo:** Landmark partnership for Enhertu (HER2-targeting ADC) in oncology, with significant revenue-sharing.
+    - **Oxford University:** COVID-19 vaccine collaboration.
+    - **Small Biotech Alliances:** Frequent partnerships to access innovative early-stage assets (e.g., with Ionis Pharmaceuticals in CVRM).
+    """)
 
-# --- Key Financial Metrics Section ---
-st.header("2. Key Financial Metrics")
-st.markdown("Below is a summary of IBM's key financial metrics (illustrative data).")
+    # Section 4: Economic & Macroeconomic Factors
+    create_section_header("4. Economic & Macroeconomic Factors")
+    st.markdown("""
+    **Global Economic Health:**
+    - **Recession Resilience:** Pharmaceuticals are generally defensive, but economic downturns can pressure healthcare budgets and affect drug pricing/access.
+    - **Inflation:** Impacts manufacturing costs, R&D expenses, and supply chain logistics. AZN’s pricing power can partially offset this.
 
-# Display key metrics in a structured way
-cols = st.columns(3)
-for i, (metric, value) in enumerate(key_metrics_data.items()):
-    with cols[i % 3]:
-        st.metric(label=metric, value=value)
+    **Currency Exchange Rates:**
+    - As a UK-domiciled company reporting in USD, **GBP/USD fluctuations** significantly impact translated revenues and earnings. A weaker GBP boosts reported results from international sales.
 
-st.markdown("---")
+    **Interest Rates:**
+    - Higher rates increase the cost of debt, affecting AZN’s financing costs for M&A and capital projects. They also impact valuation multiples for growth stocks, including biopharma.
 
-# --- Revenue & Business Segments Section ---
-st.header("3. Revenue & Business Segments")
-st.markdown(wrap_text(
-    "IBM's revenue is diversified across several segments, with a strategic push towards higher-margin "
-    "software and consulting services. Recurring revenue from software subscriptions is a key focus for "
-    "stability and predictability. The shift post-Red Hat acquisition has significantly boosted its hybrid cloud and "
-    "open-source footprint."
-))
+    **Geopolitical Factors:**
+    - **US-China Tensions:** AZN’s significant sales in China (~13% of revenue) could be affected by trade policies or IP disputes.
+    - **Brexit:** Ongoing regulatory divergence between the UK and EU may create operational complexities.
+    """)
 
-# Create and display revenue chart
-revenue_fig = create_revenue_chart(revenue_data_2023)
-st.plotly_chart(revenue_fig, use_container_width=True)
+    # Section 5: ESG & Societal Factors
+    create_section_header("5. ESG & Societal Factors")
+    st.markdown("""
+    **Environmental:** Focus on reducing carbon footprint and sustainable manufacturing.
+    **Social:** Drug pricing ethics, access to medicines in low-income countries, and diversity in clinical trials.
+    **Governance:** Strong board oversight, but executive compensation and M&A decisions (like Alexion’s premium) are scrutinized.
+    """)
 
-st.markdown("#### Revenue Breakdown Highlights (Illustrative 2023 Data):")
-for index, row in revenue_data_2023.iterrows():
-    st.markdown(f"- **{row['Segment']}**: {row['Revenue_Billions_Formatted']} (Approx. {row['Revenue_Billions']/revenue_data_2023['Revenue_Billions'].sum()*100:.1f}%)")
+    # Section 6: Stock Performance Drivers
+    create_section_header("6. Stock Performance Drivers")
+    st.markdown("""
+    - **Earnings Reports:** Quarterly revenue/earnings beats or misses, especially guidance updates.
+    - **Pipeline Milestones:** Clinical trial results, regulatory submissions, and approvals.
+    - **M&A Rumors/Deals:** Speculation or announcements of acquisitions.
+    - **Macro Sentiment:** Sector rotation (into/out of healthcare), interest rate expectations, and currency moves.
+    """)
 
-st.markdown("---")
+    st.header("Conclusion")
+    st.markdown("""
+    AstraZeneca operates in a complex ecosystem where **innovation (R&D productivity), regulatory navigation, and competitive dynamics** are paramount. Its transition to a biopharma leader with a robust oncology and CVRM portfolio, supplemented by strategic M&A (Alexion), positions it for growth, but not without risks. Investors must monitor:
+    1. **Pipeline execution** and clinical trial outcomes.
+    2. **Pricing pressures** from US and international payers.
+    3. **Currency and macroeconomic headwinds**.
+    4. **Competitive threats** in key therapeutic areas.
 
-# --- Profitability Analysis Section ---
-st.header("4. Profitability Analysis")
-st.markdown(wrap_text(
-    "IBM's profitability is closely watched, with analysts focusing on gross and operating margins across its segments. "
-    "The increasing contribution of high-margin software and consulting, along with operational efficiencies, "
-    "has been a driver for improved profitability."
-))
+    AZN’s defensive qualities (dividend, essential medicines) provide stability, while its growth pipeline offers upside, making it a **core holding in global healthcare portfolios**, albeit with sector-specific volatility.
+    """)
 
-# Create and display profitability chart
-profitability_fig = create_profitability_chart(profitability_data)
-st.plotly_chart(profitability_fig, use_container_width=True)
-
-st.markdown("#### Profitability Trend Insights:")
-for index, row in profitability_data.iterrows():
-    st.markdown(f"- **{row['Year']}**: Gross Margin: {row['Gross_Margin_Formatted']}, Operating Margin: {row['Operating_Margin_Formatted']}")
-
-st.markdown("---")
-
-# --- Cash Flow Generation Section ---
-st.header("5. Cash Flow Generation")
-st.markdown(wrap_text(
-    "IBM is known for its strong cash flow generation, a critical component for funding its operations, "
-    "dividends, share buybacks, and strategic investments. Free Cash Flow (FCF) is a key metric "
-    "indicating cash available after capital expenditures."
-))
-
-# Create and display cash flow chart
-cashflow_fig = create_cashflow_chart(cashflow_data)
-st.plotly_chart(cashflow_fig, use_container_width=True)
-
-st.markdown("#### Cash Flow Highlights:")
-for index, row in cashflow_data.iterrows():
-    st.markdown(f"- **{row['Year']}**: Operating Cash Flow: {row['Operating_Cash_Flow_Billions_Formatted']}, Free Cash Flow: {row['Free_Cash_Flow_Billions_Formatted']}")
-
-st.markdown("---")
-
-# --- Shareholder Returns Section ---
-st.header("6. Shareholder Returns")
-st.markdown(wrap_text(
-    "IBM has a long history of returning capital to shareholders through consistent dividends and share buybacks. "
-    "Its status as a 'dividend aristocrat' underscores its commitment to income-focused investors."
-))
-
-# Create and display shareholder returns chart
-shareholder_fig = create_shareholder_return_chart(shareholder_data)
-st.plotly_chart(shareholder_fig, use_container_width=True)
-
-st.markdown("#### Shareholder Return Highlights:")
-for index, row in shareholder_data.iterrows():
-    st.markdown(f"- **{row['Year']}**: Dividends Paid: {row['Dividends_Paid_Billions_Formatted']}, Share Buybacks: {row['Share_Buybacks_Billions_Formatted']}")
-
-st.markdown("---")
-
-# --- Market Dependencies & Sector Connections Section ---
-st.header("7. Market Dependencies & Sector Connections")
-st.markdown(wrap_text(
-    "IBM's business is deeply influenced by enterprise IT spending cycles, the pace of digital transformation, "
-    "and the adoption of hybrid cloud and AI technologies. It operates within sectors like Software, IT Consulting, "
-    "and Infrastructure, facing competition from major tech players."
-))
-st.markdown("Key dependencies include:")
-st.markdown("- **Enterprise IT Spending**: Directly impacts demand for IBM's solutions.")
-st.markdown("- **Hybrid Cloud & AI Adoption**: Primary growth drivers for its strategic pivot.")
-st.markdown("- **Digital Transformation Trends**: Fuels demand for consulting and modernization services.")
-st.markdown("- **Regulated Industries**: IBM targets sectors like financial services and healthcare, where its trust and hybrid cloud focus are advantageous.")
-st.markdown("---")
-
-# --- Competitor Landscape Section ---
-st.header("8. Competitor Landscape")
-st.markdown(wrap_text(
-    "IBM faces a diverse set of competitors. In cloud and AI, it competes with hyperscalers like AWS, Microsoft Azure, "
-    "and Google Cloud, though its hybrid approach offers differentiation. In consulting, it contends with firms "
-    "like Accenture and Deloitte. Specialized competition exists in software (Microsoft, Oracle, SAP) and infrastructure (HPE, Dell)."
-))
-st.markdown("Key competitor categories:")
-st.markdown("- **Hyperscalers**: AWS, Microsoft Azure, Google Cloud (indirect competition for cloud workloads).")
-st.markdown("- **Enterprise Software & AI**: Microsoft, Oracle, SAP, Salesforce.")
-st.markdown("- **IT Services & Consulting**: Accenture, Deloitte, Capgemini, Cognizant.")
-st.markdown("- **Infrastructure**: HPE, Dell Technologies.")
-st.markdown("The Red Hat acquisition enhances its position in open-source and hybrid cloud platforms.")
-st.markdown("---")
-
-# --- Economic Factors & Risks Section ---
-st.header("9. Economic Factors & Risks")
-st.markdown(wrap_text(
-    "IBM's performance is sensitive to macroeconomic conditions. Global economic growth, interest rates, "
-    "inflation, and geopolitical stability can significantly impact enterprise spending, borrowing costs, "
-    "and supply chains. Regulatory changes related to data privacy and sovereignty also play a crucial role."
-))
-st.markdown("Key factors and risks:")
-st.markdown("- **Macroeconomic Headwinds**: Slowdowns can affect IT budgets and project timelines.")
-st.markdown("- **Interest Rate Sensitivity**: Impacts borrowing costs and client financing.")
-st.markdown("- **Currency Fluctuations**: As a global company, FX rates affect reported earnings.")
-st.markdown("- **Geopolitical Instability & Trade Policies**: Can disrupt operations and international sales.")
-st.markdown("- **Regulatory Landscape**: Data privacy, sovereignty, and compliance requirements.")
-st.markdown("- **Competitive Pressure**: Intense competition from hyperscalers and other tech giants.")
-st.markdown("- **Execution Risk**: Successfully executing its hybrid cloud and AI strategy is paramount.")
-st.markdown("---")
-
-# --- Conclusion & Outlook Section ---
-st.header("10. Conclusion & Outlook")
-st.markdown(wrap_text(
-    "IBM is navigating a complex transition, aiming to re-establish growth through its hybrid cloud and AI strategy. "
-    "Its financial strength, characterized by robust cash flow and consistent shareholder returns, provides a solid foundation. "
-    "Success hinges on its ability to capture the enterprise AI market, drive adoption of its Red Hat-based solutions, "
-    "and manage the decline of legacy businesses effectively. While facing significant competition and macroeconomic uncertainties, "
-    "IBM's focus on hybrid cloud, enterprise trust, and AI integration positions it for continued relevance in the evolving tech landscape."
-))
-st.markdown("---")
-
-st.markdown("<p style='text-align: center; color: gray;'>© 2023 IBM Financial Analysis App | Data is illustrative and for educational purposes only.</p>", unsafe_allow_html=True)
+if __name__ == "__main__":
+    app()
