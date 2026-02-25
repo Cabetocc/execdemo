@@ -1,4 +1,5 @@
 ```python
+```python
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -480,4 +481,5 @@ NVDA's stock performance is closely tied to the sustained growth in AI investmen
 
 st.markdown("---")
 st.markdown("This analysis is based on information available up to June 2024. For the latest data, please refer to NVIDIA's official filings and earnings reports.")
+```
 ```
