@@ -4,7 +4,7 @@ import requests
 import time
 from pathlib import Path
 
-WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook/stock-analysis"
+WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook-test/stock-analysis"
 LATEST_FILE = Path("data/latest.md")
 
 def read_latest():
@@ -12,7 +12,7 @@ def read_latest():
         return ""
     return LATEST_FILE.read_text(encoding="utf-8")
 
-ticker = st.text_input("Enter stock ticker", value="NVDA").upper().strip()
+ticker = st.text_input("Enter stock ticker", value="?").upper().strip()
 generate = st.button("Generate")
 
 if generate:
