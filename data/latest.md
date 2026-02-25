@@ -1,7 +1,12 @@
 
-import streamlit as st
-import pandas as pd
-import altair as alt
+# import streamlit as st
+# import pandas as pd
+# import altair as alt
+
+## NVDA Summary
+- Main driver: AI data center demand
+- Key risks: export controls and hyperscaler custom chips
+- Watch: gross margin, data center growth, customer concentration
 
 # --- Page Configuration ---
 st.set_page_config(
