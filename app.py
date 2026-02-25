@@ -1,4 +1,23 @@
 import streamlit as st
+
+import requests
+import time
+
+WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook-test/stock-analysis"
+
+ticker = st.text_input("Enter stock ticker", value="NVDA").upper().strip()
+generate = st.button("Generate")
+
+if generate:
+    if not ticker:
+        st.warning("Please enter a ticker.")
+    else:
+        with st.spinner(f"Generating analysis for {ticker}..."):
+            requests.post(WEBHOOK_URL, json={"ticker": ticker}, timeout=30)
+            time.sleep(2)
+        st.rerun()
+
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
