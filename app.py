@@ -66,458 +66,625 @@ if generate:
 
 
 import pandas as pd
-import re
 import plotly.express as px
+import re
 
-# The complete financial analysis text
-ANALYSIS_TEXT = """
-Let's dive into a comprehensive financial ecosystem analysis of IBM (International Business Machines Corporation).
+# --- Configuration ---
+st.set_page_config(layout="wide", page_title="Nokia (NOK) Financial Analysis")
 
-## IBM (International Business Machines Corporation) Financial Ecosystem Analysis
+# --- Original Analysis Text ---
+# The complete financial analysis text is embedded here.
+analysis_text = """
+Let's dive into a comprehensive financial analysis of Nokia (NOK).
 
-IBM is a long-standing technology giant with a complex and evolving business model. Its financial ecosystem is shaped by a combination of internal strategic shifts, industry-wide trends, competitive pressures, and broader macroeconomic forces.
+**I. Company Overview and Business Segments**
 
-### 1. Key Financial Relationships (Internal & Operational)
+Nokia is a Finnish multinational telecommunications, information technology, and consumer electronics company headquartered in Espoo, Finland. Its primary business revolves around providing network infrastructure and services to telecom operators and enterprises. The company has undergone significant strategic shifts over the years, moving away from its consumer mobile phone business (which was sold to Microsoft in 2014 and later licensed to HMD Global) to focus on B2B (business-to-business) solutions.
 
-*   **Revenue Streams:** IBM's revenue is diversified across several key segments:
-    *   **Hybrid Cloud:** This is IBM's strategic focus and a significant growth driver, encompassing Red Hat, cloud platform services, and consulting.
-    *   **Software:** Includes middleware, transaction processing software, and other enterprise software solutions.
-    *   **Consulting:** Leverages IBM's expertise to help clients with digital transformation, cloud adoption, and business process re-engineering.
-    *   **Infrastructure:** Includes mainframe systems, servers, and storage solutions, a more mature but still vital segment.
-*   **Profitability & Margins:**
-    *   **Gross Margins:** Vary significantly by segment. Software and consulting generally command higher gross margins than infrastructure.
-    *   **Operating Margins:** Influenced by R&D expenses, sales & marketing, and general & administrative costs. IBM's focus on higher-margin software and cloud services aims to improve overall operating margins.
-    *   **Net Income:** Affected by operational performance, interest expenses on debt, and taxes.
-*   **Capital Allocation:**
-    *   **R&D Investment:** Crucial for maintaining competitiveness in the rapidly evolving tech landscape, particularly in AI, quantum computing, and cloud technologies.
-    *   **Acquisitions:** Strategic acquisitions, like Red Hat, have been pivotal in reshaping IBM's portfolio and driving its hybrid cloud strategy.
-    *   **Share Buybacks & Dividends:** Historically, IBM has been a strong dividend payer, appealing to income-focused investors. While growth is the primary focus, capital returns remain a consideration.
-*   **Debt and Leverage:** IBM carries a significant amount of debt. Its ability to manage this debt through consistent cash flow generation is critical for financial stability and investor confidence. The interest coverage ratio is a key metric to monitor.
-*   **Cash Flow Generation:** IBM is known for its strong free cash flow generation, a testament to its established enterprise client base and diversified revenue. This cash flow is essential for funding R&D, acquisitions, and shareholder returns.
+Nokia's core business segments typically include:
 
-### 2. Market Dependencies
+*   **Network Infrastructure:** This is the largest segment and encompasses:
+    *   **Mobile Networks:** Providing 5G, 4G, and older radio access network (RAN) solutions, as well as core network equipment.
+    *   **Fixed Networks:** Offering broadband access (fiber optics), IP routing, and optical networking solutions.
+    *   **Cloud and Network Services:** Delivering software, AI, and analytics solutions for network management and optimization.
+*   **Nokia Technologies:** This segment focuses on patent licensing (including its vast intellectual property portfolio in mobile communication technologies) and intellectual property development.
+*   **Nokia Enterprise:** This segment targets non-telecom operators, offering connectivity solutions for industries like manufacturing, transportation, and energy.
 
-*   **Enterprise Spending Cycles:** IBM's revenue is highly dependent on the IT spending budgets of large enterprises. During economic downturns, these budgets can be cut, impacting IBM's sales. Conversely, in periods of economic growth and digital transformation initiatives, spending tends to increase.
-*   **Digital Transformation:** The ongoing trend of businesses digitizing their operations and migrating to cloud environments is a primary market driver for IBM's hybrid cloud and consulting segments.
-*   **AI and Automation Adoption:** The increasing adoption of Artificial Intelligence (AI) and automation technologies by businesses creates opportunities for IBM's software, consulting, and infrastructure solutions.
-*   **Cloud Computing Adoption (Hybrid & Multi-Cloud):** While hyperscalers dominate public cloud, IBM's focus on hybrid and multi-cloud solutions caters to enterprises that require flexibility, data sovereignty, and integration with on-premises systems.
-*   **Cybersecurity Needs:** As digital footprints expand, so do cybersecurity threats. This drives demand for IBM's security-related software and consulting services.
+**II. Key Financial Relationships and Metrics Analysis**
 
-### 3. Sector Connections
+To understand Nokia's financial health and performance, we'll examine several key financial relationships:
 
-*   **Technology Sector:** IBM is a foundational player in the broader technology sector, encompassing:
-    *   **Software:** Competing with established players and cloud-native companies.
-    *   **Cloud Computing:** Both public (indirectly) and private/hybrid cloud infrastructure and services.
-    *   **IT Services & Consulting:** A major segment, interacting with clients across all industries.
-    *   **Hardware:** Though its market share has shifted, it remains a player in enterprise servers and mainframes.
-*   **Business Services Sector:** The consulting arm places IBM firmly within the business services sector, offering strategic and operational advice to other corporations.
-*   **Telecommunications:** IBM's infrastructure and software solutions are vital for many telecommunications companies.
-*   **Financial Services:** This is a major customer base for IBM, utilizing its technology for core banking, trading, and data analytics.
+*   **Revenue Growth:** Nokia's revenue has been influenced by the cyclical nature of telecom capital expenditures, the transition to 5G, and competitive pressures. Investors will look for consistent or accelerating revenue growth, particularly in its core Network Infrastructure segment.
+*   **Profitability:**
+    *   **Gross Profit Margin:** Indicates efficiency in producing its network equipment and services. Improvements here suggest better cost management or pricing power.
+    *   **Operating Profit Margin (EBIT Margin):** Shows profitability from core operations. Volatility can arise from R&D investments, restructuring costs, or competitive pricing.
+    *   **Net Profit Margin:** The bottom line, reflecting overall profitability after all expenses, interest, and taxes.
+    *   **EBITDA (Earnings Before Interest, Taxes, Depreciation, and Amortization):** A useful metric for comparing profitability across companies and understanding operational cash flow generation potential.
+*   **Balance Sheet Strength:**
+    *   **Debt-to-Equity Ratio:** Measures financial leverage. A high ratio can indicate higher risk, while a low ratio suggests financial stability. Nokia has historically managed its debt levels, but significant acquisitions or market downturns can impact this.
+    *   **Current Ratio and Quick Ratio:** Assess short-term liquidity, indicating the company's ability to meet its immediate obligations.
+    *   **Cash Flow from Operations:** Crucial for funding R&D, capital expenditures, and dividends (if applicable). Strong positive cash flow is a sign of a healthy business.
+    *   **Free Cash Flow (FCF):** Cash flow available after capital expenditures. This is a key indicator of a company's ability to return value to shareholders or reinvest in the business.
+*   **Valuation Metrics:**
+    *   **Price-to-Earnings (P/E) Ratio:** Compares Nokia's stock price to its earnings per share. A high P/E might suggest investor optimism or overvaluation, while a low P/E could indicate undervaluation or underlying concerns.
+    *   **Price-to-Sales (P/S) Ratio:** Useful for companies with inconsistent earnings. It indicates how much investors are willing to pay for each dollar of sales.
+    *   **Enterprise Value to EBITDA (EV/EBITDA):** A common valuation metric in the telecom infrastructure space, providing a more comprehensive view than P/E by including debt and cash.
+    *   **Dividend Yield (if applicable):** While Nokia has historically paid dividends, its policy can change. Investors consider this for income generation.
 
-### 4. Competitor Relationships
+**III. Market Dependencies and Sector Connections**
 
-IBM operates in a highly competitive landscape. Its key competitors vary by business segment:
+Nokia operates within a highly dynamic and interconnected ecosystem:
 
-*   **Hybrid Cloud:**
-    *   **Microsoft (Azure):** Strong hybrid cloud offerings and a deep enterprise relationship.
-    *   **Amazon Web Services (AWS):** Dominant in public cloud, but also offers hybrid solutions.
-    *   **Google Cloud Platform (GCP):** Growing rapidly with strong AI and data analytics capabilities.
-    *   **Oracle:** Offers cloud infrastructure and a strong software suite.
-    *   **VMware:** A key player in virtualization and hybrid cloud management.
-*   **Software:**
-    *   **Microsoft (Office, Dynamics, Azure services):** Direct competitor in many enterprise software categories.
-    *   **SAP:** Dominant in enterprise resource planning (ERP) and business intelligence.
-    *   **Oracle:** Strong in database and enterprise applications.
-    *   **Salesforce:** Leading CRM provider.
-    *   **Various specialized software vendors:** Depending on the specific software category (e.g., security, data analytics).
-*   **Consulting:**
-    *   **Accenture:** A direct and major competitor in IT consulting and digital transformation.
-    *   **Deloitte, PwC, EY, KPMG (Big Four):** Strong consulting arms that compete across various IT and business advisory services.
-    *   **Capgemini, Cognizant, Wipro, TCS:** Other large IT services and consulting firms.
-*   **Infrastructure:**
-    *   **Dell Technologies, HP Enterprise:** Competitors in servers and storage.
-    *   **Mainframe Market:** IBM is a dominant player, but the overall market is niche and faces competition from alternative architectures.
+*   **Telecommunications Operators (Telcos):** This is Nokia's primary customer base (e.g., AT&T, Verizon, Vodafone, Deutsche Telekom). Their capital expenditure cycles, investment decisions in new network technologies (like 5G and fiber), and regulatory environments directly impact Nokia's sales.
+*   **5G Rollout:** The global deployment of 5G technology is a major driver for Nokia. The pace of this rollout, including government initiatives and operator investment, significantly influences demand for Nokia's RAN, core network, and fiber solutions.
+*   **Broadband Expansion:** The increasing demand for high-speed internet, especially in residential and enterprise settings, fuels demand for Nokia's fixed network products.
+*   **Cloud and Software Services:** As telcos embrace virtualization and cloud-native architectures, demand for Nokia's software, AI, and analytics solutions grows. This also links Nokia to the broader cloud computing and enterprise software markets.
+*   **Semiconductor and Component Suppliers:** Nokia relies on a complex supply chain for essential components like chips. Disruptions in this supply chain (e.g., chip shortages) can impact production and profitability.
+*   **Content Providers and OTT Services:** While not direct customers, the growth of streaming services and online content drives demand for greater network capacity, indirectly benefiting Nokia.
 
-IBM's strategy often involves leveraging its deep existing enterprise relationships and its comprehensive portfolio (software, hardware, services) to offer integrated solutions, differentiating it from more specialized competitors.
+**IV. Competitor Relationships**
 
-### 5. Economic Factors
+The telecommunications infrastructure market is highly competitive. Nokia's main rivals include:
 
-*   **Global Economic Growth/Recession:** Directly impacts enterprise IT spending. A strong economy fuels investment in new technologies and digital transformation, benefiting IBM. A recession leads to budget cuts and delayed projects.
-*   **Interest Rates:** Higher interest rates increase the cost of borrowing, affecting companies with significant debt like IBM, and can also dampen overall business investment.
-*   **Inflation:** Can increase operating costs for IBM and its clients, potentially impacting margins. However, IBM's pricing power in some software segments might allow it to pass on some costs.
-*   **Geopolitical Stability:** Global conflicts or trade tensions can disrupt supply chains, impact international sales, and create uncertainty, leading enterprises to be more cautious with their IT investments.
-*   **Currency Fluctuations:** As a global company, IBM's earnings are affected by the strength and weakness of various currencies relative to the US dollar.
-*   **Technological Advancements (Pace of Innovation):** Rapid advancements in AI, quantum computing, and cloud technologies create both opportunities and threats. Companies that fail to innovate quickly risk becoming obsolete. IBM's significant R&D investment is a response to this factor.
-*   **Regulatory Environment:** Data privacy regulations (e.g., GDPR, CCPA), antitrust scrutiny of tech giants, and export controls can all impact IBM's operations and strategic decisions.
+*   **Ericsson (ERIC):** A direct competitor across most of Nokia's product lines, particularly in mobile networks and managed services.
+*   **Huawei (HWP):** A dominant player globally, though its market share in certain Western markets has been impacted by geopolitical concerns and sanctions. Huawei remains a formidable competitor in many regions.
+*   **ZTE (0763.HK):** Another Chinese competitor, offering a broad range of telecom equipment.
+*   **Samsung (005930.KS):** Increasingly a significant player in the 5G RAN market, challenging established players.
+*   **Cisco Systems (CSCO):** A strong competitor in the IP routing and optical networking space, especially for enterprise and service provider backhaul.
+*   **Juniper Networks (JNPR):** Another key player in routing and switching.
+*   **Alcatel-Lucent (now part of Nokia):** Historically a major competitor, its acquisition by Nokia consolidated the market.
 
-### Conclusion: IBM's Financial Ecosystem
+Nokia's success depends on its ability to innovate, maintain competitive pricing, build strong customer relationships, and navigate complex geopolitical landscapes that can favor or hinder specific competitors.
 
-IBM operates within a mature yet dynamically evolving technological landscape. Its **strategic pivot towards hybrid cloud and AI** is crucial for navigating the intense competition and dependency on enterprise spending cycles. The **acquisition of Red Hat** was a landmark move to strengthen its hybrid cloud position.
+**V. Economic Factors Impacting Nokia**
 
-IBM's **financial health is anchored by its strong free cash flow generation and its established relationships with a vast enterprise client base**. However, it must continuously manage its **significant debt burden** and demonstrate consistent growth in its strategic segments to justify its valuation and appeal to investors.
+Several macroeconomic and geopolitical factors can influence Nokia's performance:
 
-The company's **competitors are formidable**, spanning cloud giants, specialized software vendors, and large consulting firms. IBM's success hinges on its ability to leverage its integrated portfolio and deep industry expertise to provide differentiated value.
+*   **Global Economic Growth:** A strong global economy generally leads to increased demand for telecommunications services, driving telco investment and thus Nokia's sales. Economic downturns can lead to reduced CapEx by operators.
+*   **Interest Rates:** Higher interest rates can increase the cost of capital for both Nokia and its customers, potentially slowing down investment decisions.
+*   **Inflation:** Rising input costs (labor, raw materials, components) due to inflation can pressure Nokia's profit margins if it cannot pass these costs on to its customers.
+*   **Currency Fluctuations:** As a Finnish company with global operations, Nokia is exposed to currency risks. For example, a strong Euro can make its products more expensive for customers using other currencies, impacting sales volume and profitability.
+*   **Government Policies and Regulations:**
+    *   **Spectrum Auctions:** Government decisions on allocating radio spectrum for 5G and future technologies directly impact the urgency and scale of operator investments.
+    *   **Geopolitical Tensions and Trade Policies:** Restrictions or bans on specific vendors (like Huawei) can create opportunities for Nokia in some markets but can also lead to retaliatory measures or supply chain disruptions. Government support for domestic technology also plays a role.
+    *   **National Security Concerns:** In some countries, concerns about the security of network infrastructure can influence vendor selection, leading to increased scrutiny and potential shifts in market share.
+*   **Technological Disruption:** Rapid advancements in areas like AI, quantum computing, and new communication protocols could necessitate significant R&D investments and strategic shifts.
+*   **Capital Expenditure Cycles of Telcos:** The telecommunications industry is characterized by large, cyclical capital expenditures as operators upgrade their networks. Nokia's performance is heavily tied to these cycles.
 
-Finally, **macroeconomic conditions and the relentless pace of technological innovation** are constant external forces that IBM must adeptly respond to. Its ability to adapt, innovate, and execute its hybrid cloud strategy will be paramount to its continued relevance and financial success in the coming years.
+**VI. SWOT Analysis (Summary of Strengths, Weaknesses, Opportunities, Threats)**
+
+*   **Strengths:**
+    *   Strong patent portfolio and IP leadership.
+    *   Established customer relationships with major telcos.
+    *   Comprehensive product and service offering across mobile and fixed networks.
+    *   Global presence and service capabilities.
+    *   Experience and expertise in network technologies.
+*   **Weaknesses:**
+    *   Profitability has been inconsistent in the past due to restructuring and competition.
+    *   Reliance on large, cyclical telco CapEx.
+    *   Intense competition, particularly from Huawei.
+    *   Potential challenges in adapting quickly to new market trends or technological shifts.
+*   **Opportunities:**
+    *   Continued global 5G and future 6G network deployments.
+    *   Growth in enterprise private networks.
+    *   Expansion of broadband access (fiber, fixed wireless access).
+    *   Increasing demand for network software, AI, and cloud solutions.
+    *   Potential market share gains from competitor restrictions.
+*   **Threats:**
+    *   Intensifying price competition.
+    *   Geopolitical risks and trade wars impacting market access.
+    *   Rapid technological obsolescence requiring constant R&D.
+    *   Supply chain disruptions.
+    *   Potential for regulatory changes impacting network deployment or vendor choices.
+
+**Conclusion**
+
+Nokia operates in a crucial but highly competitive and evolving sector. Its financial ecosystem is tightly linked to the capital expenditure cycles of telecommunications operators, the pace of 5G and broadband deployments, and global economic and geopolitical conditions. While Nokia has strengths in its technological capabilities and customer base, it faces significant challenges from intense competition and the need for continuous innovation. Investors scrutinize its revenue growth, profitability, and cash flow generation, while also considering the broader market dynamics, its competitive positioning, and the impact of economic and political forces. The company's ability to successfully navigate these factors will determine its future financial performance and shareholder value.
 
 ---
 
-Below is a comprehensive, practical view of IBM’s financial ecosystem: the company’s core revenue relationships, market dependencies, sector and competitor linkages, strategic partnerships, macro and regulatory drivers, and the key financial metrics and risks investors should watch.
+Below is a structured, comprehensive view of Nokia (ticker: NOK) and the financial ecosystem that drives its business and stock performance. I cover business structure and revenue drivers, supplier/customer relationships, competitive landscape, sector and technology dependencies, macro & regulatory influences, key financial/operational metrics to watch, and principal risks and opportunities.
 
-Company overview and strategic pillars
-- Business model: enterprise software, IT infrastructure (hardware, systems), and professional services/consulting. IBM’s strategic focus for the last several years has been on higher‑margin software and hybrid‑cloud + AI services (Red Hat integration, watsonx, managed services), after spinning off Kyndryl (managed infrastructure services).
-- Revenue mix (structural): recurring software/subscription and support; professional services (consulting, integration); infrastructure (mainframes, servers, storage); financing and other. The company aims to grow software/recurring revenue share and monetize AI/hybrid-cloud enterprise workloads.
+1) Business overview — revenue streams and segments
+- Core businesses: Networks (radio access, IP/optical, core, and associated services & software) is the largest revenue source; Nokia Technologies (patent licensing, IP, and some tech products) provides recurring but lumpy licensing income; Cloud & Network Services, and enterprise/private networks are other growth areas.
+- Revenue mix matters: hardware (RAN, optical) tends to be cyclical and lower margin; software/services and licensing are higher margin and more recurring. Shift toward software and services improves margin profile over time but requires execution.
 
-Key market dependencies and demand drivers
-- Corporate IT spending and digital transformation cycles: IBM’s top-line moves with enterprise IT budgets (banks, telcos, retail, manufacturing, government). Economic slowdown or IT budget freezes materially reduce consulting and transformation engagements.
-- Cloud adoption and hybrid cloud: growth depends on enterprises’ willingness to adopt hybrid/multi‑cloud architectures (on‑prem + private + public cloud). IBM’s Red Hat is a strategic asset here (OpenShift).
-- Enterprise AI spending: demand for AI model development, data platforms, model ops, and trusted/secure on‑prem or hybrid deployments drives software/service revenue if IBM can win enterprise AI deals.
-- Interest rates and cost of capital: impact IBM’s interest expense on outstanding debt and discount rates used by investors; higher rates also pressure corporate capex and M&A activity.
-- FX exposure: significant global revenue leads to sensitivity to USD strength (strong USD depresses reported revenue when converted).
+2) Customers and demand drivers
+- Primary customers: global mobile network operators (MNOs) — e.g., AT&T, Verizon, T‑Mobile, Vodafone, Deutsche Telekom, China Mobile, BT — plus some large enterprises and governments for private networks and critical infrastructure.
+- Demand cycles: carrier CAPEX cycles (driven by spectrum auctions, 4G/5G/6G rollouts, and refresh cycles) are the primary driver of bookings and revenue. Operator profitability/ARPU and their willingness to invest materially affect Nokia’s near-term performance.
+- Government and public-sector contracts: security-conscious nations (U.S., EU members) pick vendors based on policy considerations; Nokia benefits from “trusted vendor” procurement in Western markets.
 
-Sector connections and ecosystem
-- Open-source and middleware ecosystem: Red Hat (RHEL/OpenShift/Ansible) is central—ties to Kubernetes, Linux ecosystem, enterprise middleware (JBoss), and developer communities.
-- Hardware supply chain: mainframes (z Systems), Power systems, storage depend on semiconductor supply, vendor contracts (chip fabs, component suppliers).
-- Services ecosystem: consulting, system integrators, outsourcers (partners/resellers) — IBM both competes with and relies on partner channels to sell integrated solutions.
-- Data/security stack: integrations with databases, analytics, security vendors; regulatory compliance and data-residency needs favor hybrid approaches in some industries.
+3) Suppliers and supply-chain dependencies
+- Semiconductor suppliers: Nokia relies on third-party chips (baseband, RF components, switching/optical ASICs) from firms like Qualcomm, Broadcom, Marvell and fab capacity from TSMC/Intel/Samsung Foundry. Global chip availability and pricing affect deliveries and margins.
+- Optical and passive component supply chains (coherent optics, transceivers) are critical; component shortages or single-source constraints can delay rollouts.
+- Manufacturing and logistics: Nokia outsources components and some manufacturing, making it sensitive to global supply-chain disruptions, container freight costs, and geopolitical export controls.
 
-Primary competitors and positioning
-- Cloud providers: Amazon Web Services, Microsoft Azure, Google Cloud — dominate public cloud and attract greenfield workloads. IBM is smaller but competes in hybrid/multi‑cloud and regulated workloads.
-- Enterprise software vendors: Oracle, SAP, Microsoft (Dynamics/SQL/Power Platform), VMware — competing in enterprise apps, databases, virtualization, and cloud stacks.
-- IT services & consulting firms: Accenture, Capgemini, Cognizant, TCS, DXC — compete for large transformation/outsourcing contracts.
-- Hardware/Solutions vendors: Hewlett Packard Enterprise, Dell EMC, Cisco, Fujitsu — competing in servers, storage, networking and infrastructure.
-- Cloud-native entrants & SaaS specialists: numerous vertical SaaS and cloud‑native platforms taking share of new workloads.
-- IBM’s advantage: legacy enterprise relationships, Red Hat’s open-source credibility and hybrid-cloud tech, industry-specific knowledge (financial services, telco), and deep security/regulated-market experience. Weaknesses: smaller public-cloud scale, legacy business tail (mainframes), and previous execution challenges with AI products.
+4) Competitive landscape
+- Direct public competitors: Ericsson (ERIC) — closest peer in global RAN and services; Ciena (CIEN) and Juniper/Cisco (CI/Cisco) — compete in optical/IP routing and service provider domains.
+- Private/low-cost competitors: Huawei and ZTE dominate many emerging markets on price and vertical integration (Huawei especially); restrictions on Huawei in the U.S./parts of Europe create opportunities for Nokia and Ericsson.
+- New/Open-RAN entrants: Mavenir, Rakuten Symphony, Altiostar and other software-focused vendors challenge traditional vendors in O-RAN and virtualized RAN deployments.
+- Cloud players: hyperscalers (AWS, Google Cloud, Microsoft) and cloud-native networking software vendors are increasingly relevant for core/cloudification and edge computing partnerships.
+- Competitive dynamics: price competition in mature markets, technological differentiation (energy efficiency, throughput, software features), and services execution determine market share.
 
-Strategic partnerships and alliances
-- Red Hat integration: core to IBM’s hybrid-cloud play—ties to Kubernetes/OpenShift, enterprise open-source ecosystems, and channel partners.
-- Technology partnerships: joint work with NVIDIA (AI infrastructure), major ISVs (SAP, Oracle) for co‑selling and certification, and industry-specific alliances (banks, telecoms).
-- Channel/partner network: global systems integrators, resellers, and MSPs that extend sales reach and deliver implementations.
+5) Technology & sector dependencies
+- 5G rollout: major growth driver. RAN, transport (IP/optical), core network virtualization, and managed services are tied to the pace of carrier 5G deployments, densification, and shift to cloud-native cores.
+- Open RAN movement: a structural trend that can lower barriers for new entrants and change vendor economics. Nokia participates in O-RAN but must balance revenue/profitability trade-offs vs traditional RAN.
+- Software/cloud transformation: transition to software-defined networking, virtualization and cloud-native architectures shifts revenue from hardware to subscription/software & services.
+- Edge computing, private networks, and industrial IoT: potential growth opportunities, particularly with enterprise and industrial customers.
+- Patent/IP (Nokia Technologies): 5G/4G patent portfolio generates licensing revenue; patents are strategic assets and provide recurring cash flow but are subject to disputes and renewals.
 
-Financial relationships and capital allocation
-- Revenue quality: mix trending toward higher‑margin, recurring software and subscription revenue, but services and systems still significant. Track recurring revenue % and multi‑year contract bookings.
-- Margins: software > services > hardware — continued shift to software should improve gross/operating margins if growth and pricing hold.
-- Cash flow: historically strong operating cash flow and free cash flow that supports dividends and buybacks. Capital allocation priorities include R&D, M&A (targeted, e.g., Red Hat), dividends, and buybacks.
-- Balance sheet: meaningful debt load at times from acquisitions; watch net debt / adjusted EBITDA and pension obligations (legacy defined‑benefit plans) for leverage and cash outflow risk.
-- Shareholder returns: historically consistent dividend payer (attractive yield vs. many tech companies) and opportunistic buybacks. Investors view IBM as income + value play transitioning to growth in software/AI.
+6) Macroeconomic, regulatory & geopolitical factors
+- Geopolitics & security policy: bans/restrictions on Huawei in Western markets are tailwinds. Export controls, trade tensions (US-China/EU-China), and sanctions can both help (by excluding rivals) and hurt (restricting supply sources).
+- Government subsidies and industrial policy: EU funding initiatives for secure networks and national subsidies for 5G can accelerate Nokia’s opportunities in Europe; CHIPS Act and related incentives may help semiconductors but changing supply incentives also affect component sourcing.
+- Interest rates & macro environment: higher interest rates increase discounting of future cash flows and pressure highly cyclical capex-dependent stocks. Carrier CAPEX can be delayed in periods of weak demand or macro uncertainty.
+- Currency exposure: Nokia reports in EUR but generates material revenue in USD and other currencies; FX moves affect reported revenue and margins.
+- Inflation and operator economics: operator willingness to invest depends on ARPU trends, inflation, and competitive pressure in consumer markets.
 
-Regulatory/legal and geopolitical factors
-- Data protection/privacy and localization laws: GDPR, sectoral regulations in finance/healthcare can favor IBM’s hybrid/on‑prem solutions.
-- Export controls and sanctions: AI compute, advanced chips, and software exports can be restricted; affects partnerships with certain customers or vendors.
-- Antitrust / M&A scrutiny: large deals (e.g., Red Hat) attract regulatory attention and require careful integration planning.
+7) Financial/operational metrics and relationships to monitor
+- Bookings / order intake and backlog: leading indicators of future revenue.
+- Book-to-bill ratio: shows demand vs delivery capacity.
+- Gross margin by segment: hardware vs software/services yields different margins; watch margin trends as mix shifts.
+- Services & software revenue percentage: higher mix implies more predictable, higher-margin revenue.
+- Nokia Technologies/licensing revenue and stability: licensing is lumpy but high-margin; contract renewals and settlements are material.
+- Operating margin, adjusted EBIT, free cash flow conversion: cash generation is vital for R&D, dividends, buybacks, and deleveraging.
+- Net debt / liquidity: cyclical downturns can pressure companies with high leverage.
+- R&D spend and CapEx: critical for long-term competitiveness in RAN, optical, and 6G research (including Bell Labs legacy).
+- Major contract wins/losses and pilot-to-commercial conversion (especially for Open RAN deployments).
+- Legal/IP outcomes: licensing disputes or settlements can materially swing Technology segment cashflows.
 
-Economic and macro sensitivities
-- Recession sensitivity: consulting and new projects often cut first in downturns; large renewal contracts and mission‑critical systems are stickier.
-- Interest rate cycles: higher rates increase financing costs and can depress enterprise capex; also pressure valuations.
-- Currency fluctuations: strong USD reduces reported international revenues; hedging strategies and geographic mix matter.
+8) Valuation/market relationships
+- Peer comparables: Ericsson, Ciena, Cisco, Juniper, and selected semiconductor suppliers. NOK’s multiples will be influenced by margin trends, growth visibility, and the split between one-time vs recurring revenues.
+- Sensitivity to sector rotation: Nokia tends to move with telecom equipment peers and the broader tech/hardware group; also sensitive to interest-rate changes because of cyclical nature.
 
-Key performance indicators (KPIs) to monitor
-- Revenue growth: overall and by segment (Cloud & Cognitive Software, Consulting/Services, Systems).
-- Red Hat revenue growth and OpenShift adoption metrics.
-- Recurring/contracted revenue % and subscription backlog.
-- Gross margin and operating margin trends (showing shift to software).
-- Free cash flow and operating cash conversion (FCF/Net income).
-- Net debt / EBITDA and pension funding status.
-- Large deal wins (multi‑year cloud/AI contracts) and retention of key legacy customers.
-- R&D and SG&A as % of revenue (investment vs. cost discipline).
-- Dividend coverage and buyback pace.
+9) Key opportunities
+- Faster 5G rollouts and network densification (small cells, mid-band mmWave) in Europe/North America.
+- Displacement of Huawei in Western-aligned and allied countries.
+- Growth in software, cloud, managed services, and private networks.
+- Open RAN adoption at scale (if Nokia can capture meaningful share via virtualized offerings and ecosystem partnerships).
+- Licensing and patent monetization, including new 5G/6G IP.
 
-Risks
-- Competitive pressure from hyperscalers and larger SaaS vendors eroding IBM’s addressable market share.
-- Execution risk integrating and monetizing Red Hat and new AI offerings (watsonx), and converting consulting engagements into recurring revenue.
-- Legacy mainframe business decline faster than growth in high-margin segments.
-- High leverage or pension drain limiting capital flexibility.
-- Technology shifts (cloud‑native, serverless) that reduce demand for integrated systems/large consult projects.
-- Regulatory hurdles or geopolitical restrictions that disrupt global operations.
+10) Principal risks
+- Intensifying price competition (especially from Huawei/ZTE where allowed), which can compress margins.
+- Delays or cutbacks in carrier CAPEX due to macro weakness or poor operator economics.
+- Supply-chain disruptions and semiconductor shortages or price inflation.
+- Execution risk on software transition and integrating acquisitions.
+- Regulatory and geopolitical shifts (e.g., sudden policy reversals or new export controls) that could restrict markets or inputs.
+- Lumpy licensing revenue and legal outcomes affecting cash flow predictability.
 
-Opportunities
-- Enterprise AI and hybrid-cloud adoption: IBM can sell AI platforms (watsonx), model ops, data governance, and trusted AI to regulated industries.
-- Migration and modernization projects for large enterprises moving to hybrid architectures—Red Hat+IBM consulting can capture significant deal value.
-- High-margin software subscriptions and SaaS conversions improving margins and predictability.
-- Strategic partnerships with GPU/AI suppliers (e.g., NVIDIA) and ISVs to capture AI infrastructure + software revenue.
-- Cost savings and portfolio pruning following Kyndryl spin and focus on core software/services.
-
-Scenario framing (simple)
-- Bull case: successful monetization of Red Hat + watsonx, strong enterprise AI adoption, margin expansion from software mix, continuing strong cash flow funds dividends and buybacks — equity re‑rating.
-- Base case: modest software growth offsetting declines in legacy segments, slow but steady margin improvement, steady cash returns to shareholders.
-- Bear case: hyperscalers win hybrid/cloud AI deals, IBM’s offerings underperform, legacy declines accelerate, meaningfully lower revenue and pressure on margins and cash flow.
-
-Practical investor checklist (what to watch next)
-- Quarterly revenue and margin breakdown by segment; Red Hat growth rate.
-- Announcements of multi‑year cloud/AI contracts or industry-specific wins.
-- Trends in recurring revenue / subscription bookings and retention rates.
-- Changes in net debt, pension cash requirements, and free cash flow.
-- Guidance on capital allocation: dividend policy and share repurchase programs.
-- Management commentary on competitive wins vs. AWS/Azure/GCP and partner strategy.
-- Macro indicators: enterprise IT spend surveys, interest rates, and currency moves.
+11) Practical monitoring checklist for investors
+- Quarterly/annual filings: bookings, backlog, segment revenue (Networks vs Technologies), gross margins, operating cash flow, net debt.
+- Major contract announcements (wins with tier-1 carriers) and geographic mix of those wins.
+- Progress and wins in Open RAN and cloud-native core deployments.
+- Patent licensing deal updates and material settlements.
+- R&D spend trajectory and CapEx guidance.
+- Analyst guidance vs bookings and book-to-bill trends.
+- Macro indicators: carrier capex guidance, spectrum auctions scheduled in major markets, regulatory headwinds/benefits in EU/US/Asia.
+- Competitor earnings/capital deployment — particularly Ericsson and Ciena — for relative performance and pricing trends.
 
 Summary
-IBM sits at the intersection of legacy enterprise IT (mainframes, services) and the future of hybrid-cloud + enterprise AI. Its financial ecosystem is shaped by large enterprise customer relationships, Red Hat’s open-source stack, competition from hyperscalers and global consultancies, and macro forces that drive IT budgets. The investment thesis rests on IBM’s ability to convert its installed base and Red Hat platform into recurring, high‑margin software and AI revenue while managing legacy decline and leverage. Key metrics to watch: software/recurring revenue growth, margins, free cash flow, net debt/pension trends, and large AI/cloud contract wins.
+Nokia’s performance is driven by global carrier CAPEX cycles, competitive dynamics between Ericsson/Huawei/Samsung and emerging Open RAN vendors, semiconductor and component supply conditions, and regulatory/geopolitical shifts that reshape market access. The company’s long-term path depends on its ability to increase higher-margin software and services revenue, convert RAN technology wins into scale (including Open RAN), and protect/monetize its IP portfolio — all while managing execution, supply-chain and pricing pressures. For investment decisions, focus on bookings/book-to-bill, margin mix evolution, free cash flow and licensing trends, and major contract pipelines as the principal leading indicators.
+
+If you’d like, I can:
+- Pull together a comparable peer set and a tailored set of KPIs to track weekly/quarterly,
+- Draft an investor monitoring dashboard of the 8–10 most actionable metrics,
+- Or analyze a recent quarterly report (you can paste the key numbers) and map them into the framework above.
 
 ---
 
-Of course. As a financial analysis expert, here is a comprehensive ecosystem analysis of International Business Machines (IBM).
-
-### **Core Business & Strategic Identity**
-IBM has transformed from a hardware-centric "Big Iron" company into a hybrid technology and consulting powerhouse. Its current identity is built on two pillars:
-1.  **Hybrid Cloud & AI:** Primarily through its strategic acquisition of Red Hat, positioning it as a key player in open-source, multi-cloud environments.
-2.  **Enterprise Consulting & Software:** Providing mission-critical software and services to large, established corporations and governments.
-
-This shift is encapsulated in its spinoff of its legacy IT infrastructure services unit into **Kyndryl (KD)** in 2021, allowing IBM to focus on higher-growth, higher-margin areas.
+**Stock Analysis: Nokia Corporation (NOK)**  
 
 ---
 
-### **Key Financial Relationships & Metrics**
-
-*   **Revenue Streams:** IBM reports in four key segments:
-    *   **Software (42% of 2023 revenue):** The growth and margin engine. Includes Red Hat, Automation, Data & AI, and Security.
-    *   **Consulting (31%):** Steady, recurring revenue tied to digital transformation projects. Margin pressure is a constant watch item.
-    *   **Infrastructure (25%):** Includes legacy mainframes (which have cyclical refresh cycles) and distributed infrastructure. Lower growth but generates strong cash flow.
-    *   **Financing (2%):** A smaller segment supporting client purchases.
-*   **Profitability & Cash Flow:** Investors focus on **Free Cash Flow** as a key metric. IBM has a long history of generating robust FCF, which it uses to fund its dividend, make acquisitions, and reduce debt. The transition to a software-centric model aims to improve operating margins over time.
-*   **Balance Sheet:** The Red Hat acquisition significantly increased IBM's debt load. A key financial relationship is its commitment to **debt reduction** while maintaining its **dividend aristocrat status** (28+ years of consecutive annual dividend increases).
-
----
-
-### **Market Dependencies & Economic Factors**
-
-IBM's stock is highly sensitive to:
-1.  **Enterprise IT Spending:** As a B2B company, its fortunes are directly tied to the capital expenditure budgets of large global enterprises. In economic downturns, these budgets are often cut or delayed, impacting Consulting and Software sales.
-2.  **Interest Rates:** High interest rates increase the cost of servicing its substantial debt and can dampen the valuation of its long-duration cash flows (typical for mature tech stocks). Conversely, they make its dividend yield relatively more attractive.
-3.  **Foreign Exchange (FX):** Over 50% of IBM's revenue comes from outside the Americas. A strong U.S. dollar negatively translates overseas earnings back to USD, a headwind often cited in earnings reports.
-4.  **Technology Adoption Cycles:** Demand for mainframes is "lumpy," with peaks during product refresh cycles. The adoption rate of hybrid cloud and AI platforms among its traditional client base is a critical growth driver.
+### **1. Company Overview**
+- **Ticker:** NOK (NYSE, Helsinki, Frankfurt)  
+- **Headquarters:** Espoo, Finland  
+- **Sector:** Technology / Communication Equipment  
+- **Industry:** Networking & Telecommunications  
+- **Key Business Segments:**  
+  - **Network Infrastructure** (Mobile Networks, Fixed Networks, IP/Optical Networks, Submarine Networks)  
+  - **Mobile Networks** (5G equipment, radio access networks)  
+  - **Cloud and Network Services** (Core network software, cloud solutions)  
+  - **Nokia Technologies** (Licensing of intellectual property, patents)  
 
 ---
 
-### **Sector Connections & Competitor Relationships**
-
-IBM operates at the intersection of multiple competitive landscapes:
-
-*   **Hybrid Cloud & Platform Software:**
-    *   **Primary Competitors:** **Microsoft (MSFT)** with Azure/Windows Server, **Amazon (AMZN)** with AWS, and **Google (GOOGL)** with Google Cloud. These are its most significant and aggressive competitors, with vast scale and capital.
-    *   **IBM's Niche:** Unlike the "hyperscalers," IBM does not aim to be the largest public cloud. Its strategy is to manage workloads *across* AWS, Azure, Google Cloud, and private data centers using Red Hat's OpenShift platform. Its main competitor here is **VMware (now part of Broadcom)**.
-
-*   **Enterprise Consulting & IT Services:**
-    *   **Primary Competitors:** **Accenture (ACN)**, **Deloitte**, **Infosys (INFY)**, and **TCS**. Accenture is often seen as the gold standard in this space, against which IBM Consulting's growth and margins are compared.
-
-*   **Enterprise AI & Automation Software:**
-    *   **Primary Competitors:** A fragmented field including **ServiceNow (NOW)**, **Palantir (PLTR)** for certain AI platforms, and niche players. IBM's **watsonx** platform competes here, leveraging its brand and research heritage.
-
-*   **Legacy Infrastructure:**
-    *   **Primary Competitors:** **Dell Technologies (DELL)**, **Hewlett Packard Enterprise (HPE)**, and **Oracle (ORCL)** for integrated systems.
+### **2. Key Financial Relationships**
+- **Revenue Streams:** Heavily dependent on capital expenditure cycles of telecom operators (e.g., AT&T, Verizon, Vodafone).  
+- **Profitability Drivers:**  
+  - **Gross Margins:** Higher in IP/Optical Networks and Nokia Technologies (licensing).  
+  - **Operating Leverage:** Fixed-cost base in R&D and manufacturing; profitability improves with higher sales volume.  
+- **Balance Sheet Strength:**  
+  - Strong cash position (€4.3 billion as of Q3 2023) with manageable debt.  
+  - Investments in R&D (~13% of revenue) critical for maintaining technological edge.  
+  - **Dividend Policy:** Reinstated dividend in 2023 after suspension during restructuring.  
 
 ---
 
-### **Strategic Partnerships & Ecosystem**
-*   **Hyperscaler Alliances:** Ironically, IBM has deep partnerships with its cloud competitors (AWS, Microsoft Azure, Google Cloud) to offer Red Hat and IBM software on their marketplaces. This is a classic "co-opetition" relationship.
-*   **Strategic Consultants:** Firms like **Accenture** and **Deloitte** are both competitors and partners, often implementing IBM software for joint clients.
-*   **Kyndryl (KD):** The spun-off company remains IBM's largest client and a critical channel to market for IBM's software. Their success is interdependent in the near-to-medium term.
+### **3. Market Dependencies**
+- **5G Rollout Cycle:** Growth tied to global 5G infrastructure deployment, especially in North America, Europe, and Asia.  
+- **Telecom Operator Spending:** Sensitivity to economic cycles; operators may delay capex in downturns.  
+- **Geopolitical Factors:**  
+  - Trade restrictions (e.g., China-West tensions) impact supply chains and market access.  
+  - European Union policies promoting “Open RAN” (open radio access networks) could alter competitive dynamics.  
+- **Currency Risk:** Revenue in USD, EUR, and other currencies; EUR appreciation can negatively impact reported earnings.  
 
-### **Investment Thesis Summary: Bull vs. Bear**
+---
 
-*   **Bull Case:** IBM is a **value play with a turnaround narrative**. It offers a high dividend yield (~4%), trades at a discount to the broader software market, and is successfully pivoting to higher-growth hybrid cloud and AI via Red Hat and watsonx. Its focus on mission-critical systems for "boring" but essential industries (finance, government, telecom) provides defensive stability.
-*   **Bear Case:** IBM is a **value trap**. It is a slow-growth legacy operator in markets dominated by faster, nimbler, and better-capitalized giants like Microsoft and Amazon. Its consulting business faces margin pressure, mainframe revenue is declining long-term, and debt remains elevated. The transition may be too little, too late.
+### **4. Sector Connections**
+- **Telecom Equipment Industry:** Oligopolistic structure with **Ericsson (ERIC)**, **Huawei**, **ZTE**, and **Cisco (CSCO)** as key players.  
+- **Supply Chain:** Relies on semiconductor suppliers (e.g., Broadcom, Intel) and contract manufacturers.  
+- **End-Market Links:**  
+  - **Enterprise Networks:** Growth in private 5G networks for industries (manufacturing, logistics).  
+  - **Government & Defense:** Secure communications infrastructure.  
 
-**Conclusion:** IBM's stock is a bet on the execution of its hybrid cloud and AI strategy within its massive, sticky, but slow-moving enterprise client base. Its performance is less about flashy consumer tech and more about the steady, complex digital modernization of the world's established corporations. Its financial health is closely watched through Free Cash Flow generation, debt management, and software revenue growth, all while navigating intense competition and macroeconomic headwinds.
+---
+
+### **5. Competitor Relationships**
+- **Direct Competitors:**  
+  - **Ericsson (ERIC):** Similar portfolio; intense competition in 5G radio access networks.  
+  - **Huawei:** Dominant in China and emerging markets; excluded from many Western markets due to security concerns (benefits NOK and ERIC).  
+  - **Cisco (CSCO):** Competes in IP routing and optical networks.  
+- **Competitive Advantages:**  
+  - Strong patent portfolio (~20,000 patent families, including foundational 5G patents).  
+  - End-to-end portfolio (from radio to core networks).  
+- **Weaknesses:** Lower scale vs. Huawei; slower growth in some emerging markets.  
+
+---
+
+### **6. Economic Factors**
+- **Macroeconomic Sensitivity:**  
+  - High interest rates increase financing costs for telecom operators, potentially delaying 5G investments.  
+  - Inflation impacts component costs and logistics.  
+- **Regulatory Environment:**  
+  - Spectrum allocation policies by governments drive operator investment.  
+  - National security regulations (e.g., bans on Huawei) create opportunities in Western markets.  
+- **Technology Shifts:**  
+  - Transition to cloud-native, software-defined networks requires ongoing R&D.  
+  - Growth in IoT, edge computing, and AI-driven networks could provide new revenue streams.  
+
+---
+
+### **7. Financial Ecosystem Summary**
+Nokia operates in a **cyclical, capital-intensive industry** with high strategic importance to national telecom infrastructure. Its financial health is tied to:  
+1. **Global 5G Capex Cycles** – Peaks and troughs in operator spending.  
+2. **Geopolitical Realignments** – Western shift away from Huawei.  
+3. **R&D Efficiency** – Ability to innovate while maintaining margins.  
+4. **Patent Monetization** – High-margin licensing revenue providing stability.  
+
+**Risks:**  
+- Market share loss to Ericsson or new Open RAN entrants.  
+- Prolonged telecom capex slowdown.  
+- Supply chain disruptions (semiconductors, logistics).  
+
+**Opportunities:**  
+- Increased 5G adoption in India, Southeast Asia, and Africa.  
+- Expansion into enterprise private networks.  
+- Licensing revenue from 5G patents in automotive, IoT.  
+
+---
+
+### **8. Investment Considerations**
+- **Valuation:** Often trades at lower P/E vs. software-centric tech due to lower growth outlook and hardware margins.  
+- **Catalysts:**  
+  - New 5G contract wins in key markets (e.g., India, Europe).  
+  - Margin expansion from cost-cutting and product mix shift to software.  
+  - Patent licensing renewals (e.g., with smartphone makers).  
+- **ESG Factors:** Strong focus on sustainability (energy-efficient networks, circular economy initiatives).  
+
+---
+
+**Conclusion:** Nokia’s stock performance is a function of **telecom capex cycles, competitive dynamics vs. Ericsson/Huawei, and execution in transitioning to higher-margin software and services**. Monitoring quarterly order books, geopolitical developments, and 5G rollout timelines is essential for forecasting its financial trajectory.
 """
 
-# Helper function to extract key metrics
-def extract_key_metrics(text):
-    metrics = {}
 
-    # Revenue Mix (from the last detailed section, which explicitly states "42% of 2023 revenue")
-    # This section starts with "### **Key Financial Relationships & Metrics**"
-    revenue_mix_section_match = re.search(
-        r"### \*\*Key Financial Relationships & Metrics\*\*.*?(\*   \*\*Revenue Streams:.*?)(\n\n|\Z)", 
-        text, 
-        re.DOTALL
+def parse_analysis_text(text):
+    """
+    Parses the full analysis text into a dictionary of sections.
+    Handles Roman numeral headings, numbered list headings, and distinct conclusions.
+    """
+    sections = {}
+
+    # Split into three main blocks based on "---" separators
+    blocks = re.split(r'\n---\n', text)
+
+    # Block 1: Initial Comprehensive Financial Analysis (Roman numerals)
+    if len(blocks) > 0:
+        main_analysis_text = blocks[0].strip()
+        # Regex to split by "**I. Title**" like headings
+        main_sections_raw = re.split(r'(\n\*\*I{1,3}\. [A-Za-z\s&-]+\*\*)\n', main_analysis_text, flags=re.MULTILINE)
+        
+        # The first part before the first Roman numeral heading is an introduction
+        if main_sections_raw and main_sections_raw[0].strip():
+            sections['Introduction'] = main_sections_raw[0].strip()
+        
+        # Process Roman numeral sections
+        for i in range(1, len(main_sections_raw), 2):
+            title = main_sections_raw[i].strip().replace('**', '')
+            content = main_sections_raw[i+1].strip()
+            sections[title] = content
+        
+        # Explicitly handle the "Conclusion" from this first block if it wasn't caught by generic Roman numeral parsing
+        # The regex looks for "**Conclusion**\n" followed by content, up to the next block or next Roman numeral
+        first_conclusion_match = re.search(r'\n\*\*Conclusion\*\*\n(.*?)(?=\n\*\*I{1,3}\.|$)', main_analysis_text, re.DOTALL)
+        if first_conclusion_match:
+            # Check if it was already caught by Roman numeral parsing (if a generic "**Conclusion**" was present)
+            if "Conclusion" in sections:
+                sections["Conclusion of Initial Analysis"] = sections.pop("Conclusion") # Rename it
+            else:
+                sections["Conclusion of Initial Analysis"] = first_conclusion_match.group(1).strip()
+        elif "Conclusion" in sections: # If it was a generic 'Conclusion' from the splitting and not explicitly handled above
+            sections['Conclusion of Initial Analysis'] = sections.pop('Conclusion')
+
+
+    # Block 2: Structured, Comprehensive View (Numbered points like "1) Business overview")
+    if len(blocks) > 1:
+        structured_view_text = blocks[1].strip()
+        
+        # The text before "1) Business overview" serves as an introduction to this section
+        intro_match = re.match(r'(.*?)\n1\) Business overview', structured_view_text, re.DOTALL)
+        if intro_match:
+            sections['Structured Ecosystem View Introduction'] = intro_match.group(1).strip()
+        
+        # Regex to split by "1) Title" like headings
+        structured_sections_raw = re.split(r'(\n\d+\) [A-Za-z\s&\-,\/—]+)\n', structured_view_text, flags=re.MULTILINE)
+        
+        for i in range(1, len(structured_sections_raw), 2):
+            title = structured_sections_raw[i].strip()
+            content = structured_sections_raw[i+1].strip()
+            sections[f"Structured View: {title}"] = content
+        
+        # Extract the Summary from this block
+        summary_match = re.search(r'\nSummary\n(.*?)(?=\nIf you’d like|$)', structured_view_text, re.DOTALL)
+        if summary_match:
+            sections['Summary of Ecosystem View'] = summary_match.group(1).strip()
+
+    # Block 3: Stock Analysis (Numbered hash headings like "### 1. Company Overview")
+    if len(blocks) > 2:
+        stock_analysis_text = blocks[2].strip()
+        # The initial part might contain a small intro or just the "Stock Analysis: Nokia Corporation (NOK)"
+        intro_part = stock_analysis_text.split('\n### 1. Company Overview')[0].strip()
+        if intro_part and intro_part != "**Stock Analysis: Nokia Corporation (NOK)**": # Avoid adding just the title again
+             sections['Stock Analysis Overview'] = intro_part
+        
+        # Regex to split by "### 1. Title" like headings
+        stock_analysis_sections_raw = re.split(r'(\n### \d+\. [A-Za-z\s&-:]+)\n', stock_analysis_text, flags=re.MULTILINE)
+        
+        for i in range(1, len(stock_analysis_sections_raw), 2):
+            title = stock_analysis_sections_raw[i].strip().replace('### ', '')
+            content = stock_analysis_sections_raw[i+1].strip()
+            sections[f"Stock Analysis: {title}"] = content
+        
+        # Extract the final "Conclusion" from the very end of the text
+        final_conclusion_match = re.search(r'\n\*\*Conclusion:\*\*(.*?)$', stock_analysis_text, re.DOTALL)
+        if final_conclusion_match:
+            sections['Final Investment Conclusion'] = final_conclusion_match.group(1).strip()
+
+    return sections
+
+parsed_sections = parse_analysis_text(analysis_text)
+
+
+# --- Dummy Data Generation for Charts (Illustrative, not real Nokia data) ---
+years = pd.to_datetime([f'{2018+i}-01-01' for i in range(7)]) # 7 years of data
+
+df_revenue = pd.DataFrame({
+    'Year': years,
+    'Revenue (B€)': [23.3, 23.1, 21.9, 22.2, 24.9, 23.6, 25.1] # Cyclical but some growth, reflecting text
+})
+
+df_margins = pd.DataFrame({
+    'Year': years,
+    'Gross Profit Margin (%)': [35, 36, 34, 37, 39, 38, 40],
+    'Operating Profit Margin (%)': [6, 7, 4, 8, 10, 9, 11],
+    'Net Profit Margin (%)': [2, 3, 1, 5, 7, 6, 8]
+})
+
+df_capex_rd = pd.DataFrame({
+    'Year': years,
+    'R&D Spend (B€)': [4.5, 4.3, 4.2, 4.5, 4.8, 4.7, 4.9], # Stable/increasing R&D
+    'Capital Expenditures (B€)': [1.5, 1.4, 1.3, 1.6, 1.8, 1.7, 1.9] # Reflecting CapEx needs
+})
+
+df_debt_equity = pd.DataFrame({
+    'Year': years,
+    'Debt-to-Equity Ratio': [0.55, 0.50, 0.48, 0.45, 0.40, 0.38, 0.35] # Illustrative improvement/stability
+})
+
+df_cash_flow = pd.DataFrame({
+    'Year': years,
+    'Cash Flow from Operations (B€)': [3.0, 3.2, 2.8, 3.5, 3.8, 3.6, 4.0],
+    'Free Cash Flow (B€)': [1.5, 1.8, 1.5, 2.0, 2.2, 2.0, 2.5] # Strong positive cash flow
+})
+
+# Conceptual market share for competitors based on qualitative description
+df_market_share = pd.DataFrame({
+    'Competitor': ['Huawei', 'Ericsson', 'Nokia', 'Samsung', 'ZTE', 'Cisco', 'Juniper', 'Others'],
+    'Estimated Market Share (%)': [28, 24, 18, 10, 8, 6, 3, 3] # Fictional distribution, broader competition
+})
+
+
+# --- Streamlit App Layout ---
+
+st.title("Nokia (NOK) Financial Analysis & Ecosystem Deep Dive")
+st.markdown("---")
+
+# Sidebar for navigation
+st.sidebar.header("Analysis Sections")
+page_options = list(parsed_sections.keys())
+selected_page = st.sidebar.radio("Navigate to:", page_options)
+
+# Main content area
+st.header(selected_page)
+st.markdown(parsed_sections[selected_page])
+
+# --- Add Charts where meaningful based on selected section ---
+if "Key Financial Relationships and Metrics Analysis" in selected_page or \
+   "Financial/operational metrics and relationships to monitor" in selected_page or \
+   "Key Financial Relationships" in selected_page:
+    st.subheader("Key Financial Trends (Illustrative)")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("### Revenue Growth")
+        fig_revenue = px.line(df_revenue, x='Year', y='Revenue (B€)', title='Illustrative Annual Revenue', markers=True)
+        fig_revenue.update_layout(yaxis_title="Revenue in Billions of Euros")
+        st.plotly_chart(fig_revenue, use_container_width=True)
+        st.caption("Illustrative data reflecting cyclical nature and potential for growth mentioned in the analysis.")
+
+    with col2:
+        st.write("### Profitability Margins")
+        fig_margins = px.line(df_margins, x='Year', y=['Gross Profit Margin (%)', 'Operating Profit Margin (%)', 'Net Profit Margin (%)'], 
+                              title='Illustrative Profitability Margins', markers=True)
+        fig_margins.update_layout(yaxis_title="Margin Percentage (%)")
+        st.plotly_chart(fig_margins, use_container_width=True)
+        st.caption("Illustrative data showing potential trends for gross, operating, and net profit margins (inconsistent/volatile as per text).")
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.write("### Cash Flow Generation")
+        fig_cash_flow = px.bar(df_cash_flow, x='Year', y=['Cash Flow from Operations (B€)', 'Free Cash Flow (B€)'], 
+                               title='Illustrative Cash Flow Trends', barmode='group')
+        fig_cash_flow.update_layout(yaxis_title="Cash Flow in Billions of Euros")
+        st.plotly_chart(fig_cash_flow, use_container_width=True)
+        st.caption("Illustrative data showing positive operational and free cash flow generation, crucial for funding R&D, CapEx, and dividends.")
+
+    with col4:
+        st.write("### Debt-to-Equity Ratio")
+        fig_debt_equity = px.line(df_debt_equity, x='Year', y='Debt-to-Equity Ratio', 
+                                  title='Illustrative Debt-to-Equity Ratio', markers=True)
+        fig_debt_equity.update_layout(yaxis_title="Ratio")
+        st.plotly_chart(fig_debt_equity, use_container_width=True)
+        st.caption("Illustrative data showing Nokia's historical management or improving debt levels.")
+
+    st.subheader("Key Metrics Extracted (as mentioned in the analysis):")
+    st.markdown(
+        """
+        **Performance & Profitability:**
+        -   **Revenue Growth:** Consistency and acceleration, especially in Network Infrastructure.
+        -   **Gross Profit Margin:** Efficiency in production, cost management, pricing power.
+        -   **Operating Profit Margin (EBIT Margin):** Profitability from core operations, reflecting R&D and competitive pressures.
+        -   **Net Profit Margin:** Overall profitability after all expenses.
+        -   **EBITDA:** Useful for comparing operational cash flow generation.
+        -   **Bookings / Order Intake and Backlog:** Leading indicators of future revenue.
+        -   **Book-to-bill ratio:** Shows demand versus delivery capacity.
+        -   **Services & software revenue percentage:** Indicates shift towards higher-margin, more predictable revenue.
+        -   **Nokia Technologies/licensing revenue:** High-margin but potentially lumpy income.
+
+        **Balance Sheet & Liquidity:**
+        -   **Debt-to-Equity Ratio:** Financial leverage and stability.
+        -   **Current Ratio and Quick Ratio:** Short-term liquidity to meet immediate obligations.
+        -   **Net Debt / Liquidity:** Overall financial health and capacity.
+
+        **Cash Flow:**
+        -   **Cash Flow from Operations:** Crucial for funding R&D, capital expenditures, and dividends.
+        -   **Free Cash Flow (FCF):** Cash available for shareholders or reinvestment after CapEx.
+
+        **Valuation:**
+        -   **Price-to-Earnings (P/E) Ratio:** Stock price relative to earnings per share.
+        -   **Price-to-Sales (P/S) Ratio:** Useful for companies with inconsistent earnings.
+        -   **Enterprise Value to EBITDA (EV/EBITDA):** Comprehensive valuation in telecom infrastructure, including debt and cash.
+        -   **Dividend Yield:** Income generation for investors.
+
+        **Investment & Operational:**
+        -   **R&D Spend and CapEx:** Critical for long-term competitiveness and technology leadership.
+        -   **Major contract wins/losses:** Indicators of market traction and competitive success.
+        -   **Legal/IP outcomes:** Can significantly impact Nokia Technologies' cash flows.
+        """
     )
-    if revenue_mix_section_match:
-        revenue_mix_text = revenue_mix_section_match.group(1)
-        software_match = re.search(r"Software \((\d+)% of \d{4} revenue\)", revenue_mix_text)
-        consulting_match = re.search(r"Consulting \((\d+)%\)", revenue_mix_text)
-        infrastructure_match = re.search(r"Infrastructure \((\d+)%\)", revenue_mix_text)
-        financing_match = re.search(r"Financing \((\d+)%\)", revenue_mix_text)
 
-        if software_match:
-            metrics['Software Revenue Share'] = float(software_match.group(1))
-        if consulting_match:
-            metrics['Consulting Revenue Share'] = float(consulting_match.group(1))
-        if infrastructure_match:
-            metrics['Infrastructure Revenue Share'] = float(infrastructure_match.group(1))
-        if financing_match:
-            metrics['Financing Revenue Share'] = float(financing_match.group(1))
-
-    # Dividend Yield
-    dividend_yield_match = re.search(r"high dividend yield \~?\(?(\d+\.?\d*)%\)?", text)
-    if dividend_yield_match:
-        metrics['Dividend Yield'] = float(dividend_yield_match.group(1))
+elif "Competitor Relationships" in selected_page or \
+     "Competitive landscape" in selected_page:
+    st.subheader("Illustrative Competitive Landscape")
+    st.markdown("The telecommunications infrastructure market is highly competitive with several key players mentioned:")
     
-    # Dividend Aristocrat Status
-    dividend_aristocrat_match = re.search(r"dividend aristocrat status \((\d+\+ years of consecutive annual dividend increases)\)", text)
-    if dividend_aristocrat_match:
-        metrics['Dividend Aristocrat Status'] = dividend_aristocrat_match.group(1)
+    fig_competitors = px.pie(df_market_share, values='Estimated Market Share (%)', names='Competitor', 
+                             title='Illustrative Global Telecom Equipment Market Share')
+    fig_competitors.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_competitors, use_container_width=True)
+    st.caption("This chart is purely illustrative and does not represent actual market share data. It aims to visualize the competitive distribution described in the analysis, where Huawei and Ericsson are key rivals, and Nokia is a significant player alongside others.")
     
-    # Financial Focus
-    financial_focus_match = re.search(r"commitment to \*\*debt reduction\*\* while maintaining its \*\*dividend aristocrat status\*\*", text)
-    if financial_focus_match:
-        metrics['Financial Focus'] = "Debt Reduction & Dividend Maintenance"
+    st.markdown("""
+    **Key Competitors Mentioned:**
+    *   **Ericsson (ERIC):** A direct competitor across most of Nokia's product lines, particularly in mobile networks and managed services.
+    *   **Huawei (HWP):** A dominant player globally, though its market share in certain Western markets has been impacted by geopolitical concerns and sanctions.
+    *   **ZTE (0763.HK):** Another Chinese competitor, offering a broad range of telecom equipment.
+    *   **Samsung (005930.KS):** Increasingly a significant player in the 5G RAN market.
+    *   **Cisco Systems (CSCO):** A strong competitor in the IP routing and optical networking space, especially for enterprise and service provider backhaul.
+    *   **Juniper Networks (JNPR):** Another key player in routing and switching.
+    *   **New/Open-RAN Entrants:** Mavenir, Rakuten Symphony, Altiostar, and other software-focused vendors are challenging traditional players in O-RAN and virtualized RAN deployments.
+    """)
 
-    # Kyndryl Spinoff Year
-    kyndryl_spinoff_match = re.search(r"its spinoff of its legacy IT infrastructure services unit into \*\*Kyndryl \(KD\)\*\* in (\d{4})", text)
-    if kyndryl_spinoff_match:
-        metrics['Kyndryl Spinoff Year'] = int(kyndryl_spinoff_match.group(1))
-        
-    return metrics
-
-# Function to parse the analysis text into logical blocks based on '---' separators
-def parse_analysis_into_logical_blocks(text):
-    blocks = []
+elif "SWOT Analysis" in selected_page:
+    st.subheader("Nokia's SWOT Analysis")
     
-    # Split by the horizontal rules '---'
-    parts = re.split(r'\n---\n', text)
+    # Extract SWOT elements from the text for display using regex
+    swot_text = parsed_sections[selected_page]
     
-    # Block 1: Initial Comprehensive Financial Ecosystem Analysis
-    blocks.append({
-        "title": "Comprehensive Financial Ecosystem Analysis (Initial)",
-        "content": parts[0].strip()
-    })
+    # Using regex to capture content between headings
+    strengths_match = re.search(r'\*\*Strengths:\*\*(.*?)(?=\n\*\*Weaknesses:|$)', swot_text, re.DOTALL)
+    weaknesses_match = re.search(r'\*\*Weaknesses:\*\*(.*?)(?=\n\*\*Opportunities:|$)', swot_text, re.DOTALL)
+    opportunities_match = re.search(r'\*\*Opportunities:\*\*(.*?)(?=\n\*\*Threats:|$)', swot_text, re.DOTALL)
+    threats_match = re.search(r'\*\*Threats:\*\*(.*?)$', swot_text, re.DOTALL) # Threats is usually the last one
+
+    # Helper function to clean and split into list items
+    def clean_swot_list(match):
+        if match:
+            # Get the captured group and split by '\n*' for bullet points, then strip whitespace
+            return [item.strip() for item in match.group(1).split('\n*') if item.strip()]
+        return []
+
+    strengths_list = clean_swot_list(strengths_match)
+    weaknesses_list = clean_swot_list(weaknesses_match)
+    opportunities_list = clean_swot_list(opportunities_match)
+    threats_list = clean_swot_list(threats_match)
+
+    col_s, col_w = st.columns(2)
+    with col_s:
+        st.success("### Strengths")
+        for item in strengths_list:
+            st.markdown(f"- {item}")
+    with col_w:
+        st.warning("### Weaknesses")
+        for item in weaknesses_list:
+            st.markdown(f"- {item}")
     
-    # Block 2: Comprehensive, Practical View of IBM’s Financial Ecosystem
-    if len(parts) > 1:
-        blocks.append({
-            "title": "Comprehensive, Practical View of IBM’s Financial Ecosystem",
-            "content": parts[1].strip()
-        })
-
-    # Block 3: Expert's Ecosystem Analysis (Summary/Thesis)
-    if len(parts) > 2:
-        blocks.append({
-            "title": "Expert's Ecosystem Analysis & Investment Thesis",
-            "content": parts[2].strip()
-        })
-        
-    return blocks
-
-# Function to further split content within a logical block by ### headers
-def split_block_by_h3(block_content):
-    subsections = {}
+    col_o, col_t = st.columns(2)
+    with col_o:
+        st.info("### Opportunities")
+        for item in opportunities_list:
+            st.markdown(f"- {item}")
+    with col_t:
+        st.error("### Threats")
+        for item in threats_list:
+            st.markdown(f"- {item}")
     
-    # Split by ### headers, keeping the delimiters
-    parts = re.split(r'(###\s.+)', block_content)
+    st.markdown("---")
+    st.markdown("R&D Spend (mentioned as ~13% of revenue in 'Stock Analysis: 2. Key Financial Relationships') is critical for maintaining technological edge and addressing market dynamics.")
+    fig_rd_spend = px.area(df_capex_rd, x='Year', y='R&D Spend (B€)', title='Illustrative R&D Spend Over Time', markers=True)
+    fig_rd_spend.update_layout(yaxis_title="R&D Spend in Billions of Euros")
+    st.plotly_chart(fig_rd_spend, use_container_width=True)
+    st.caption("Illustrative R&D spend, crucial for innovation and adapting to technological shifts (e.g., 6G, AI, quantum computing).")
+
+
+elif "Conclusion" in selected_page: # Catches both "Conclusion of Initial Analysis" and "Final Investment Conclusion"
+    st.subheader("Key Investment Considerations")
+    st.markdown(parsed_sections[selected_page])
+    st.markdown("---")
     
-    intro_content = parts[0].strip() # Content before the first ###, if any
-    
-    current_h3_header = None
-    current_h3_content = []
-
-    for i in range(1, len(parts)):
-        part = parts[i].strip()
-        if part.startswith('###'):
-            if current_h3_header: # Save previous subsection before starting a new one
-                subsections[current_h3_header] = "\n".join(current_h3_content).strip()
-            current_h3_header = part
-            current_h3_content = [] # Reset content for new subsection
-        else:
-            current_h3_content.append(part)
-    
-    # Save the last subsection after the loop
-    if current_h3_header:
-        subsections[current_h3_header] = "\n".join(current_h3_content).strip()
-            
-    return intro_content, subsections
-
-
-# --- Streamlit App ---
-st.set_page_config(layout="wide", page_title="IBM Financial Ecosystem Analysis")
-
-st.title("💰 IBM Financial Ecosystem Analysis")
-st.markdown("A deep dive into International Business Machines Corporation's financial landscape.")
-
-# Extract Key Metrics
-metrics = extract_key_metrics(ANALYSIS_TEXT)
-
-st.subheader("📊 Key Financial Snapshot")
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.markdown("### Important Metrics")
-    if metrics:
-        st.write(f"**Software Revenue Share (2023):** {metrics.get('Software Revenue Share', 'N/A')}%")
-        st.write(f"**Consulting Revenue Share (2023):** {metrics.get('Consulting Revenue Share', 'N/A')}%")
-        st.write(f"**Infrastructure Revenue Share (2023):** {metrics.get('Infrastructure Revenue Share', 'N/A')}%")
-        st.write(f"**Financing Revenue Share (2023):** {metrics.get('Financing Revenue Share', 'N/A')}%")
-        st.write(f"**Dividend Yield (approx):** {metrics.get('Dividend Yield', 'N/A')}%")
-        st.write(f"**Dividend Aristocrat Status:** {metrics.get('Dividend Aristocrat Status', 'N/A')}")
-        st.write(f"**Kyndryl Spinoff Year:** {metrics.get('Kyndryl Spinoff Year', 'N/A')}")
-        st.write(f"**Current Financial Focus:** {metrics.get('Financial Focus', 'N/A')}")
-    else:
-        st.warning("No specific key metrics extracted.")
-
-with col2:
-    st.markdown("### Revenue Mix (2023 Est.)")
-    revenue_data = {
-        'Segment': [],
-        'Share': []
-    }
-    
-    # Check if any revenue share metrics were extracted before trying to plot
-    if metrics.get('Software Revenue Share') is not None:
-        revenue_data['Segment'].append('Software')
-        revenue_data['Share'].append(metrics['Software Revenue Share'])
-    if metrics.get('Consulting Revenue Share') is not None:
-        revenue_data['Segment'].append('Consulting')
-        revenue_data['Share'].append(metrics['Consulting Revenue Share'])
-    if metrics.get('Infrastructure Revenue Share') is not None:
-        revenue_data['Segment'].append('Infrastructure')
-        revenue_data['Share'].append(metrics['Infrastructure Revenue Share'])
-    if metrics.get('Financing Revenue Share') is not None:
-        revenue_data['Segment'].append('Financing')
-        revenue_data['Share'].append(metrics['Financing Revenue Share'])
-
-    df_revenue = pd.DataFrame(revenue_data)
-
-    if not df_revenue.empty and sum(df_revenue['Share']) > 0: # Ensure there's data to plot
-        fig = px.pie(df_revenue, values='Share', names='Segment', title='IBM Revenue Mix (2023 Est.)',
-                     hole=0.3, color_discrete_sequence=px.colors.sequential.RdBu)
-        fig.update_traces(textposition='inside', textinfo='percent+label')
-        fig.update_layout(showlegend=True)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No sufficient data to visualize revenue mix.")
+    if "Final Investment Conclusion" in selected_page:
+        st.subheader("Practical Monitoring Checklist for Investors (Highlights):")
+        st.markdown(
+            """
+            -   **Quarterly/Annual Filings:** Scrutinize bookings, backlog, segment revenue (Networks vs Technologies), gross margins, operating cash flow, and net debt.
+            -   **Major Contract Announcements:** Pay attention to new wins with tier-1 carriers and the geographic distribution of these contracts.
+            -   **Technology Progress:** Monitor advancements and commercial wins in Open RAN and cloud-native core deployments.
+            -   **IP/Legal Updates:** Track patent licensing deal updates and material legal settlements, which can impact high-margin revenue.
+            -   **Macro Indicators:** Observe carrier Capital Expenditure (CapEx) guidance, scheduled spectrum auctions in major markets, and regulatory headwinds/benefits in key regions (EU/US/Asia).
+            -   **Competitor Earnings:** Analyze the financial performance of key competitors like Ericsson and Ciena for insights into relative market share and pricing trends.
+            -   **R&D Spend Trajectory:** Evaluate the evolution of R&D investment and CapEx guidance, as these are vital for long-term competitiveness.
+            """
+        )
 
 st.markdown("---")
-
-# Parse and display the full analysis in logical blocks
-logical_blocks = parse_analysis_into_logical_blocks(ANALYSIS_TEXT)
-
-for i, block in enumerate(logical_blocks):
-    if i == 0: # First block often starts with the primary H2 title
-        h2_title_match = re.match(r"## (.+)", block['content'])
-        if h2_title_match:
-            main_h2_title = h2_title_match.group(1)
-            st.header(main_h2_title)
-            # Remove the H2 title from the content to avoid duplication
-            content_after_h2 = block['content'][len(h2_title_match.group(0)):].strip()
-            intro, subsections = split_block_by_h3(content_after_h2)
-        else:
-            # Fallback if no H2 title is found at the beginning (e.g., just an intro paragraph)
-            st.header(block['title']) # Use the generic block title
-            intro, subsections = split_block_by_h3(block['content'])
-        
-        st.markdown(intro)
-        for h3_header, content in subsections.items():
-            with st.expander(h3_header.replace("### ", "")):
-                st.markdown(content)
-    else:
-        # Subsequent blocks are given a subheader as their logical block title
-        st.subheader(block['title'])
-        intro, subsections = split_block_by_h3(block['content'])
-        st.markdown(intro) # Display introductory text for this block, if any
-        if subsections: # If there are H3 sections within this block
-            for h3_header, content in subsections.items():
-                with st.expander(h3_header.replace("### ", "")):
-                    st.markdown(content)
-
-st.markdown("---")
-st.info("This analysis is based on the provided text and aims to highlight key financial aspects and relationships of IBM's ecosystem.")
+st.sidebar.markdown("---")
+st.sidebar.info("Analysis of Nokia (NOK) based on provided financial text. All charts use illustrative data.")
