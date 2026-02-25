@@ -66,625 +66,622 @@ if generate:
 
 
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import re
 
-# --- Configuration ---
-st.set_page_config(layout="wide", page_title="Nokia (NOK) Financial Analysis")
-
-# --- Original Analysis Text ---
-# The complete financial analysis text is embedded here.
-analysis_text = """
-Let's dive into a comprehensive financial analysis of Nokia (NOK).
-
-**I. Company Overview and Business Segments**
-
-Nokia is a Finnish multinational telecommunications, information technology, and consumer electronics company headquartered in Espoo, Finland. Its primary business revolves around providing network infrastructure and services to telecom operators and enterprises. The company has undergone significant strategic shifts over the years, moving away from its consumer mobile phone business (which was sold to Microsoft in 2014 and later licensed to HMD Global) to focus on B2B (business-to-business) solutions.
-
-Nokia's core business segments typically include:
-
-*   **Network Infrastructure:** This is the largest segment and encompasses:
-    *   **Mobile Networks:** Providing 5G, 4G, and older radio access network (RAN) solutions, as well as core network equipment.
-    *   **Fixed Networks:** Offering broadband access (fiber optics), IP routing, and optical networking solutions.
-    *   **Cloud and Network Services:** Delivering software, AI, and analytics solutions for network management and optimization.
-*   **Nokia Technologies:** This segment focuses on patent licensing (including its vast intellectual property portfolio in mobile communication technologies) and intellectual property development.
-*   **Nokia Enterprise:** This segment targets non-telecom operators, offering connectivity solutions for industries like manufacturing, transportation, and energy.
-
-**II. Key Financial Relationships and Metrics Analysis**
-
-To understand Nokia's financial health and performance, we'll examine several key financial relationships:
-
-*   **Revenue Growth:** Nokia's revenue has been influenced by the cyclical nature of telecom capital expenditures, the transition to 5G, and competitive pressures. Investors will look for consistent or accelerating revenue growth, particularly in its core Network Infrastructure segment.
-*   **Profitability:**
-    *   **Gross Profit Margin:** Indicates efficiency in producing its network equipment and services. Improvements here suggest better cost management or pricing power.
-    *   **Operating Profit Margin (EBIT Margin):** Shows profitability from core operations. Volatility can arise from R&D investments, restructuring costs, or competitive pricing.
-    *   **Net Profit Margin:** The bottom line, reflecting overall profitability after all expenses, interest, and taxes.
-    *   **EBITDA (Earnings Before Interest, Taxes, Depreciation, and Amortization):** A useful metric for comparing profitability across companies and understanding operational cash flow generation potential.
-*   **Balance Sheet Strength:**
-    *   **Debt-to-Equity Ratio:** Measures financial leverage. A high ratio can indicate higher risk, while a low ratio suggests financial stability. Nokia has historically managed its debt levels, but significant acquisitions or market downturns can impact this.
-    *   **Current Ratio and Quick Ratio:** Assess short-term liquidity, indicating the company's ability to meet its immediate obligations.
-    *   **Cash Flow from Operations:** Crucial for funding R&D, capital expenditures, and dividends (if applicable). Strong positive cash flow is a sign of a healthy business.
-    *   **Free Cash Flow (FCF):** Cash flow available after capital expenditures. This is a key indicator of a company's ability to return value to shareholders or reinvest in the business.
-*   **Valuation Metrics:**
-    *   **Price-to-Earnings (P/E) Ratio:** Compares Nokia's stock price to its earnings per share. A high P/E might suggest investor optimism or overvaluation, while a low P/E could indicate undervaluation or underlying concerns.
-    *   **Price-to-Sales (P/S) Ratio:** Useful for companies with inconsistent earnings. It indicates how much investors are willing to pay for each dollar of sales.
-    *   **Enterprise Value to EBITDA (EV/EBITDA):** A common valuation metric in the telecom infrastructure space, providing a more comprehensive view than P/E by including debt and cash.
-    *   **Dividend Yield (if applicable):** While Nokia has historically paid dividends, its policy can change. Investors consider this for income generation.
-
-**III. Market Dependencies and Sector Connections**
-
-Nokia operates within a highly dynamic and interconnected ecosystem:
-
-*   **Telecommunications Operators (Telcos):** This is Nokia's primary customer base (e.g., AT&T, Verizon, Vodafone, Deutsche Telekom). Their capital expenditure cycles, investment decisions in new network technologies (like 5G and fiber), and regulatory environments directly impact Nokia's sales.
-*   **5G Rollout:** The global deployment of 5G technology is a major driver for Nokia. The pace of this rollout, including government initiatives and operator investment, significantly influences demand for Nokia's RAN, core network, and fiber solutions.
-*   **Broadband Expansion:** The increasing demand for high-speed internet, especially in residential and enterprise settings, fuels demand for Nokia's fixed network products.
-*   **Cloud and Software Services:** As telcos embrace virtualization and cloud-native architectures, demand for Nokia's software, AI, and analytics solutions grows. This also links Nokia to the broader cloud computing and enterprise software markets.
-*   **Semiconductor and Component Suppliers:** Nokia relies on a complex supply chain for essential components like chips. Disruptions in this supply chain (e.g., chip shortages) can impact production and profitability.
-*   **Content Providers and OTT Services:** While not direct customers, the growth of streaming services and online content drives demand for greater network capacity, indirectly benefiting Nokia.
-
-**IV. Competitor Relationships**
-
-The telecommunications infrastructure market is highly competitive. Nokia's main rivals include:
-
-*   **Ericsson (ERIC):** A direct competitor across most of Nokia's product lines, particularly in mobile networks and managed services.
-*   **Huawei (HWP):** A dominant player globally, though its market share in certain Western markets has been impacted by geopolitical concerns and sanctions. Huawei remains a formidable competitor in many regions.
-*   **ZTE (0763.HK):** Another Chinese competitor, offering a broad range of telecom equipment.
-*   **Samsung (005930.KS):** Increasingly a significant player in the 5G RAN market, challenging established players.
-*   **Cisco Systems (CSCO):** A strong competitor in the IP routing and optical networking space, especially for enterprise and service provider backhaul.
-*   **Juniper Networks (JNPR):** Another key player in routing and switching.
-*   **Alcatel-Lucent (now part of Nokia):** Historically a major competitor, its acquisition by Nokia consolidated the market.
-
-Nokia's success depends on its ability to innovate, maintain competitive pricing, build strong customer relationships, and navigate complex geopolitical landscapes that can favor or hinder specific competitors.
-
-**V. Economic Factors Impacting Nokia**
-
-Several macroeconomic and geopolitical factors can influence Nokia's performance:
-
-*   **Global Economic Growth:** A strong global economy generally leads to increased demand for telecommunications services, driving telco investment and thus Nokia's sales. Economic downturns can lead to reduced CapEx by operators.
-*   **Interest Rates:** Higher interest rates can increase the cost of capital for both Nokia and its customers, potentially slowing down investment decisions.
-*   **Inflation:** Rising input costs (labor, raw materials, components) due to inflation can pressure Nokia's profit margins if it cannot pass these costs on to its customers.
-*   **Currency Fluctuations:** As a Finnish company with global operations, Nokia is exposed to currency risks. For example, a strong Euro can make its products more expensive for customers using other currencies, impacting sales volume and profitability.
-*   **Government Policies and Regulations:**
-    *   **Spectrum Auctions:** Government decisions on allocating radio spectrum for 5G and future technologies directly impact the urgency and scale of operator investments.
-    *   **Geopolitical Tensions and Trade Policies:** Restrictions or bans on specific vendors (like Huawei) can create opportunities for Nokia in some markets but can also lead to retaliatory measures or supply chain disruptions. Government support for domestic technology also plays a role.
-    *   **National Security Concerns:** In some countries, concerns about the security of network infrastructure can influence vendor selection, leading to increased scrutiny and potential shifts in market share.
-*   **Technological Disruption:** Rapid advancements in areas like AI, quantum computing, and new communication protocols could necessitate significant R&D investments and strategic shifts.
-*   **Capital Expenditure Cycles of Telcos:** The telecommunications industry is characterized by large, cyclical capital expenditures as operators upgrade their networks. Nokia's performance is heavily tied to these cycles.
-
-**VI. SWOT Analysis (Summary of Strengths, Weaknesses, Opportunities, Threats)**
-
-*   **Strengths:**
-    *   Strong patent portfolio and IP leadership.
-    *   Established customer relationships with major telcos.
-    *   Comprehensive product and service offering across mobile and fixed networks.
-    *   Global presence and service capabilities.
-    *   Experience and expertise in network technologies.
-*   **Weaknesses:**
-    *   Profitability has been inconsistent in the past due to restructuring and competition.
-    *   Reliance on large, cyclical telco CapEx.
-    *   Intense competition, particularly from Huawei.
-    *   Potential challenges in adapting quickly to new market trends or technological shifts.
-*   **Opportunities:**
-    *   Continued global 5G and future 6G network deployments.
-    *   Growth in enterprise private networks.
-    *   Expansion of broadband access (fiber, fixed wireless access).
-    *   Increasing demand for network software, AI, and cloud solutions.
-    *   Potential market share gains from competitor restrictions.
-*   **Threats:**
-    *   Intensifying price competition.
-    *   Geopolitical risks and trade wars impacting market access.
-    *   Rapid technological obsolescence requiring constant R&D.
-    *   Supply chain disruptions.
-    *   Potential for regulatory changes impacting network deployment or vendor choices.
-
-**Conclusion**
-
-Nokia operates in a crucial but highly competitive and evolving sector. Its financial ecosystem is tightly linked to the capital expenditure cycles of telecommunications operators, the pace of 5G and broadband deployments, and global economic and geopolitical conditions. While Nokia has strengths in its technological capabilities and customer base, it faces significant challenges from intense competition and the need for continuous innovation. Investors scrutinize its revenue growth, profitability, and cash flow generation, while also considering the broader market dynamics, its competitive positioning, and the impact of economic and political forces. The company's ability to successfully navigate these factors will determine its future financial performance and shareholder value.
-
----
-
-Below is a structured, comprehensive view of Nokia (ticker: NOK) and the financial ecosystem that drives its business and stock performance. I cover business structure and revenue drivers, supplier/customer relationships, competitive landscape, sector and technology dependencies, macro & regulatory influences, key financial/operational metrics to watch, and principal risks and opportunities.
-
-1) Business overview — revenue streams and segments
-- Core businesses: Networks (radio access, IP/optical, core, and associated services & software) is the largest revenue source; Nokia Technologies (patent licensing, IP, and some tech products) provides recurring but lumpy licensing income; Cloud & Network Services, and enterprise/private networks are other growth areas.
-- Revenue mix matters: hardware (RAN, optical) tends to be cyclical and lower margin; software/services and licensing are higher margin and more recurring. Shift toward software and services improves margin profile over time but requires execution.
-
-2) Customers and demand drivers
-- Primary customers: global mobile network operators (MNOs) — e.g., AT&T, Verizon, T‑Mobile, Vodafone, Deutsche Telekom, China Mobile, BT — plus some large enterprises and governments for private networks and critical infrastructure.
-- Demand cycles: carrier CAPEX cycles (driven by spectrum auctions, 4G/5G/6G rollouts, and refresh cycles) are the primary driver of bookings and revenue. Operator profitability/ARPU and their willingness to invest materially affect Nokia’s near-term performance.
-- Government and public-sector contracts: security-conscious nations (U.S., EU members) pick vendors based on policy considerations; Nokia benefits from “trusted vendor” procurement in Western markets.
-
-3) Suppliers and supply-chain dependencies
-- Semiconductor suppliers: Nokia relies on third-party chips (baseband, RF components, switching/optical ASICs) from firms like Qualcomm, Broadcom, Marvell and fab capacity from TSMC/Intel/Samsung Foundry. Global chip availability and pricing affect deliveries and margins.
-- Optical and passive component supply chains (coherent optics, transceivers) are critical; component shortages or single-source constraints can delay rollouts.
-- Manufacturing and logistics: Nokia outsources components and some manufacturing, making it sensitive to global supply-chain disruptions, container freight costs, and geopolitical export controls.
-
-4) Competitive landscape
-- Direct public competitors: Ericsson (ERIC) — closest peer in global RAN and services; Ciena (CIEN) and Juniper/Cisco (CI/Cisco) — compete in optical/IP routing and service provider domains.
-- Private/low-cost competitors: Huawei and ZTE dominate many emerging markets on price and vertical integration (Huawei especially); restrictions on Huawei in the U.S./parts of Europe create opportunities for Nokia and Ericsson.
-- New/Open-RAN entrants: Mavenir, Rakuten Symphony, Altiostar and other software-focused vendors challenge traditional vendors in O-RAN and virtualized RAN deployments.
-- Cloud players: hyperscalers (AWS, Google Cloud, Microsoft) and cloud-native networking software vendors are increasingly relevant for core/cloudification and edge computing partnerships.
-- Competitive dynamics: price competition in mature markets, technological differentiation (energy efficiency, throughput, software features), and services execution determine market share.
-
-5) Technology & sector dependencies
-- 5G rollout: major growth driver. RAN, transport (IP/optical), core network virtualization, and managed services are tied to the pace of carrier 5G deployments, densification, and shift to cloud-native cores.
-- Open RAN movement: a structural trend that can lower barriers for new entrants and change vendor economics. Nokia participates in O-RAN but must balance revenue/profitability trade-offs vs traditional RAN.
-- Software/cloud transformation: transition to software-defined networking, virtualization and cloud-native architectures shifts revenue from hardware to subscription/software & services.
-- Edge computing, private networks, and industrial IoT: potential growth opportunities, particularly with enterprise and industrial customers.
-- Patent/IP (Nokia Technologies): 5G/4G patent portfolio generates licensing revenue; patents are strategic assets and provide recurring cash flow but are subject to disputes and renewals.
-
-6) Macroeconomic, regulatory & geopolitical factors
-- Geopolitics & security policy: bans/restrictions on Huawei in Western markets are tailwinds. Export controls, trade tensions (US-China/EU-China), and sanctions can both help (by excluding rivals) and hurt (restricting supply sources).
-- Government subsidies and industrial policy: EU funding initiatives for secure networks and national subsidies for 5G can accelerate Nokia’s opportunities in Europe; CHIPS Act and related incentives may help semiconductors but changing supply incentives also affect component sourcing.
-- Interest rates & macro environment: higher interest rates increase discounting of future cash flows and pressure highly cyclical capex-dependent stocks. Carrier CAPEX can be delayed in periods of weak demand or macro uncertainty.
-- Currency exposure: Nokia reports in EUR but generates material revenue in USD and other currencies; FX moves affect reported revenue and margins.
-- Inflation and operator economics: operator willingness to invest depends on ARPU trends, inflation, and competitive pressure in consumer markets.
-
-7) Financial/operational metrics and relationships to monitor
-- Bookings / order intake and backlog: leading indicators of future revenue.
-- Book-to-bill ratio: shows demand vs delivery capacity.
-- Gross margin by segment: hardware vs software/services yields different margins; watch margin trends as mix shifts.
-- Services & software revenue percentage: higher mix implies more predictable, higher-margin revenue.
-- Nokia Technologies/licensing revenue and stability: licensing is lumpy but high-margin; contract renewals and settlements are material.
-- Operating margin, adjusted EBIT, free cash flow conversion: cash generation is vital for R&D, dividends, buybacks, and deleveraging.
-- Net debt / liquidity: cyclical downturns can pressure companies with high leverage.
-- R&D spend and CapEx: critical for long-term competitiveness in RAN, optical, and 6G research (including Bell Labs legacy).
-- Major contract wins/losses and pilot-to-commercial conversion (especially for Open RAN deployments).
-- Legal/IP outcomes: licensing disputes or settlements can materially swing Technology segment cashflows.
-
-8) Valuation/market relationships
-- Peer comparables: Ericsson, Ciena, Cisco, Juniper, and selected semiconductor suppliers. NOK’s multiples will be influenced by margin trends, growth visibility, and the split between one-time vs recurring revenues.
-- Sensitivity to sector rotation: Nokia tends to move with telecom equipment peers and the broader tech/hardware group; also sensitive to interest-rate changes because of cyclical nature.
-
-9) Key opportunities
-- Faster 5G rollouts and network densification (small cells, mid-band mmWave) in Europe/North America.
-- Displacement of Huawei in Western-aligned and allied countries.
-- Growth in software, cloud, managed services, and private networks.
-- Open RAN adoption at scale (if Nokia can capture meaningful share via virtualized offerings and ecosystem partnerships).
-- Licensing and patent monetization, including new 5G/6G IP.
-
-10) Principal risks
-- Intensifying price competition (especially from Huawei/ZTE where allowed), which can compress margins.
-- Delays or cutbacks in carrier CAPEX due to macro weakness or poor operator economics.
-- Supply-chain disruptions and semiconductor shortages or price inflation.
-- Execution risk on software transition and integrating acquisitions.
-- Regulatory and geopolitical shifts (e.g., sudden policy reversals or new export controls) that could restrict markets or inputs.
-- Lumpy licensing revenue and legal outcomes affecting cash flow predictability.
-
-11) Practical monitoring checklist for investors
-- Quarterly/annual filings: bookings, backlog, segment revenue (Networks vs Technologies), gross margins, operating cash flow, net debt.
-- Major contract announcements (wins with tier-1 carriers) and geographic mix of those wins.
-- Progress and wins in Open RAN and cloud-native core deployments.
-- Patent licensing deal updates and material settlements.
-- R&D spend trajectory and CapEx guidance.
-- Analyst guidance vs bookings and book-to-bill trends.
-- Macro indicators: carrier capex guidance, spectrum auctions scheduled in major markets, regulatory headwinds/benefits in EU/US/Asia.
-- Competitor earnings/capital deployment — particularly Ericsson and Ciena — for relative performance and pricing trends.
-
-Summary
-Nokia’s performance is driven by global carrier CAPEX cycles, competitive dynamics between Ericsson/Huawei/Samsung and emerging Open RAN vendors, semiconductor and component supply conditions, and regulatory/geopolitical shifts that reshape market access. The company’s long-term path depends on its ability to increase higher-margin software and services revenue, convert RAN technology wins into scale (including Open RAN), and protect/monetize its IP portfolio — all while managing execution, supply-chain and pricing pressures. For investment decisions, focus on bookings/book-to-bill, margin mix evolution, free cash flow and licensing trends, and major contract pipelines as the principal leading indicators.
-
-If you’d like, I can:
-- Pull together a comparable peer set and a tailored set of KPIs to track weekly/quarterly,
-- Draft an investor monitoring dashboard of the 8–10 most actionable metrics,
-- Or analyze a recent quarterly report (you can paste the key numbers) and map them into the framework above.
-
----
-
-**Stock Analysis: Nokia Corporation (NOK)**  
-
----
-
-### **1. Company Overview**
-- **Ticker:** NOK (NYSE, Helsinki, Frankfurt)  
-- **Headquarters:** Espoo, Finland  
-- **Sector:** Technology / Communication Equipment  
-- **Industry:** Networking & Telecommunications  
-- **Key Business Segments:**  
-  - **Network Infrastructure** (Mobile Networks, Fixed Networks, IP/Optical Networks, Submarine Networks)  
-  - **Mobile Networks** (5G equipment, radio access networks)  
-  - **Cloud and Network Services** (Core network software, cloud solutions)  
-  - **Nokia Technologies** (Licensing of intellectual property, patents)  
-
----
-
-### **2. Key Financial Relationships**
-- **Revenue Streams:** Heavily dependent on capital expenditure cycles of telecom operators (e.g., AT&T, Verizon, Vodafone).  
-- **Profitability Drivers:**  
-  - **Gross Margins:** Higher in IP/Optical Networks and Nokia Technologies (licensing).  
-  - **Operating Leverage:** Fixed-cost base in R&D and manufacturing; profitability improves with higher sales volume.  
-- **Balance Sheet Strength:**  
-  - Strong cash position (€4.3 billion as of Q3 2023) with manageable debt.  
-  - Investments in R&D (~13% of revenue) critical for maintaining technological edge.  
-  - **Dividend Policy:** Reinstated dividend in 2023 after suspension during restructuring.  
-
----
-
-### **3. Market Dependencies**
-- **5G Rollout Cycle:** Growth tied to global 5G infrastructure deployment, especially in North America, Europe, and Asia.  
-- **Telecom Operator Spending:** Sensitivity to economic cycles; operators may delay capex in downturns.  
-- **Geopolitical Factors:**  
-  - Trade restrictions (e.g., China-West tensions) impact supply chains and market access.  
-  - European Union policies promoting “Open RAN” (open radio access networks) could alter competitive dynamics.  
-- **Currency Risk:** Revenue in USD, EUR, and other currencies; EUR appreciation can negatively impact reported earnings.  
-
----
-
-### **4. Sector Connections**
-- **Telecom Equipment Industry:** Oligopolistic structure with **Ericsson (ERIC)**, **Huawei**, **ZTE**, and **Cisco (CSCO)** as key players.  
-- **Supply Chain:** Relies on semiconductor suppliers (e.g., Broadcom, Intel) and contract manufacturers.  
-- **End-Market Links:**  
-  - **Enterprise Networks:** Growth in private 5G networks for industries (manufacturing, logistics).  
-  - **Government & Defense:** Secure communications infrastructure.  
-
----
-
-### **5. Competitor Relationships**
-- **Direct Competitors:**  
-  - **Ericsson (ERIC):** Similar portfolio; intense competition in 5G radio access networks.  
-  - **Huawei:** Dominant in China and emerging markets; excluded from many Western markets due to security concerns (benefits NOK and ERIC).  
-  - **Cisco (CSCO):** Competes in IP routing and optical networks.  
-- **Competitive Advantages:**  
-  - Strong patent portfolio (~20,000 patent families, including foundational 5G patents).  
-  - End-to-end portfolio (from radio to core networks).  
-- **Weaknesses:** Lower scale vs. Huawei; slower growth in some emerging markets.  
-
----
-
-### **6. Economic Factors**
-- **Macroeconomic Sensitivity:**  
-  - High interest rates increase financing costs for telecom operators, potentially delaying 5G investments.  
-  - Inflation impacts component costs and logistics.  
-- **Regulatory Environment:**  
-  - Spectrum allocation policies by governments drive operator investment.  
-  - National security regulations (e.g., bans on Huawei) create opportunities in Western markets.  
-- **Technology Shifts:**  
-  - Transition to cloud-native, software-defined networks requires ongoing R&D.  
-  - Growth in IoT, edge computing, and AI-driven networks could provide new revenue streams.  
-
----
-
-### **7. Financial Ecosystem Summary**
-Nokia operates in a **cyclical, capital-intensive industry** with high strategic importance to national telecom infrastructure. Its financial health is tied to:  
-1. **Global 5G Capex Cycles** – Peaks and troughs in operator spending.  
-2. **Geopolitical Realignments** – Western shift away from Huawei.  
-3. **R&D Efficiency** – Ability to innovate while maintaining margins.  
-4. **Patent Monetization** – High-margin licensing revenue providing stability.  
-
-**Risks:**  
-- Market share loss to Ericsson or new Open RAN entrants.  
-- Prolonged telecom capex slowdown.  
-- Supply chain disruptions (semiconductors, logistics).  
-
-**Opportunities:**  
-- Increased 5G adoption in India, Southeast Asia, and Africa.  
-- Expansion into enterprise private networks.  
-- Licensing revenue from 5G patents in automotive, IoT.  
-
----
-
-### **8. Investment Considerations**
-- **Valuation:** Often trades at lower P/E vs. software-centric tech due to lower growth outlook and hardware margins.  
-- **Catalysts:**  
-  - New 5G contract wins in key markets (e.g., India, Europe).  
-  - Margin expansion from cost-cutting and product mix shift to software.  
-  - Patent licensing renewals (e.g., with smartphone makers).  
-- **ESG Factors:** Strong focus on sustainability (energy-efficient networks, circular economy initiatives).  
-
----
-
-**Conclusion:** Nokia’s stock performance is a function of **telecom capex cycles, competitive dynamics vs. Ericsson/Huawei, and execution in transitioning to higher-margin software and services**. Monitoring quarterly order books, geopolitical developments, and 5G rollout timelines is essential for forecasting its financial trajectory.
-"""
-
-
 def parse_analysis_text(text):
     """
-    Parses the full analysis text into a dictionary of sections.
-    Handles Roman numeral headings, numbered list headings, and distinct conclusions.
+    Parses the financial analysis text to extract sections,
+    prioritizing the second, highly structured analysis block for its detailed outline.
+    Integrates key insights from other blocks where appropriate.
     """
     sections = {}
-
-    # Split into three main blocks based on "---" separators
-    blocks = re.split(r'\n---\n', text)
-
-    # Block 1: Initial Comprehensive Financial Analysis (Roman numerals)
-    if len(blocks) > 0:
-        main_analysis_text = blocks[0].strip()
-        # Regex to split by "**I. Title**" like headings
-        main_sections_raw = re.split(r'(\n\*\*I{1,3}\. [A-Za-z\s&-]+\*\*)\n', main_analysis_text, flags=re.MULTILINE)
+    
+    # Split the entire text into distinct analysis blocks based on "---"
+    parts = text.split("---")
+    
+    # Part 0: The initial introduction before the first "##" header
+    initial_intro_block = parts[0].strip()
+    first_formal_header_idx = initial_intro_block.find("## Ericsson (ERIC) - Financial Ecosystem Analysis")
+    if first_formal_header_idx != -1:
+        sections["Overall Introduction"] = initial_intro_block[:first_formal_header_idx].strip()
+    else:
+        sections["Overall Introduction"] = initial_intro_block # Fallback if header not found
+    
+    # Extract SWOT Analysis from the first block (explicitly present there)
+    swot_match = re.search(r'\*\*7\. SWOT Analysis \((.*?)\):\n(.*?)(?=\n\nIn summary, Ericsson operates|$)', initial_intro_block, re.DOTALL)
+    if swot_match:
+        sections["SWOT Analysis"] = swot_match.group(2).strip()
+    
+    # Part 1: The second structured analysis block (index 1 after splitting by "---")
+    # This block starts with "Below is a comprehensive, structured analysis of ERIC..."
+    if len(parts) > 1:
+        structured_analysis_text = parts[1].strip()
+        # Remove the leading introductory sentence from this block itself
+        structured_analysis_text = re.sub(r'Below is a comprehensive, structured analysis of ERIC.*?Nasdaq\), focused on the financial ecosystem:.*?\.\s*', '', structured_analysis_text, flags=re.DOTALL).strip()
         
-        # The first part before the first Roman numeral heading is an introduction
-        if main_sections_raw and main_sections_raw[0].strip():
-            sections['Introduction'] = main_sections_raw[0].strip()
+        # Define the exact headers present in this block for parsing
+        known_headers_ordered = [
+            "Company snapshot (context)",
+            "Key financial relationships and drivers",
+            "Market dependencies",
+            "Sector and technology connections",
+            "Competitors and industry relationships",
+            "Customer concentration and counterparty risk",
+            "Regulatory, geopolitical and macroeconomic factors",
+            "Intellectual property & litigation",
+            "Financial health, valuation drivers and metrics to monitor",
+            "Opportunities (bull case)",
+            "Risks (bear case)",
+            "Practical monitoring checklist",
+            "Valuation and investor considerations (high-level)",
+            "Bottom line"
+        ]
         
-        # Process Roman numeral sections
-        for i in range(1, len(main_sections_raw), 2):
-            title = main_sections_raw[i].strip().replace('**', '')
-            content = main_sections_raw[i+1].strip()
-            sections[title] = content
-        
-        # Explicitly handle the "Conclusion" from this first block if it wasn't caught by generic Roman numeral parsing
-        # The regex looks for "**Conclusion**\n" followed by content, up to the next block or next Roman numeral
-        first_conclusion_match = re.search(r'\n\*\*Conclusion\*\*\n(.*?)(?=\n\*\*I{1,3}\.|$)', main_analysis_text, re.DOTALL)
-        if first_conclusion_match:
-            # Check if it was already caught by Roman numeral parsing (if a generic "**Conclusion**" was present)
-            if "Conclusion" in sections:
-                sections["Conclusion of Initial Analysis"] = sections.pop("Conclusion") # Rename it
+        for i, header in enumerate(known_headers_ordered):
+            start_idx = structured_analysis_text.find(header)
+            if start_idx == -1:
+                sections[header] = ""
+                continue
+            
+            content_start_idx = start_idx + len(header)
+            
+            end_idx = -1
+            if i < len(known_headers_ordered) - 1:
+                next_header = known_headers_ordered[i+1]
+                end_idx = structured_analysis_text.find(next_header, content_start_idx)
+            
+            if end_idx == -1: # Last section or next section not found
+                section_content = structured_analysis_text[content_start_idx:].strip()
             else:
-                sections["Conclusion of Initial Analysis"] = first_conclusion_match.group(1).strip()
-        elif "Conclusion" in sections: # If it was a generic 'Conclusion' from the splitting and not explicitly handled above
-            sections['Conclusion of Initial Analysis'] = sections.pop('Conclusion')
+                section_content = structured_analysis_text[content_start_idx:end_idx].strip()
+            
+            # Clean up the specific prompt's follow-up if it's there
+            if "If you want, I can:" in section_content:
+                section_content = section_content.split("If you want, I can:")[0].strip()
+            
+            # Remove any leading non-bullet intro lines, but preserve proper markdown bullet points
+            # This regex attempts to remove a non-bullet first line if it's followed by a bullet list
+            section_content = re.sub(r'^(.*?)\n- ', r'- ', section_content.strip(), count=1, flags=re.DOTALL)
+            section_content = section_content.strip()
 
-
-    # Block 2: Structured, Comprehensive View (Numbered points like "1) Business overview")
-    if len(blocks) > 1:
-        structured_view_text = blocks[1].strip()
+            sections[header] = section_content
+            
+    # Final cleanups: Ensure bullet points in sections that are expected to have them
+    for key in ["Company snapshot (context)", "Key financial relationships and drivers", "Market dependencies",
+                "Sector and technology connections", "Competitors and industry relationships",
+                "Customer concentration and counterparty risk", "Regulatory, geopolitical and macroeconomic factors",
+                "Intellectual property & litigation", "Financial health, valuation drivers and metrics to monitor",
+                "Opportunities (bull case)", "Risks (bear case)", "Practical monitoring checklist",
+                "Valuation and investor considerations (high-level)", "Bottom line", "SWOT Analysis"]:
+        if key in sections and sections[key].strip() and not sections[key].strip().startswith('-'):
+            # This is a bit aggressive, assuming most content in these is bulleted.
+            # A more nuanced approach would check if the content *looks* like it should be bulleted.
+            # For simplicity, if not starting with '-', prepend to ensure markdown bullet list.
+            sections[key] = '- ' + sections[key].replace('\n\n', '\n- ').replace('\n', '\n- ').strip()
+        sections[key] = sections[key].replace('\n- \n- ', '\n- ') # Remove empty bullet points
+        sections[key] = sections[key].replace('\n- - ', '\n- ') # Fix for double bullets in SWOT
         
-        # The text before "1) Business overview" serves as an introduction to this section
-        intro_match = re.match(r'(.*?)\n1\) Business overview', structured_view_text, re.DOTALL)
-        if intro_match:
-            sections['Structured Ecosystem View Introduction'] = intro_match.group(1).strip()
-        
-        # Regex to split by "1) Title" like headings
-        structured_sections_raw = re.split(r'(\n\d+\) [A-Za-z\s&\-,\/—]+)\n', structured_view_text, flags=re.MULTILINE)
-        
-        for i in range(1, len(structured_sections_raw), 2):
-            title = structured_sections_raw[i].strip()
-            content = structured_sections_raw[i+1].strip()
-            sections[f"Structured View: {title}"] = content
-        
-        # Extract the Summary from this block
-        summary_match = re.search(r'\nSummary\n(.*?)(?=\nIf you’d like|$)', structured_view_text, re.DOTALL)
-        if summary_match:
-            sections['Summary of Ecosystem View'] = summary_match.group(1).strip()
-
-    # Block 3: Stock Analysis (Numbered hash headings like "### 1. Company Overview")
-    if len(blocks) > 2:
-        stock_analysis_text = blocks[2].strip()
-        # The initial part might contain a small intro or just the "Stock Analysis: Nokia Corporation (NOK)"
-        intro_part = stock_analysis_text.split('\n### 1. Company Overview')[0].strip()
-        if intro_part and intro_part != "**Stock Analysis: Nokia Corporation (NOK)**": # Avoid adding just the title again
-             sections['Stock Analysis Overview'] = intro_part
-        
-        # Regex to split by "### 1. Title" like headings
-        stock_analysis_sections_raw = re.split(r'(\n### \d+\. [A-Za-z\s&-:]+)\n', stock_analysis_text, flags=re.MULTILINE)
-        
-        for i in range(1, len(stock_analysis_sections_raw), 2):
-            title = stock_analysis_sections_raw[i].strip().replace('### ', '')
-            content = stock_analysis_sections_raw[i+1].strip()
-            sections[f"Stock Analysis: {title}"] = content
-        
-        # Extract the final "Conclusion" from the very end of the text
-        final_conclusion_match = re.search(r'\n\*\*Conclusion:\*\*(.*?)$', stock_analysis_text, re.DOTALL)
-        if final_conclusion_match:
-            sections['Final Investment Conclusion'] = final_conclusion_match.group(1).strip()
-
     return sections
 
-parsed_sections = parse_analysis_text(analysis_text)
+
+def generate_hypothetical_data():
+    """Generates hypothetical financial data for Ericsson, based on qualitative analysis."""
+    years = pd.to_datetime([f'{y}-12-31' for y in range(2020, 2024)])
+    
+    # Revenue data: 5G boom, then stabilization
+    revenue_mseks = np.array([232.4, 243.3, 271.5, 263.9]) * 1000 # in MSEK
+    revenue_growth_rate = [0] + [((revenue_mseks[i] - revenue_mseks[i-1]) / revenue_mseks[i-1]) * 100 for i in range(1, len(revenue_mseks))]
+    
+    df_revenue = pd.DataFrame({
+        'Year': years,
+        'Revenue (MSEK)': revenue_mseks,
+        'Revenue Growth (%)': revenue_growth_rate
+    })
+
+    # Margins: volatile, then improving or impacted by specific events
+    gross_margin = np.array([38.5, 39.0, 41.0, 39.5]) # %
+    operating_margin = np.array([10.2, 11.5, 9.8, 8.5]) # % - impacted by R&D, Vonage, competition
+    net_profit_margin = np.array([6.5, 7.2, 5.0, 4.2]) # %
+    
+    df_margins = pd.DataFrame({
+        'Year': years,
+        'Gross Margin (%)': gross_margin,
+        'Operating Margin (%)': operating_margin,
+        'Net Profit Margin (%)': net_profit_margin
+    })
+
+    # Revenue by segment (hypothetical distribution, as percentages based on analysis text "Networks largest")
+    df_segment_revenue = pd.DataFrame({
+        'Segment': ['Networks', 'Digital Services', 'Managed Services', 'Emerging Business & Others'],
+        'Revenue Share (%)': [70, 15, 10, 5], 
+        'Revenue (MSEK)': revenue_mseks[-1] * np.array([0.70, 0.15, 0.10, 0.05])
+    })
+
+    # Competitor Market Share (hypothetical for RAN market, illustrating oligopoly)
+    df_market_share = pd.DataFrame({
+        'Vendor': ['Huawei', 'Ericsson', 'Nokia', 'Samsung', 'ZTE', 'Others'],
+        'Market Share (%)': [28, 25, 20, 12, 10, 5] 
+    })
+    
+    # Debt-to-Equity (illustrative, showing Vonage impact in 2022)
+    d_to_e = np.array([0.8, 0.75, 1.2, 1.1]) 
+    df_debt_equity = pd.DataFrame({
+        'Year': years,
+        'Debt-to-Equity Ratio': d_to_e
+    })
+
+    # Key Financial Metrics Table (snapshot)
+    key_metrics_data = {
+        'Metric': [
+            'Latest Annual Revenue (MSEK)',
+            'Revenue Growth (YoY %)',
+            'Gross Margin (%)',
+            'Operating Margin (%)',
+            'Net Debt/Equity Ratio',
+            'R&D Spend (as % of Revenue)'
+        ],
+        'Value': [
+            f"{df_revenue['Revenue (MSEK)'].iloc[-1]:,.0f}",
+            f"{df_revenue['Revenue Growth (%)'].iloc[-1]:.1f}%",
+            f"{df_margins['Gross Margin (%)'].iloc[-1]:.1f}%",
+            f"{df_margins['Operating Margin (%)'].iloc[-1]:.1f}%",
+            f"{df_debt_equity['Debt-to-Equity Ratio'].iloc[-1]:.2f}",
+            "~15-18%" # Qualitative from text "High R&D spending"
+        ]
+    }
+    df_key_metrics = pd.DataFrame(key_metrics_data)
+
+    return {
+        'df_revenue': df_revenue,
+        'df_margins': df_margins,
+        'df_segment_revenue': df_segment_revenue,
+        'df_market_share': df_market_share,
+        'df_debt_equity': df_debt_equity,
+        'df_key_metrics': df_key_metrics
+    }
 
 
-# --- Dummy Data Generation for Charts (Illustrative, not real Nokia data) ---
-years = pd.to_datetime([f'{2018+i}-01-01' for i in range(7)]) # 7 years of data
+def create_charts(data):
+    """Creates Plotly charts based on hypothetical data."""
 
-df_revenue = pd.DataFrame({
-    'Year': years,
-    'Revenue (B€)': [23.3, 23.1, 21.9, 22.2, 24.9, 23.6, 25.1] # Cyclical but some growth, reflecting text
-})
+    # 1. Revenue and Revenue Growth
+    fig_revenue = px.line(data['df_revenue'], x='Year', y='Revenue (MSEK)',
+                          title='Hypothetical Annual Revenue (MSEK)',
+                          labels={'Revenue (MSEK)': 'Revenue (MSEK)'},
+                          markers=True)
+    fig_revenue.update_traces(hovertemplate='Year: %{x|%Y}<br>Revenue: %{y:,.0f} MSEK')
+    fig_revenue.update_layout(xaxis_title="Year", yaxis_title="Revenue (MSEK)")
 
-df_margins = pd.DataFrame({
-    'Year': years,
-    'Gross Profit Margin (%)': [35, 36, 34, 37, 39, 38, 40],
-    'Operating Profit Margin (%)': [6, 7, 4, 8, 10, 9, 11],
-    'Net Profit Margin (%)': [2, 3, 1, 5, 7, 6, 8]
-})
-
-df_capex_rd = pd.DataFrame({
-    'Year': years,
-    'R&D Spend (B€)': [4.5, 4.3, 4.2, 4.5, 4.8, 4.7, 4.9], # Stable/increasing R&D
-    'Capital Expenditures (B€)': [1.5, 1.4, 1.3, 1.6, 1.8, 1.7, 1.9] # Reflecting CapEx needs
-})
-
-df_debt_equity = pd.DataFrame({
-    'Year': years,
-    'Debt-to-Equity Ratio': [0.55, 0.50, 0.48, 0.45, 0.40, 0.38, 0.35] # Illustrative improvement/stability
-})
-
-df_cash_flow = pd.DataFrame({
-    'Year': years,
-    'Cash Flow from Operations (B€)': [3.0, 3.2, 2.8, 3.5, 3.8, 3.6, 4.0],
-    'Free Cash Flow (B€)': [1.5, 1.8, 1.5, 2.0, 2.2, 2.0, 2.5] # Strong positive cash flow
-})
-
-# Conceptual market share for competitors based on qualitative description
-df_market_share = pd.DataFrame({
-    'Competitor': ['Huawei', 'Ericsson', 'Nokia', 'Samsung', 'ZTE', 'Cisco', 'Juniper', 'Others'],
-    'Estimated Market Share (%)': [28, 24, 18, 10, 8, 6, 3, 3] # Fictional distribution, broader competition
-})
+    fig_revenue_growth = px.bar(data['df_revenue'], x='Year', y='Revenue Growth (%)',
+                                title='Hypothetical Revenue Growth (%)',
+                                labels={'Revenue Growth (%)': 'Growth (%)'},
+                                color='Revenue Growth (%)',
+                                color_continuous_scale=px.colors.sequential.Viridis)
+    fig_revenue_growth.update_traces(hovertemplate='Year: %{x|%Y}<br>Growth: %{y:.1f}%')
+    fig_revenue_growth.update_layout(xaxis_title="Year", yaxis_title="Growth (%)")
 
 
-# --- Streamlit App Layout ---
+    # 2. Profit Margins
+    fig_margins = px.line(data['df_margins'], x='Year', y=['Gross Margin (%)', 'Operating Margin (%)', 'Net Profit Margin (%)'],
+                          title='Hypothetical Profit Margin Trends (%)',
+                          labels={'value': 'Margin (%)', 'variable': 'Margin Type'},
+                          markers=True)
+    fig_margins.update_layout(xaxis_title="Year", yaxis_title="Margin (%)")
+    fig_margins.update_traces(hovertemplate='Year: %{x|%Y}<br>Margin: %{y:.1f}%')
 
-st.title("Nokia (NOK) Financial Analysis & Ecosystem Deep Dive")
+
+    # 3. Revenue by Segment
+    fig_segment_revenue = px.pie(data['df_segment_revenue'], values='Revenue Share (%)', names='Segment',
+                                 title='Hypothetical Revenue Distribution by Segment (Latest Year)',
+                                 hole=0.3)
+    fig_segment_revenue.update_traces(textinfo='percent+label', pull=[0.05 if s == 'Networks' else 0 for s in data['df_segment_revenue']['Segment']],
+                                      hovertemplate='<b>%{label}</b><br>Share: %{percent}<br>Revenue: %{customdata:,.0f} MSEK',
+                                      customdata=data['df_segment_revenue']['Revenue (MSEK)'])
+    fig_segment_revenue.update_layout(showlegend=True)
+
+
+    # 4. Competitor Market Share
+    fig_market_share = px.bar(data['df_market_share'], x='Market Share (%)', y='Vendor', orientation='h',
+                              title='Hypothetical Global RAN Market Share Distribution',
+                              color='Market Share (%)',
+                              color_continuous_scale=px.colors.sequential.Plasma)
+    fig_market_share.update_layout(yaxis={'categoryorder':'total ascending'})
+    fig_market_share.update_traces(hovertemplate='Vendor: %{y}<br>Share: %{x:.1f}%')
+
+
+    # 5. Debt-to-Equity Ratio
+    fig_debt_equity = px.line(data['df_debt_equity'], x='Year', y='Debt-to-Equity Ratio',
+                              title='Hypothetical Debt-to-Equity Ratio',
+                              labels={'Debt-to-Equity Ratio': 'D/E Ratio'},
+                              markers=True)
+    fig_debt_equity.update_traces(hovertemplate='Year: %{x|%Y}<br>D/E Ratio: %{y:.2f}')
+    fig_debt_equity.update_layout(xaxis_title="Year", yaxis_title="Ratio")
+
+
+    return {
+        'fig_revenue': fig_revenue,
+        'fig_revenue_growth': fig_revenue_growth,
+        'fig_margins': fig_margins,
+        'fig_segment_revenue': fig_segment_revenue,
+        'fig_market_share': fig_market_share,
+        'fig_debt_equity': fig_debt_equity
+    }
+
+
+# The full analysis text provided in the prompt
+FINANCIAL_ANALYSIS_TEXT = """
+Let's dive into an analysis of **Ericsson (ERIC)**, a prominent player in the telecommunications infrastructure and services sector. To provide a comprehensive financial ecosystem analysis, we'll break it down into several key areas:
+
+## Ericsson (ERIC) - Financial Ecosystem Analysis
+
+**1. Core Business and Revenue Drivers:**
+
+*   **Primary Business:** Ericsson is a leading provider of telecommunications equipment, software, and services. Their core offerings include:
+    *   **Networks:** This segment is the largest and includes mobile radio access (5G, 4G, 3G), core network solutions, and transmission equipment. This is heavily driven by network deployments and upgrades, particularly the ongoing 5G rollout globally.
+    *   **Digital Services:** This encompasses cloud-native software solutions for operators, including cloud-native core networks, orchestrations, AI/ML-driven operations, and business support systems (BSS) and operations support systems (OSS). This segment is crucial for operators looking to modernize their networks and leverage cloud technologies.
+    *   **Managed Services:** Ericsson provides end-to-end managed services for telecommunications networks, including network operations, maintenance, and optimization. This offers a recurring revenue stream for the company.
+    *   **Emerging Business:** This includes areas like IoT connectivity solutions, enterprise networks, and private networks, which are becoming increasingly important growth areas.
+*   **Key Revenue Drivers:**
+    *   **5G Network Deployments:** The global transition to 5G is the most significant driver of Ericsson's revenue. Demand for radio access network (RAN) equipment, core network components, and associated services is directly tied to this rollout.
+    *   **Operator Spending Cycles:** Telecommunications operators have cyclical capital expenditure (CapEx) cycles. Investments in new technologies (like 5G) and network upgrades are major catalysts.
+    *   **North America and Asia-Pacific Markets:** These regions are typically major drivers of network spending due to high mobile penetration and rapid technological adoption.
+    *   **Service Contracts:** Long-term managed service contracts and professional services contribute to stable, recurring revenue.
+    *   **Enterprise and Private Networks:** Growth in private 5G networks for industries and the expansion of IoT are emerging revenue streams.
+
+**2. Financial Health and Key Ratios (General Observations - specific numbers require current data):**
+
+*   **Revenue Growth:** Analyze trends in reported revenue, paying attention to segment performance. Look for consistent growth, especially in Network and Digital Services.
+*   **Profitability:**
+    *   **Gross Profit Margin:** Indicates efficiency in production and service delivery.
+    *   **Operating Profit Margin (EBIT Margin):** Crucial for understanding profitability from core operations. Watch for trends and any impact from R&D investments or competitive pressures.
+    *   **Net Profit Margin:** The bottom line.
+    *   **EBITDA:** A measure of operational cash flow generation.
+*   **Balance Sheet:**
+    *   **Debt-to-Equity Ratio:** Indicates leverage. A high ratio can signal higher financial risk.
+    *   **Current Ratio/Quick Ratio:** Measures short-term liquidity.
+*   **Cash Flow:**
+    *   **Operating Cash Flow:** The most important indicator of a company's ability to generate cash from its core business.
+    *   **Free Cash Flow (FCF):** Cash available after capital expenditures, crucial for dividends, buybacks, and debt reduction.
+*   **Key Performance Indicators (KPIs) for the Telecom Infrastructure Sector:**
+    *   **Gross Margin Evolution:** Particularly in the RAN segment, margins can be sensitive to competitive pricing and product mix.
+    *   **R&D Intensity:** High R&D spending is crucial for staying ahead in the technology race, but it can impact short-term profitability.
+    *   **Order Intake/Backlog:** A forward-looking indicator of future revenue.
+
+**3. Market Dependencies and Industry Structure:**
+
+*   **Oligopolistic Market:** The telecommunications infrastructure market is highly consolidated, with a few major global players.
+*   **Key Competitors:**
+    *   **Nokia (NOK):** Ericsson's most direct and significant competitor in RAN and core network solutions.
+    *   **Huawei (HW):** A major global competitor, though its market share has been impacted by geopolitical restrictions in some regions.
+    *   **Samsung (005930.KS):** A growing player, particularly in specific markets and technologies.
+    *   **ZTE (000063.SZ):** Another Chinese competitor with a significant presence.
+    *   **Cloud Providers (AWS, Azure, GCP):** While not direct hardware competitors, they are increasingly involved in providing cloud infrastructure that underpins network functions (e.g., cloud-native core networks).
+*   **Customer Concentration:** Ericsson's customer base consists of a relatively small number of large telecommunications operators worldwide. This can lead to significant revenue concentration with individual clients.
+*   **Technology Lifecycle:** The industry is driven by rapid technological evolution (3G -> 4G -> 5G -> future 6G). Companies need to invest heavily in R&D to remain competitive.
+*   **Supply Chain:** Ericsson relies on a complex global supply chain for its components. Disruptions (like semiconductor shortages) can significantly impact production and delivery.
+
+**4. Sector Connections and Interdependencies:**
+
+*   **Telecommunications Operators:** Ericsson's fate is intrinsically linked to the financial health and CapEx spending of mobile network operators (MNOs) like Verizon, AT&T, T-Mobile, Vodafone, Orange, etc.
+*   **Semiconductor Manufacturers:** As a hardware provider, Ericsson is a major customer of semiconductor companies that produce chips for its equipment.
+*   **Software and Cloud Providers:** Increasing reliance on cloud-native software means stronger ties with cloud infrastructure providers and software developers.
+*   **Enterprise and Vertical Industries:** Growing involvement in private networks and IoT connects Ericsson to sectors like manufacturing, logistics, healthcare, and smart cities.
+*   **Governments and Regulators:** Government policies, spectrum auctions, and national security concerns (especially regarding Chinese vendors) can significantly influence the competitive landscape and market access.
+
+**5. Geopolitical and Regulatory Factors:**
+
+*   **US-China Tech Rivalry:** Restrictions on Huawei in many Western markets have benefited competitors like Ericsson and Nokia. However, this also creates uncertainty and can lead to retaliatory measures or shifts in global supply chains.
+*   **National Security Concerns:** Governments are increasingly scrutinizing the security of telecommunications infrastructure, leading to "cleansing" initiatives in some countries where foreign vendors are being phased out.
+*   **Spectrum Allocation:** The availability and cost of radio spectrum are critical for operators, influencing their investment decisions in new network technologies.
+*   **Trade Policies and Tariffs:** Global trade policies can impact the cost of components and the competitiveness of Ericsson's products in different markets.
+*   **Data Privacy Regulations:** Increasingly stringent data privacy laws can influence the development and deployment of network services.
+
+**6. Economic Factors:**
+
+*   **Global Economic Growth:** A strong global economy generally translates to higher consumer spending on mobile services, encouraging operator investment.
+*   **Interest Rates:** Higher interest rates can increase the cost of capital for both Ericsson and its operator customers, potentially impacting CapEx.
+*   **Inflation:** Rising inflation can affect component costs, labor costs, and overall pricing power.
+*   **Currency Fluctuations:** Ericsson operates globally, so fluctuations in currency exchange rates can impact reported revenues and profitability.
+*   **Consumer Demand for Data:** The ever-increasing demand for mobile data, video streaming, and online services is a fundamental driver for network upgrades and expansion.
+
+**7. SWOT Analysis (Internal Strengths/Weaknesses, External Opportunities/Threats):**
+
+*   **Strengths:** Strong R&D capabilities, global presence, established relationships with major operators, comprehensive product portfolio.
+*   **Weaknesses:** Intense competition, sensitivity to operator CapEx cycles, potential margin pressure, reliance on a few large customers.
+*   **Opportunities:** Global 5G rollout, growth in private networks, expansion into emerging markets and enterprise solutions, cloudification of networks.
+*   **Threats:** Geopolitical risks, intense competition (especially from Huawei and Samsung), supply chain disruptions, regulatory changes, economic downturns impacting operator spending.
+
+**In summary, Ericsson operates in a dynamic and capital-intensive industry.** Its financial performance is heavily influenced by the pace of global 5G deployments, the CapEx decisions of major telecommunications operators, and the complex geopolitical landscape. Success hinges on continuous innovation, efficient execution, and navigating the intricate relationships with its customers, competitors, and regulators.
+
+**To perform a truly in-depth analysis, you would need to:**
+
+*   **Access current financial statements:** Review Ericsson's latest quarterly and annual reports for specific revenue figures, profitability ratios, debt levels, and cash flow.
+*   **Analyze historical performance:** Track trends over several years to understand cyclicality and long-term growth.
+*   **Examine analyst reports and guidance:** See what financial analysts are projecting for Ericsson's future performance.
+*   **Monitor industry news:** Stay updated on 5G deployment trends, competitor announcements, and regulatory developments.
+
+By considering these interconnected factors, one can build a robust understanding of Ericsson's financial ecosystem and its prospects.
+
+---
+
+Below is a comprehensive, structured analysis of ERIC (Telefonaktiebolaget LM Ericsson — traded as ERIC on Nasdaq), focused on the financial ecosystem: key revenue relationships, market and sector dependencies, competitor and partner dynamics, supplier and customer concentration, regulatory and macroeconomic drivers, principal risks and upside opportunities, and practical indicators for monitoring the stock.
+
+Company snapshot (context)
+- Core business lines: Radio Access Network (RAN) equipment (macro and small cells), Transport/optical networks, Core networks and cloud-native software (including 5G core), Managed services and network rollout services, and patent/IP licensing.
+- Revenue profile: mix of equipment sales (project/capex-driven) and recurring/services revenue (managed services, software, maintenance). R&D-intensive with substantial patent/IP activity and licensing income.
+
+Key financial relationships and drivers
+- Operator capex cycles -> Revenues and margins: Telecom carriers’ capital expenditure (capex) plans directly drive Ericsson’s equipment sales. When carriers accelerate 5G rollouts or upgrade backhaul/transport, Ericsson sees large equipment orders and revenue recognition events.
+- Services/Software mix -> Margin stability and recurring cash flows: Growth in managed services and software increases recurring revenue and typically produces higher, steadier gross margins than one-off hardware sales. Shift from hardware to software/cloud (network-as-software) improves EBITDA margin potential over time.
+- Order intake & backlog -> Forward revenue visibility: New contract wins and order backlog are leading indicators of revenue over next quarters. Large multi-year deals create revenue visibility and recurring service streams.
+- R&D spend -> IP portfolio, product competitiveness: High R&D is needed to keep parity/lead in 5G/6G, cloud-native cores, Open RAN, and optical solutions. R&D increases hamper short-term free cash flow but protect long-term market position and licensing income.
+- Working capital & project execution -> Cash flow volatility: Large projects, milestone billing, and contract performance (penalties/bonuses) can produce lumpy free cash flow. Effective project management is critical to protect margins and cash conversion.
+- Currency: Reported in SEK but large portion of revenue in USD/EUR. FX swings (SEK vs USD/EUR) affect reported results and costs (R&D payroll in SEK, sales in global currencies).
+
+Market dependencies
+- 5G rollout phases: Ericsson’s near- to medium-term growth is tightly coupled to global 5G phases — initial coverage builds, capacity densification, and enterprise/private 5G adoption. Enterprise 5G, FWA (fixed wireless access), and industrial IoT are growth channels after initial mobile-network buildouts.
+- Operator capex health: Carrier profitability, ARPU, subscriber trends, and debt levels influence their willingness to spend. Macroeconomic weakness or higher interest rates can compress carrier capex.
+- Spectrum auctions and availability: Timelines and outcomes for spectrum allocation determine operator build plans and procurement timing.
+- Government procurement policy and telecom security initiatives: Western government restrictions on certain vendors (e.g., Huawei) or support packages (procurement preferences, security-driven vendor selection) materially affect competitive positioning and addressable market in multiple countries.
+
+Sector and technology connections
+- Semiconductor and optical component supply chain: Ericsson depends on timely supply of high-end semiconductors (RF front-end, baseband processors, custom ASICs/FPGAs), photonics, and passive components. Global chip shortages or export controls can delay deliveries and increase costs.
+- Cloud providers & virtualization ecosystem: Partnerships/integration with AWS, Microsoft Azure, Google Cloud and major cloud-native/open-source stacks are central as networks virtualize. Ericsson’s cloud-native core and network functions depend on these ecosystems for deployment and market reach.
+- Open RAN & disaggregation movement: Momentum toward Open RAN standards affects hardware/software margins and supplier relationships. Open RAN can create opportunities (new vendors, software sales) but introduces new competitors and price pressure.
+- Optical/transport partners & competitors: For transport and optical segments, competitors like Ciena and Nokia come into play; interop with vendors in optical supply chain matters.
+
+Competitors and industry relationships
+- Primary competitors: Nokia (public peer), Huawei (private—dominant in many markets), Samsung Networks, ZTE (China-focused), and to some extent Cisco/Juniper/Ciena in transport and core segments.
+- Differentiation pressures: Huawei’s price/performance in many markets creates pricing pressure; Nokia is a close technological and commercial peer. Samsung is competitive in certain markets (e.g., SK Telecom, some Asian carriers).
+- Enterprise/IT competitors: For cloud-native cores, orchestration, network slicing, and edge computing, competition overlaps with large IT players and cloud vendors (Cisco, VMware historically, cloud hyperscalers that partner or compete).
+- Partner ecosystem: Ericsson partners with major global operators (Verizon, AT&T, T-Mobile, Vodafone, Telefonica, China Mobile/Unicom/Telecom where contracts exist), cloud providers (AWS/Azure/Google), and numerous systems integrators. Strategic alliances can accelerate deployments and reduce time-to-market for new services.
+
+Customer concentration and counterparty risk
+- Large carriers as anchor customers: A small number of large carriers typically drive a meaningful share of sales. Losses or delayed spend by a key customer (e.g., a major US carrier or a large European/Asian operator) can materially affect revenue.
+- Contract structure risk: Large multi-year contracts often include milestones, penalty clauses, and long payment cycles—contract terms can affect cash conversion and margin if implementation problems occur.
+
+Regulatory, geopolitical and macroeconomic factors
+- Geopolitics & export controls: U.S.-China tensions and export controls on advanced chips or telecommunications equipment can limit addressable markets (e.g., ability to sell certain high-end products into China) or conversely open opportunities in Western markets due to restrictions on certain suppliers.
+- National security policies: Governments’ decisions to restrict vendors for “security” reasons can reconfigure market share across regions (positive for Ericsson in Western markets if competitors are excluded).
+- Subsidies and stimulus (e.g., digital infrastructure funding): Government grants or stimulus for broadband/5G infrastructure (e.g., US funding programs) support accelerated deployments.
+- Macro cycle: GDP growth, consumer spending, and enterprise IT budgets influence carrier revenues and capex; higher rates increase carriers’ cost of capital and may delay capex.
+- Currency and inflation: Inflationary cost pressures (labor, component prices) can compress margins unless price increases or productivity offset. SEK/USD/EUR moves affect reported performance.
+
+Intellectual property & litigation
+- Licensing income and patent portfolio: Ericsson’s IP licensing provides higher-margin revenue, but licensing is sensitive to litigation outcomes, disputes, and global legal frameworks.
+- Compliance and legal risk: Historical compliance fines and potential legal disputes (e.g., sales practices in some countries) can create episodic charges and reputational issues.
+
+Financial health, valuation drivers and metrics to monitor
+- Revenue mix shifts: Watch the proportion of equipment vs services/software revenue. Increasing services/software share is often positive for margins and predictability.
+- Order intake & backlog growth: Rising order intake and healthy backlog point to sustained revenue growth; cancellations or downward revisions are red flags.
+- Gross and operating margins: Margins reflect product mix, pricing, and execution. Improvement in software/services mix and better supply chain execution should raise margins.
+- Free cash flow and cash conversion: Because large projects can be lumpy, FCFF and operating cash flow conversion relative to EBITDA are key for valuation and dividend sustainability.
+- Leverage / net debt: Capital structure and ability to fund R&D and working capital without excessive leverage matters for risk profile.
+- R&D intensity and capex: Sustained investment is required to maintain competitiveness; monitor absolute R&D and capex as percent of sales.
+- Dividend / capital returns policy: If applicable, track payout ratios and cash available for shareholders vs reinvestment needs.
+
+Opportunities (bull case)
+- Acceleration of 5G network deployments (especially in Western markets and enterprise/private 5G).
+- Market share gains where competitors are restricted (security-driven exclusions of other vendors).
+- Growth of managed services, software, and cloud-native network functions that produce recurring, higher-margin revenue.
+- Open RAN uptake where Ericsson can leverage software/virtualization strengths or partner with new hardware suppliers.
+- Expansion in adjacent markets: private 5G, industrial IoT, fixed wireless access, edge compute, and enterprise networking.
+
+Risks (bear case)
+- Intense pricing competition, particularly from Huawei and low-cost suppliers, compresses margins.
+- Execution risk on large contracts: rollout delays, penalties, higher-than-expected costs.
+- Geopolitical limits on market access (e.g., losing or being unable to serve large markets due to export controls).
+- Semiconductor/parts shortages or rising component costs reducing shipments and margin.
+- Carrier capex slowdown due to weaker macro/interest rates raising financing costs for carriers.
+- Regulatory or legal costs related to compliance or litigation.
+
+Practical monitoring checklist (what to watch quarterly/monthly)
+- Order intake and order backlog trends and commentary on timing of deliveries.
+- Revenue growth by segment: RAN, Cloud/Core, Managed Services, Transport, Licensing.
+- Gross margin and operating margin evolution and drivers (mix, pricing, restructuring).
+- Free cash flow, capex, and working capital swings — note any one-off timing effects.
+- R&D spending levels and any statements on roadmap for 5G evolution and 6G initiatives.
+- Major contract announcements or losses (especially with top carriers).
+- Geopolitical/regulatory announcements affecting market access (e.g., nation-level bans or subsidy programs).
+- Supplier constraints or component cost movements (semiconductor availability).
+- Changes in major customer capex guidance (large carriers’ quarterly reports and capex guidance).
+- Patent disputes / licensing settlements or rulings.
+
+Valuation and investor considerations (high-level)
+- Relative valuation vs peers (Nokia, assuming public peers) should reflect growth prospects, margin trajectory, and capital intensity.
+- Investors valuing ERIC should consider the cyclicality of equipment revenue, the trend toward higher-margin services/software, the company’s order/backlog cadence, and geopolitical tailwinds/he
+adwinds.
+- Key catalysts: large multi-year contracts, favorable regulatory shifts, acceleration in enterprise 5G, or significant improvements in cash conversion and margins.
+
+Bottom line
+ERIC’s financial ecosystem is tightly coupled to global telecom operator capex cycles, the pace of 5G and next-generation network rollouts, supply-chain stability (especially semiconductors), and geopolitically driven market access. Long-term upside comes from software and services recurring revenue, Open RAN/cloud-native opportunities, and IP licensing. Principal near-term risks are execution on large contracts, competitive pricing pressure (notably from Huawei), and macro-driven capex slowdowns. For investors, tracking order intake, backlog, services revenue share, margins, cash conversion, and major customer/country developments provides the clearest window into future performance.
+
+If you want, I can:
+- Pull the latest quarterly metrics (revenue by segment, margins, backlog, order intake) and show how they’ve trended in the last 4 quarters;
+- Produce a peer-comparison table (key multiples, margins) versus Nokia, Samsung (if market-data available), and Ciena; or
+- Model a scenario-based sensitivity (e.g., operator capex down 10% vs up 10%) to estimate potential revenue and earnings impact. Which would you prefer?
+
+---
+
+Of course. Here is a comprehensive financial ecosystem analysis for **Ericsson (ERIC)**, the Swedish multinational networking and telecommunications company.
+
+### **1. Core Business & Financial Identity**
+Ericsson is a **leader in the Information Technology and Communication Equipment sector**, primarily focused on:
+*   **Networks:** Building mobile and fixed network infrastructure (5G, IoT).
+*   **Digital Services:** Cloud-native software and services for telecom operators.
+*   **Managed Services:** Outsourcing network operations and optimization.
+*   **Emerging Business:** Enterprise wireless solutions (private networks) and the Vonage acquisition (cloud communications APIs).
+
+**Key Financial Metrics & Health:**
+*   **Revenue Model:** Heavily project-based and cyclical, tied to global telecom operator capital expenditure (CapEx).
+*   **Profitability:** Historically volatile, but has undergone significant restructuring. Focus is on improving margins, particularly in the high-margin software segments.
+*   **Balance Sheet:** Generally strong, but carries debt. The acquisition of Vonage in 2022 significantly increased leverage, which management is committed to reducing.
+*   **Geographic Exposure:** Diversified globally, with key markets in North America (Verizon, AT&T), Europe, and parts of Asia. Notably **exposed to geopolitical tensions** (e.g., exit from China, sanctions impacting Russia).
+
+### **2. Primary Market Dependencies & Economic Factors**
+Ericsson's performance is a direct function of macro and industry-specific cycles.
+
+*   **Telecom Operator CapEx Cycles:** The single biggest driver. Global rollouts of 5G networks have been a multi-year tailwind, but spending is now entering a more normalized, potentially uneven phase as operators focus on monetization.
+*   **Global GDP & Interest Rates:** Economic slowdowns can cause operators to delay or reduce infrastructure spending. Higher interest rates increase financing costs for both Ericsson and its customers, potentially dampening large projects.
+*   **Technology Adoption Curve:** The pace of 5G deployment, followed by the future roadmap to 6G, dictates the upgrade cycle. Adoption of IoT and enterprise private networks represents a growth vector.
+*   **Currency Fluctuations:** As a global company reporting in SEK, a strong Swedish Krona can negatively impact translated revenues and profits from key markets like the US.
+
+### **3. Sector Connections & The Value Chain**
+Ericsson sits at the **core of the telecom ecosystem**:
+
+*   **Upstream (Suppliers):** Relies on semiconductor manufacturers (e.g., Intel, Qualcomm, analog/RF chipmakers), hardware component suppliers, and software partners. Supply chain disruptions and chip shortages directly impact delivery and costs.
+*   **Downstream (Customers):** Almost entirely **Telecom Service Providers (TSPs)** like Verizon, AT&T, Deutsche Telekom, Vodafone, and emerging market operators. Their financial health and strategic priorities are paramount.
+*   **Parallel Industries:** Cloud providers (AWS, Microsoft Azure) are both partners (for cloud-native solutions) and potential long-term competitors in enterprise networks. The **enterprise/private network** segment connects it to verticals like manufacturing, logistics, healthcare, and ports.
+
+### **4. Competitor Relationships & The Competitive Landscape**
+Ericsson operates in a highly concentrated, oligopolistic global market.
+
+*   **Direct Head-to-Head Competitors:**
+    *   **Nokia (NOK):** Its most direct European rival across all product lines. Market share battles are intense in every region.
+    *   **Huawei (China):** The global market share leader, but its position has been eroded in many Western markets (US, UK, Sweden, Australia) due to geopolitical security concerns. This has been a **major secular tailwind** for Ericsson and Nokia.
+    *   **Samsung:** A strong competitor in specific markets (notably South Korea and the US) and a growing force in network equipment, particularly in 5G.
+*   **Competitive Dynamics:** The market is characterized by intense pricing pressure, high R&D costs (to stay at the technology frontier), and strategic long-term contracts. Differentiation is increasingly through software, automation, and energy efficiency.
+
+### **5. Key Risks & Catalysts**
+**Risks:**
+*   **Geopolitical Risk:** Trade wars, sanctions (Russia), and national security policies can instantly alter market access (e.g., loss of business in China, uncertainty in other regions).
+*   **Customer Concentration:** A small number of large operators account for a significant portion of revenue.
+*   **Execution & Integration Risk:** Successfully integrating Vonage and realizing its promised platform synergies is critical.
+*   **Technological Disruption:** Failure to lead in 6G R&D or a shift towards open RAN (Open Radio Access Networks), which could lower barriers to entry.
+
+**Catalysts:**
+*   **New 5G Spectrum Auctions:** Release of new mid-band spectrum (e.g., in India, Europe) triggers new investment cycles.
+*   **Enterprise Growth:** Successful scaling of the private networks and wireless enterprise business, leveraging Vonage's API platform.
+*   **Market Share Gains:** Continued substitution of Huawei in geopolitically aligned markets.
+*   **Margin Expansion:** Successful execution on cost savings and a higher mix of software sales improving overall profitability.
+*   **Reduction in Net Debt:** Faster-than-expected deleveraging post-Vonage would be viewed positively by the market.
+
+### **6. Investment Thesis Summary**
+Ericsson is a **cyclical growth and turnaround story** intertwined with **geopolitical realignment**.
+
+*   **Bull Case:** Ericsson is a primary beneficiary of the global 5G rollout and the exclusion of Huawei from key markets. Its technology leadership, combined with the potential of its enterprise and cloud-native software strategy (via Vonage), positions it for sustained margin improvement and less cyclical earnings.
+*   **Bear Case:** The company is at the mercy of volatile telecom CapEx cycles. Intense competition with Nokia and Samsung limits pricing power. The Vonage acquisition was expensive and adds execution risk and debt. Geopolitical tensions remain a persistent threat.
+
+**Final Note:** Analyzing ERIC requires monitoring **quarterly reports for order intake, gross margin trends, and free cash flow**, as well as **industry data on global telecom CapEx forecasts**. It is not just a stock, but a proxy for the health and direction of global telecommunications infrastructure investment.
+"""
+
+# --- Streamlit App ---
+st.set_page_config(layout="wide", page_title="Ericsson (ERIC) Financial Analysis")
+
+st.title("Ericsson (ERIC) - Comprehensive Financial Ecosystem Analysis")
+
+# Parse the text
+parsed_sections = parse_analysis_text(FINANCIAL_ANALYSIS_TEXT)
+
+# Generate hypothetical data and charts
+hypothetical_data = generate_hypothetical_data()
+charts = create_charts(hypothetical_data)
+
+# --- Display Content ---
+
+# Overall Introduction
+st.markdown(parsed_sections.get("Overall Introduction", "No overall introduction found."))
+st.markdown("---") 
+
+# Key Metrics Snapshot (Hypothetical)
+st.header("Key Metrics Snapshot (Hypothetical)")
+st.dataframe(hypothetical_data['df_key_metrics'].set_index('Metric'), use_container_width=True)
+st.info("Note: All numerical values and charts presented are hypothetical and illustrative, based on the qualitative analysis provided in the text. They do not reflect real-time financial data.")
+
+# Financial Charts
+st.subheader("Key Financial Trends (Hypothetical)")
+col1_metrics, col2_metrics = st.columns(2)
+with col1_metrics:
+    st.plotly_chart(charts['fig_revenue'], use_container_width=True)
+with col2_metrics:
+    st.plotly_chart(charts['fig_revenue_growth'], use_container_width=True)
+
+st.plotly_chart(charts['fig_margins'], use_container_width=True)
+st.plotly_chart(charts['fig_debt_equity'], use_container_width=True)
+st.plotly_chart(charts['fig_segment_revenue'], use_container_width=True)
+
 st.markdown("---")
 
-# Sidebar for navigation
-st.sidebar.header("Analysis Sections")
-page_options = list(parsed_sections.keys())
-selected_page = st.sidebar.radio("Navigate to:", page_options)
-
-# Main content area
-st.header(selected_page)
-st.markdown(parsed_sections[selected_page])
-
-# --- Add Charts where meaningful based on selected section ---
-if "Key Financial Relationships and Metrics Analysis" in selected_page or \
-   "Financial/operational metrics and relationships to monitor" in selected_page or \
-   "Key Financial Relationships" in selected_page:
-    st.subheader("Key Financial Trends (Illustrative)")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("### Revenue Growth")
-        fig_revenue = px.line(df_revenue, x='Year', y='Revenue (B€)', title='Illustrative Annual Revenue', markers=True)
-        fig_revenue.update_layout(yaxis_title="Revenue in Billions of Euros")
-        st.plotly_chart(fig_revenue, use_container_width=True)
-        st.caption("Illustrative data reflecting cyclical nature and potential for growth mentioned in the analysis.")
-
-    with col2:
-        st.write("### Profitability Margins")
-        fig_margins = px.line(df_margins, x='Year', y=['Gross Profit Margin (%)', 'Operating Profit Margin (%)', 'Net Profit Margin (%)'], 
-                              title='Illustrative Profitability Margins', markers=True)
-        fig_margins.update_layout(yaxis_title="Margin Percentage (%)")
-        st.plotly_chart(fig_margins, use_container_width=True)
-        st.caption("Illustrative data showing potential trends for gross, operating, and net profit margins (inconsistent/volatile as per text).")
-
-    col3, col4 = st.columns(2)
-    with col3:
-        st.write("### Cash Flow Generation")
-        fig_cash_flow = px.bar(df_cash_flow, x='Year', y=['Cash Flow from Operations (B€)', 'Free Cash Flow (B€)'], 
-                               title='Illustrative Cash Flow Trends', barmode='group')
-        fig_cash_flow.update_layout(yaxis_title="Cash Flow in Billions of Euros")
-        st.plotly_chart(fig_cash_flow, use_container_width=True)
-        st.caption("Illustrative data showing positive operational and free cash flow generation, crucial for funding R&D, CapEx, and dividends.")
-
-    with col4:
-        st.write("### Debt-to-Equity Ratio")
-        fig_debt_equity = px.line(df_debt_equity, x='Year', y='Debt-to-Equity Ratio', 
-                                  title='Illustrative Debt-to-Equity Ratio', markers=True)
-        fig_debt_equity.update_layout(yaxis_title="Ratio")
-        st.plotly_chart(fig_debt_equity, use_container_width=True)
-        st.caption("Illustrative data showing Nokia's historical management or improving debt levels.")
-
-    st.subheader("Key Metrics Extracted (as mentioned in the analysis):")
-    st.markdown(
-        """
-        **Performance & Profitability:**
-        -   **Revenue Growth:** Consistency and acceleration, especially in Network Infrastructure.
-        -   **Gross Profit Margin:** Efficiency in production, cost management, pricing power.
-        -   **Operating Profit Margin (EBIT Margin):** Profitability from core operations, reflecting R&D and competitive pressures.
-        -   **Net Profit Margin:** Overall profitability after all expenses.
-        -   **EBITDA:** Useful for comparing operational cash flow generation.
-        -   **Bookings / Order Intake and Backlog:** Leading indicators of future revenue.
-        -   **Book-to-bill ratio:** Shows demand versus delivery capacity.
-        -   **Services & software revenue percentage:** Indicates shift towards higher-margin, more predictable revenue.
-        -   **Nokia Technologies/licensing revenue:** High-margin but potentially lumpy income.
-
-        **Balance Sheet & Liquidity:**
-        -   **Debt-to-Equity Ratio:** Financial leverage and stability.
-        -   **Current Ratio and Quick Ratio:** Short-term liquidity to meet immediate obligations.
-        -   **Net Debt / Liquidity:** Overall financial health and capacity.
-
-        **Cash Flow:**
-        -   **Cash Flow from Operations:** Crucial for funding R&D, capital expenditures, and dividends.
-        -   **Free Cash Flow (FCF):** Cash available for shareholders or reinvestment after CapEx.
-
-        **Valuation:**
-        -   **Price-to-Earnings (P/E) Ratio:** Stock price relative to earnings per share.
-        -   **Price-to-Sales (P/S) Ratio:** Useful for companies with inconsistent earnings.
-        -   **Enterprise Value to EBITDA (EV/EBITDA):** Comprehensive valuation in telecom infrastructure, including debt and cash.
-        -   **Dividend Yield:** Income generation for investors.
-
-        **Investment & Operational:**
-        -   **R&D Spend and CapEx:** Critical for long-term competitiveness and technology leadership.
-        -   **Major contract wins/losses:** Indicators of market traction and competitive success.
-        -   **Legal/IP outcomes:** Can significantly impact Nokia Technologies' cash flows.
-        """
-    )
-
-elif "Competitor Relationships" in selected_page or \
-     "Competitive landscape" in selected_page:
-    st.subheader("Illustrative Competitive Landscape")
-    st.markdown("The telecommunications infrastructure market is highly competitive with several key players mentioned:")
-    
-    fig_competitors = px.pie(df_market_share, values='Estimated Market Share (%)', names='Competitor', 
-                             title='Illustrative Global Telecom Equipment Market Share')
-    fig_competitors.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(fig_competitors, use_container_width=True)
-    st.caption("This chart is purely illustrative and does not represent actual market share data. It aims to visualize the competitive distribution described in the analysis, where Huawei and Ericsson are key rivals, and Nokia is a significant player alongside others.")
-    
-    st.markdown("""
-    **Key Competitors Mentioned:**
-    *   **Ericsson (ERIC):** A direct competitor across most of Nokia's product lines, particularly in mobile networks and managed services.
-    *   **Huawei (HWP):** A dominant player globally, though its market share in certain Western markets has been impacted by geopolitical concerns and sanctions.
-    *   **ZTE (0763.HK):** Another Chinese competitor, offering a broad range of telecom equipment.
-    *   **Samsung (005930.KS):** Increasingly a significant player in the 5G RAN market.
-    *   **Cisco Systems (CSCO):** A strong competitor in the IP routing and optical networking space, especially for enterprise and service provider backhaul.
-    *   **Juniper Networks (JNPR):** Another key player in routing and switching.
-    *   **New/Open-RAN Entrants:** Mavenir, Rakuten Symphony, Altiostar, and other software-focused vendors are challenging traditional players in O-RAN and virtualized RAN deployments.
-    """)
-
-elif "SWOT Analysis" in selected_page:
-    st.subheader("Nokia's SWOT Analysis")
-    
-    # Extract SWOT elements from the text for display using regex
-    swot_text = parsed_sections[selected_page]
-    
-    # Using regex to capture content between headings
-    strengths_match = re.search(r'\*\*Strengths:\*\*(.*?)(?=\n\*\*Weaknesses:|$)', swot_text, re.DOTALL)
-    weaknesses_match = re.search(r'\*\*Weaknesses:\*\*(.*?)(?=\n\*\*Opportunities:|$)', swot_text, re.DOTALL)
-    opportunities_match = re.search(r'\*\*Opportunities:\*\*(.*?)(?=\n\*\*Threats:|$)', swot_text, re.DOTALL)
-    threats_match = re.search(r'\*\*Threats:\*\*(.*?)$', swot_text, re.DOTALL) # Threats is usually the last one
-
-    # Helper function to clean and split into list items
-    def clean_swot_list(match):
-        if match:
-            # Get the captured group and split by '\n*' for bullet points, then strip whitespace
-            return [item.strip() for item in match.group(1).split('\n*') if item.strip()]
-        return []
-
-    strengths_list = clean_swot_list(strengths_match)
-    weaknesses_list = clean_swot_list(weaknesses_match)
-    opportunities_list = clean_swot_list(opportunities_match)
-    threats_list = clean_swot_list(threats_match)
-
-    col_s, col_w = st.columns(2)
-    with col_s:
-        st.success("### Strengths")
-        for item in strengths_list:
-            st.markdown(f"- {item}")
-    with col_w:
-        st.warning("### Weaknesses")
-        for item in weaknesses_list:
-            st.markdown(f"- {item}")
-    
-    col_o, col_t = st.columns(2)
-    with col_o:
-        st.info("### Opportunities")
-        for item in opportunities_list:
-            st.markdown(f"- {item}")
-    with col_t:
-        st.error("### Threats")
-        for item in threats_list:
-            st.markdown(f"- {item}")
-    
-    st.markdown("---")
-    st.markdown("R&D Spend (mentioned as ~13% of revenue in 'Stock Analysis: 2. Key Financial Relationships') is critical for maintaining technological edge and addressing market dynamics.")
-    fig_rd_spend = px.area(df_capex_rd, x='Year', y='R&D Spend (B€)', title='Illustrative R&D Spend Over Time', markers=True)
-    fig_rd_spend.update_layout(yaxis_title="R&D Spend in Billions of Euros")
-    st.plotly_chart(fig_rd_spend, use_container_width=True)
-    st.caption("Illustrative R&D spend, crucial for innovation and adapting to technological shifts (e.g., 6G, AI, quantum computing).")
-
-
-elif "Conclusion" in selected_page: # Catches both "Conclusion of Initial Analysis" and "Final Investment Conclusion"
-    st.subheader("Key Investment Considerations")
-    st.markdown(parsed_sections[selected_page])
-    st.markdown("---")
-    
-    if "Final Investment Conclusion" in selected_page:
-        st.subheader("Practical Monitoring Checklist for Investors (Highlights):")
-        st.markdown(
-            """
-            -   **Quarterly/Annual Filings:** Scrutinize bookings, backlog, segment revenue (Networks vs Technologies), gross margins, operating cash flow, and net debt.
-            -   **Major Contract Announcements:** Pay attention to new wins with tier-1 carriers and the geographic distribution of these contracts.
-            -   **Technology Progress:** Monitor advancements and commercial wins in Open RAN and cloud-native core deployments.
-            -   **IP/Legal Updates:** Track patent licensing deal updates and material legal settlements, which can impact high-margin revenue.
-            -   **Macro Indicators:** Observe carrier Capital Expenditure (CapEx) guidance, scheduled spectrum auctions in major markets, and regulatory headwinds/benefits in key regions (EU/US/Asia).
-            -   **Competitor Earnings:** Analyze the financial performance of key competitors like Ericsson and Ciena for insights into relative market share and pricing trends.
-            -   **R&D Spend Trajectory:** Evaluate the evolution of R&D investment and CapEx guidance, as these are vital for long-term competitiveness.
-            """
-        )
-
+# Company Snapshot (Context)
+st.header("Company Snapshot (Context)")
+st.markdown(parsed_sections.get("Company snapshot (context)", "No company snapshot details found."))
 st.markdown("---")
-st.sidebar.markdown("---")
-st.sidebar.info("Analysis of Nokia (NOK) based on provided financial text. All charts use illustrative data.")
+
+# Key Financial Relationships & Drivers
+st.header("Key Financial Relationships & Drivers")
+st.markdown(parsed_sections.get("Key financial relationships and drivers", "No key financial relationships and drivers found."))
+st.markdown("---")
+
+# Market Dependencies
+st.header("Market Dependencies")
+st.markdown(parsed_sections.get("Market dependencies", "No market dependencies found."))
+st.markdown("---")
+
+# Sector and Technology Connections
+st.header("Sector & Technology Connections")
+st.markdown(parsed_sections.get("Sector and technology connections", "No sector and technology connections found."))
+st.markdown("---")
+
+# Competitors and Industry Relationships
+st.header("Competitors & Industry Relationships")
+st.markdown(parsed_sections.get("Competitors and industry relationships", "No competitor information found."))
+st.plotly_chart(charts['fig_market_share'], use_container_width=True) # Competitor Market Share Chart
+st.markdown("---")
+
+# Customer Concentration and Counterparty Risk
+st.header("Customer Concentration & Counterparty Risk")
+st.markdown(parsed_sections.get("Customer concentration and counterparty risk", "No customer concentration information found."))
+st.markdown("---")
+
+# Regulatory, Geopolitical and Macroeconomic Factors
+st.header("Regulatory, Geopolitical & Macroeconomic Factors")
+st.markdown(parsed_sections.get("Regulatory, geopolitical and macroeconomic factors", "No regulatory, geopolitical or macroeconomic factors found."))
+st.markdown("---")
+
+# Intellectual Property & Litigation
+st.header("Intellectual Property & Litigation")
+st.markdown(parsed_sections.get("Intellectual property & litigation", "No IP & litigation information found."))
+st.markdown("---")
+
+# Financial Health, Valuation Drivers & Metrics to Monitor
+st.header("Financial Health, Valuation Drivers & Metrics to Monitor")
+st.markdown(parsed_sections.get("Financial health, valuation drivers and metrics to monitor", "No financial health or metrics to monitor found."))
+st.markdown("---")
+
+# SWOT Analysis (from the first block, distinct from O/R from the second block)
+st.header("SWOT Analysis")
+st.markdown(parsed_sections.get("SWOT Analysis", "No SWOT analysis found."))
+st.markdown("---")
+
+# Opportunities (Bull Case) & Risks (Bear Case)
+st.header("Opportunities (Bull Case) & Risks (Bear Case)")
+col_opp, col_risk = st.columns(2)
+with col_opp:
+    st.subheader("Opportunities (Bull Case)")
+    st.markdown(parsed_sections.get("Opportunities (bull case)", "No opportunities found."))
+with col_risk:
+    st.subheader("Risks (Bear Case)")
+    st.markdown(parsed_sections.get("Risks (bear case)", "No risks found."))
+st.markdown("---")
+
+# Practical Monitoring Checklist
+st.header("Practical Monitoring Checklist")
+st.markdown(parsed_sections.get("Practical monitoring checklist", "No monitoring checklist found."))
+st.markdown("---")
+
+# Valuation and Investor Considerations
+st.header("Valuation & Investor Considerations (High-Level)")
+st.markdown(parsed_sections.get("Valuation and investor considerations (high-level)", "No investor considerations found."))
+st.markdown("---")
+
+# Bottom Line
+st.header("Bottom Line")
+st.markdown(parsed_sections.get("Bottom line", "No bottom line summary found."))
+st.markdown("---")
+
+st.markdown("""
+<br><br>
+**Disclaimer:** This analysis is based on the provided text and contains hypothetical data for illustrative purposes only. It should not be considered financial advice. For actual investment decisions, consult current financial statements, professional analysts, and market data.
+""", unsafe_allow_html=True)
