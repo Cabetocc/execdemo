@@ -2,8 +2,11 @@ import streamlit as st
 
 
 
+def _safe_text(x):
+    return str(x or '')
+
 def _safe_strip(x):
-    return str(x or '').strip()
+    return _safe_text(x).strip()
 
 import requests
 import time
@@ -363,7 +366,7 @@ def parse_analysis_text_into_sections(text):
             continue # Already handled global_intro separately if needed
         
         # Remove the main conclusion if it's within the block content to prevent it being a sub-section
-        block_content = block_content.replace(first_analysis_conclusion, "").replace(final_conclusion, "").strip()
+        block_content = _safe_text(block_content.replace(first_analysis_conclusion, "").replace(final_conclusion, "").strip())
 
         # Regex for different header types within blocks
         # Roman numerals (e.g., **I. Key Financial Relationships & Metrics:**)
@@ -412,7 +415,7 @@ def parse_analysis_text_into_sections(text):
         # Add the last subsection in the block
         if current_subsection_title:
              # Find the content for the last header
-            last_content_start = block_content.find(sub_sections[-2]) + len(sub_sections[-2]) if len(sub_sections) > 1 else 0
+            last_content_start = block_content.find(_safe_text(sub_sections[-2])) + len(_safe_text(sub_sections[-2])) if len(sub_sections) > 1 else 0
             sections[current_title_prefix + _safe_strip(current_subsection_title)] = block_content[last_content_start:].strip()
 
 
