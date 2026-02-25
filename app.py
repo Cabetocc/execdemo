@@ -67,286 +67,423 @@ if generate:
 
 import pandas as pd
 import plotly.express as px
-import numpy as np
+import re
 
-# --- Configuration ---
-st.set_page_config(
-    page_title="Financial Analysis Dashboard (Simulated)",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Set page config for a wider layout
+st.set_page_config(layout="wide", page_title="MSFT Financial Analysis")
 
-# --- Helper Function for Data Generation (Simulated) ---
-# Since live data fetching is not allowed and no specific data was provided,
-# this function generates realistic-looking mock data for demonstration.
-def generate_mock_financial_data(ticker="AAPL"):
+# --- Raw Analysis Text ---
+# The complete financial analysis text is embedded here.
+analysis_text = """
+## MSFT: Deep Dive into a Dominant Tech Giant
+
+As a Senior Equity Research Analyst, I'm presenting a high-conviction, forward-looking analysis of Microsoft Corporation (MSFT). MSFT's entrenched position across cloud, productivity, and increasingly, AI, makes it a compelling investment.
+
+### Fundamental Evaluation
+
+**Recent Performance & Outlook:** Microsoft has delivered robust financial results, consistently exceeding expectations.
+
+*   **Cloud Strength (Azure):** Azure continues its impressive growth trajectory, driven by digital transformation initiatives and strong enterprise adoption. We anticipate this trend to continue, fueled by ongoing demand for cloud infrastructure and services.
+*   **Productivity & Business Processes (Office 365, Dynamics):** The secular shift towards subscription-based software and hybrid work models continues to benefit Office 365. Dynamics 365 is also gaining traction as businesses seek integrated CRM and ERP solutions.
+*   **AI Integration:** Microsoft's strategic investments in AI, particularly through its partnership with OpenAI, are beginning to manifest across its product suite. This integration is a key driver for future growth and differentiation.
+
+**Projected Performance (Next 3-6 Months):** We expect MSFT to maintain its strong performance in the upcoming quarters.
+
+*   **Revenue Growth:** Continued double-digit revenue growth, primarily driven by Azure and Office 365, will be the hallmark. We anticipate AI-related services and new product features to contribute an accelerating share of this growth.
+*   **Margin Expansion:** Operating margins are likely to remain healthy, benefiting from economies of scale in the cloud and continued efficiency gains. AI investments, while significant, are expected to be accretive to margins in the medium-to-long term as they unlock new revenue streams.
+*   **Earnings per Share (EPS):** EPS growth is projected to outpace revenue growth due to strong operating leverage and disciplined capital allocation.
+
+**Key Catalysts for the Next 3-6 Months:**
+
+1.  **Accelerated AI Adoption & Monetization:** We expect Microsoft to announce further tangible results of its AI integration, including new features for Copilot across its product lines (Windows, Office, Dynamics) and broader enterprise adoption of AI-powered solutions. Clearer monetization strategies for these AI services will be a significant positive.
+2.  **Continued Cloud Market Share Gains:** As businesses continue to migrate workloads to the cloud and as AI adoption necessitates robust infrastructure, Azure is well-positioned to capture market share from competitors. Any commentary on increasing Azure's competitive moat through specialized AI hardware or services would be a catalyst.
+3.  **Strong Holiday Season/Enterprise Spending:** The upcoming holiday season, coupled with typical end-of-year enterprise budget allocations, could lead to robust demand for Microsoft's productivity and cloud services, especially as businesses invest in tools to enhance efficiency and remote collaboration.
+
+### Peer Benchmarking
+
+| Metric               | Microsoft (MSFT) | Alphabet (GOOGL) | Amazon (AMZN) | Oracle (ORCL) |
+| :------------------- | :--------------- | :--------------- | :------------ | :------------ |
+| **P/E Ratio (TTM)**  | ~32.5x           | ~27.0x           | ~53.0x        | ~30.0x        |
+| **YoY Revenue Growth** | ~18%             | ~10%             | ~12%          | ~5%           |
+| **Market Share (Cloud)** | ~23% (Azure)     | ~31% (GCP)       | ~40% (AWS)    | ~3% (OCI)     |
+| **Market Cap**       | ~$3.1 Trillion   | ~$2.1 Trillion   | ~$1.7 Trillion | ~$390 Billion |
+
+**Analysis:** MSFT trades at a premium to Alphabet and Oracle, reflecting its superior growth profile, particularly in cloud and AI, and its diversified revenue streams. While Amazon's AWS holds the largest cloud market share, Azure's growth rate is often more robust, and MSFT's broader ecosystem offers significant advantages. Oracle, while a cloud contender, lags in growth and breadth.
+
+### Adjacent Industry Analysis
+
+**1. Semiconductor Industry (Upstream):**
+
+*   **Current State:** The semiconductor industry is experiencing a cyclical recovery, with strong demand for AI-specific chips (GPUs, TPUs) and continued demand for general-purpose processors. Supply chain constraints have largely eased, but lead times for specialized components can still be a factor.
+*   **Tailwinds/Headwinds:**
+    *   **Tailwind:** Increased demand for advanced semiconductors to power AI workloads directly benefits Microsoft, which is a significant consumer of these chips for Azure and its own AI development. Strategic partnerships with chip manufacturers and potential for custom silicon development offer further advantages.
+    *   **Headwind:** While less of a concern for MSFT than for pure hardware manufacturers, any resurgence in global chip shortages or significant price increases for essential components could marginally impact margins on hardware-dependent services or R&D costs.
+
+**2. Digital Advertising & E-commerce (Downstream):**
+
+*   **Current State:** The digital advertising market is dynamic, with shifts towards AI-driven targeting and measurement. E-commerce continues its steady growth, albeit at a more normalized pace post-pandemic. Consumer spending sentiment is a key variable.
+*   **Tailwinds/Headwinds:**
+    *   **Tailwind:** Microsoft's LinkedIn platform benefits from a healthy digital advertising market, as does its growing search advertising business (Bing). Enterprise clients' investment in digital transformation and cloud services indirectly supports this sector by enabling more sophisticated online operations.
+    *   **Headwind:** A significant slowdown in consumer or enterprise discretionary spending could dampen advertising budgets and reduce e-commerce activity, indirectly impacting LinkedIn's advertising revenue and potentially slowing the pace of digital transformation for some smaller businesses. However, MSFT's core enterprise cloud and productivity segments are more resilient to these fluctuations.
+
+### Risk Assessment
+
+**Bear Case (Next Quarter):**
+
+*   **Intensified Cloud Competition:** While Azure is growing strongly, a more aggressive pricing strategy or significant innovation from AWS or GCP could put pressure on Azure's market share gains and margins.
+*   **Slower AI Monetization:** The market's expectations for AI revenue generation might be overly optimistic, leading to disappointment if initial monetization efforts don't meet ambitious targets or if adoption of paid AI features is slower than anticipated.
+*   **Macroeconomic Slowdown Impacting Enterprise Spending:** A sharper-than-expected economic downturn could lead enterprises to cut back on IT spending, impacting new cloud migrations and renewals for productivity software, even for a company as critical as Microsoft.
+
+**Bull Case (Next Quarter):**
+
+*   **Accelerated AI Revenue & Enterprise Adoption:** Microsoft announces exceeding targets for Copilot adoption and monetization across Office 365 and other enterprise solutions, proving its AI strategy is not just hype but a tangible revenue driver.
+*   **Azure Outperformance:** Azure's growth rate accelerates further, driven by significant wins from large enterprises migrating critical workloads and a surge in AI-related cloud compute demand.
+*   **Strong Renewals & Upsells:** High customer retention and successful upselling of premium features and services in Office 365 and Dynamics 365, demonstrating continued value proposition and sticky customer relationships.
+
+**Conclusion:**
+
+Microsoft remains a foundational technology company with exceptional execution. Its strategic positioning in cloud computing, the enduring strength of its productivity suite, and its aggressive push into AI present a compelling growth narrative. While competitive pressures and macroeconomic factors warrant attention, the catalysts for continued outperformance are substantial. We maintain a **Strong Buy** rating on MSFT, with a forward-looking price target that reflects its ongoing innovation and market leadership.
+
+---
+
+Company overview
+- Ticker/company: MSFT — Microsoft Corporation.
+- Primary industry: Technology — enterprise software, cloud infrastructure and services, productivity applications, gaming and devices.
+- Business mix: Large, diversified technology platform spanning Azure cloud infrastructure and platform services; Microsoft 365 (Office) productivity and collaboration; Dynamics/enterprise applications; LinkedIn; Windows and Surface; Xbox/Activision content and services; enterprise security. Deep cash-generation, large enterprise customer base, and strategic partnerships (notably with OpenAI) that position Microsoft as a bridge between legacy enterprise IT and the emerging AI-enabled stack.
+
+3–6 month outlook
+- Financial fundamentals and recent trends: Through mid‑2024 Microsoft has shown resilient top‑line growth driven by Azure and commercial cloud services, steady subscription renewals in Microsoft 365/Office, and improving monetization of AI features (Copilot integrations) and LinkedIn advertising. Operating margin profile benefits from recurring software revenue and scale in cloud, though Microsoft continues to invest heavily in AI infrastructure and go‑to‑market. The company generates strong free cash flow and uses buybacks and dividends to return cash.
+- Macroeconomic context: Global GDP growth is uneven and enterprise IT budgets are sensitive to macro softness. However, the current investment theme of AI appears to be re-prioritizing corporate IT spend toward cloud and AI platforms even when overall capex is constrained. Currency fluctuations (a stronger U.S. dollar) could modestly reduce reported revenue growth in constant currency.
+- Industry dynamics: The cloud market remains concentrated but intensely competitive. AI adoption is accelerating demand for GPU‑accelerated infrastructure, higher‑value cloud services, and software subscriptions with AI features. Supply constraints and pricing dynamics for AI GPUs (and power/real estate for data centers) are important near‑term factors.
+- Company catalysts and near‑term risks:
+  - Catalysts: Continued enterprise adoption of Azure AI services and Microsoft 365 Copilot; expanded commercial relationships tied to OpenAI and other AI partnerships; sticky subscription revenue; cross‑sell opportunities from Activision content into Game Pass and services; ongoing cost efficiencies and product‑led upsell.
+  - Risks: Weakening enterprise IT budgets could slow license growth; competitive price/mix pressure in cloud; GPU supply constraints or higher data‑center costs; regulatory scrutiny around large AI partnerships or bundling; FX headwinds.
+- Probabilistic outlook (3–6 months): Expect continued positive revenue momentum driven by cloud/AI and subscription renewal stability. Earnings may show modest operating margin pressure if incremental AI infrastructure investments accelerate, but cash flow should remain strong. Market performance will be sensitive to macro risk sentiment, AI news flow (product wins, partnerships), and any supply constraints for GPU capacity.
+
+Competitive comparison (selected peers)
+- Amazon (AMZN — Amazon Web Services)
+  - Strengths: Largest cloud market share and breadth of infrastructure services; deep experience running large-scale data centers; entrenched enterprise and web-scale customers.
+  - Weaknesses vs. Microsoft: Less integrated productivity/app ecosystem; AWS competes mainly on services breadth and scale rather than desktop productivity or Office integrations.
+  - Relative position: AWS is the cost‑efficient IaaS leader; Microsoft is stronger at turning cloud infrastructure into enterprise workflows via Office/Teams/Dynamics integration and packaged AI offerings.
+- Alphabet (GOOGL — Google Cloud)
+  - Strengths: Fastest recent growth in cloud, strong data/ML/AI tooling, and differentiated ML stack (TensorFlow, Vertex AI); broad advertising revenue base supports R&D.
+  - Weaknesses vs. Microsoft: Smaller enterprise application footprint and less entrenched productivity software; monetization of enterprise offerings still scaling.
+  - Relative position: Google Cloud competes on AI and data analytics; Microsoft competes on end‑to‑end enterprise productivity + cloud + apps.
+- Oracle (ORCL)
+  - Strengths: Deep enterprise database footprint, strong high‑margin licensing business, and a growing cloud IaaS/PaaS push focused on enterprise migrations.
+  - Weaknesses vs. Microsoft: Slower overall growth, historically less developer/AI ecosystem traction; Oracle’s cloud footprint is smaller.
+  - Relative position: Oracle is a legacy enterprise software specialist; Microsoft offers broader horizontal cloud + productivity integration, making it more attractive for many customers moving to SaaS/AI.
+- Salesforce (CRM)
+  - Strengths: Market leader in CRM and customer-focused SaaS; strong enterprise relationships and growing AI features (Einstein).
+  - Weaknesses vs. Microsoft: Narrower horizontal footprint (less infrastructure), more dependent on CRM demand; faces competition in sales/productivity integrations.
+  - Relative position: Salesforce and Microsoft compete in CRM/ERP/workflows (Dynamics), but Microsoft’s broader platform (Azure + Microsoft 365) gives cross‑sell advantages.
+
+Adjacent industries and transmission channels
+- Semiconductor/AI hardware (NVIDIA and other GPU suppliers): Availability and pricing of GPUs directly affect Microsoft’s ability to expand Azure AI capacity and launch large models. Tight supply or higher prices increase capex and operating costs or limit service capacity.
+- Data center real estate and energy markets: Rising energy prices or constraints on data‑center permits/locations increase operating costs and slow expansion. Efficient site selection and power procurement reduce these risks.
+- Cybersecurity services: Growing demand for security increases take‑up of Microsoft’s security offerings (Secure Score, Defender suite), boosting Average Revenue Per User (ARPU) in enterprise segments.
+- Enterprise services and consulting: Firms modernizing apps and adopting AI rely on systems integrators and Microsoft partners; partner ecosystem health influences deployment speed.
+- Advertising and macro consumer spend: LinkedIn and search advertising revenue are sensitive to overall ad budgets; consumer hardware/gaming cycles affect Xbox and Surface revenue.
+- Regulation and policy: Antitrust/competition rules, AI governance, and data‑localization laws can alter go‑to‑market strategies, partnerships, and product features.
+
+Key risks and opportunities
+- Opportunities
+  - AI monetization: Embedding Copilot across Microsoft 365 and Azure AI managed services could materially increase ARPU and create sticky revenue streams.
+  - Cross‑product synergies: Ability to bundle cloud, productivity, security and developer tools gives Microsoft a durable enterprise moat.
+  - Gaming/IP leverage: Activision content and Game Pass expansion can monetize a different customer base and increase recurring subscription revenue.
+- Risks
+  - Macro slowdown: A sharper decline in enterprise IT spending would slow license renewals and new cloud commitments.
+  - Competitive pricing and margin pressure: Aggressive price moves by competitors (AWS, Google) or higher infrastructure costs could compress margins.
+  - Hardware/GPU supply constraints: Limits access to capacity needed for training/hosting large models, slowing AI product delivery.
+  - Regulatory/legal: Increased scrutiny of large tech platforms and AI partnerships could constrain certain business practices or deal structures.
+  - Execution risk: Rapid product integrations and major acquisitions (e.g., gaming) raise integration and management complexity.
+
+Summary judgment
+Over the next 3–6 months Microsoft is well positioned to sustain revenue growth and strong cash generation driven by Azure and AI‑enhanced software offerings, even as macro sentiment remains the principal near‑term market risk. Its differentiated advantage is the integration of cloud infrastructure with a pervasive productivity and business‑application ecosystem, which supports higher customer retention and cross‑sell potential. Key variables to monitor are the pace of AI adoption (and related GPU capacity), enterprise IT budgets, and regulatory developments. Relative to peers, Microsoft occupies a balanced position: not the cheapest nor the fastest‑growing in raw cloud metrics, but among the most defensible and monetizable platforms given its software franchises and enterprise reach.
+
+This assessment is forward‑looking commentary, not investment advice; outcomes will depend on material developments in macroeconomics, competitive moves, and Microsoft’s execution.
+
+---
+
+# Microsoft (MSFT) - Comprehensive Analysis
+
+## **Market Sentiment & Expectations (Last 3-6 Months)**
+
+*   **Overwhelmingly Bullish:** The dominant sentiment from analysts, investors, and financial media is highly positive. Microsoft is consistently rated a "Strong Buy" or "Buy" by the vast majority of Wall Street firms.
+*   **AI as the Primary Catalyst:** The primary driver of optimism is Microsoft's aggressive and successful integration of artificial intelligence, particularly through its partnership with OpenAI (ChatGPT, GPT-4). The rollout of **Copilot** across its product suite (Microsoft 365, GitHub, Security, Dynamics) is seen as a major growth engine.
+    *   **Quote (CNBC, April 2024):** "Microsoft's AI bet is paying off in a big way... Azure's growth re-accelerated, directly attributed to AI services." – Analyst commentary post-Q3 FY24 earnings.
+    *   **Bullish Perspective:** The market views Microsoft as the best-positioned "picks and shovels" play in the AI gold rush, providing the essential cloud infrastructure (Azure AI) and productivity tools to enterprises.
+    *   **Bearish/Cautious Perspective:** Some concerns exist about the **high capital expenditures** required to build AI data centers and whether the monetization of Copilot will meet lofty expectations in the near term. There are also questions about cloud growth deceleration in a broader economic slowdown.
+*   **Strong Financial Performance:** Recent earnings (Q3 FY24) beat estimates, with notable strength in Intelligent Cloud revenue ($26.7 billion, up 21%). Commercial bookings growth was strong, indicating healthy future revenue.
+
+## **Competitive Positioning (vs. Key Peers: Amazon AWS, Google Cloud, Apple, Oracle)**
+
+*   **Strengths:**
+    *   **Diverse Revenue Streams:** Unlike pure-play cloud competitors, Microsoft has a "fortress" balance sheet with strong, recurring revenue from **Office 365, Windows, LinkedIn, and Gaming (Activision Blizzard)**. This provides stability and funds massive AI investments.
+    *   **Enterprise Entrenchment:** Deep relationships with global corporations through its legacy software. Migrating these clients to Azure and layering on AI products (Copilot) is a powerful cross-selling opportunity.
+    *   **Leading AI Narrative:** Currently perceived as the AI leader among mega-cap tech, thanks to its first-mover advantage with OpenAI integration.
+*   **Weaknesses:**
+    *   **Regulatory Scrutiny:** The Activision Blizzard acquisition and its dominant position in software/cloud attract ongoing regulatory attention in the US, EU, and UK.
+    *   **Slower Growth in Some Segments:** The More Personal Computing segment (Windows, devices) can be cyclical and tied to the sluggish PC market.
+*   **Opportunities:**
+    *   **Full Monetization of AI:** Upselling existing Azure and M365 customers to premium AI-powered tiers.
+    *   **Cybersecurity:** Microsoft Security is now a $20+ billion annual business and growing rapidly, leveraging AI (Security Copilot) to compete directly with specialists like CrowdStrike and Palo Alto Networks.
+*   **Threats:**
+    *   **Intense Cloud Competition:** **Amazon AWS** remains the market share leader in cloud infrastructure and is investing heavily in its own AI chips (Trainium, Inferentia) and models. **Google Cloud** is aggressively competing with its Gemini AI models and is gaining market share.
+    *   **Open Source AI Models:** The rise of powerful, open-source LLMs (like Meta's Llama) could potentially erode the advantage of proprietary models like GPT-4 in the long run.
+
+## **Adjacent Industry Impact**
+
+*   **Semiconductor Industry:** Microsoft's AI ambitions are directly tied to the **supply of advanced GPUs from Nvidia and, increasingly, its own custom AI chips (Azure Maia)**. Constraints in the high-end chip supply chain could limit Azure's capacity growth. Microsoft's move into chip design signals a strategic shift to reduce dependency and control costs.
+*   **Cybersecurity Industry:** As mentioned, Microsoft's integrated, AI-driven security suite is disrupting the standalone cybersecurity market. Its bundling with enterprise licenses poses a significant threat to adjacent security software firms.
+*   **Regulatory & Legal Environment:** Global regulatory trends concerning **data privacy, AI ethics, and antitrust** directly impact Microsoft's operations and acquisition strategy. Compliance costs and operational limitations are a persistent influence.
+*   **Gaming & Entertainment:** The acquisition of Activision Blizzard places Microsoft as a major player in this adjacent industry. It now faces different competitive dynamics (vs. Sony, Nintendo) and regulatory landscapes, but also gains opportunities in mobile gaming and the metaverse.
+*   **Professional Networking & HR Tech:** Through **LinkedIn**, Microsoft is deeply connected to the job market and B2B marketing trends. A softening labor market could impact LinkedIn's hiring solutions revenue, but it also provides unique data on economic trends.
+
+## **Critical Findings Summary**
+
+*   **✅ Major Opportunity:** Microsoft's **AI integration across its entire stack** is its single biggest strength and the core reason for its premium valuation. Success in commercializing Copilot is the key to near-term performance.
+*   **⚠️ Major Risk:** **Capital Intensity and Execution.** The billions spent on AI infrastructure must translate into sustained, high-margin revenue growth. Any stumble in AI monetization or a significant loss of cloud market share to AWS/Google would negatively impact the stock.
+*   **🔍 Watch:** The competitive dynamics in the **cloud war** and the adoption rates/price points for **Microsoft 365 Copilot** licenses in the coming quarters will be the most critical indicators of success.
+"""
+
+# --- Data Extraction Functions ---
+
+def parse_peer_benchmarking(text):
     """
-    Generates simulated financial data for a given ticker.
-    This data is entirely mock and does not reflect real company financials.
+    Parses the Peer Benchmarking table from the analysis text into a pandas DataFrame.
+    Converts values to appropriate numeric types (e.g., percentages, trillions, billions).
     """
-    # Simulate historical annual data for 5 years
-    years = pd.to_datetime([f'{y}-12-31' for y in range(2019, 2024)])
+    # This regex looks for the '### Peer Benchmarking' header, then captures all table lines
+    # until an empty line, a new markdown header, or the end of the string.
+    match = re.search(r'### Peer Benchmarking\s*\n\| Metric.*?\n\| :---.*?\n(.*?)(?=\n\n|\n[#]{1,3}\s|\Z)', text, re.DOTALL)
+    if not match:
+        return pd.DataFrame()
+
+    table_data_str = match.group(1) # This group contains all data rows
+    lines = table_data_str.strip().split('\n')
     
-    # Base values for a large tech company like Apple
-    base_revenue = 260e9
-    base_net_income = 55e9
-    base_eps = 2.97
-
-    # Apply some growth and slight variability
-    revenue = [base_revenue * (1 + i * 0.05 + np.random.uniform(-0.01, 0.01)) for i in range(5)]
-    net_income = [base_net_income * (1 + i * 0.07 + np.random.uniform(-0.02, 0.02)) for i in range(5)]
-    eps = [base_eps * (1 + i * 0.08 + np.random.uniform(-0.02, 0.02)) for i in range(5)]
-
-    financial_df = pd.DataFrame({
-        'Year': years,
-        'Revenue ($B)': [r / 1e9 for r in revenue], # Convert to Billions
-        'Net Income ($B)': [ni / 1e9 for ni in net_income], # Convert to Billions
-        'EPS ($)': eps
-    }).set_index('Year')
-
-    # Simulated key metrics for the latest year
-    latest_year_idx = len(financial_df) - 1
+    # Extract headers (assuming it's the line right before the separator '---')
+    header_line_match = re.search(r'### Peer Benchmarking\s*\n(\| Metric.*\|)', text)
+    if not header_line_match: return pd.DataFrame()
     
-    # Ensure no division by zero for growth/margins if base data is too small
-    current_revenue = revenue[latest_year_idx]
-    prev_revenue = revenue[latest_year_idx - 1] if latest_year_idx > 0 else current_revenue
+    header_line = header_line_match.group(1)
+    headers = [h.strip().replace('**', '') for h in header_line.split('|') if h.strip()]
     
-    current_net_income = net_income[latest_year_idx]
+    parsed_rows = []
+    for line in lines:
+        if not line.strip() or line.startswith('| :---'): # Skip empty lines or the separator line
+            continue
+        row_values = [v.strip() for v in line.split('|') if v.strip()]
+        if len(row_values) == len(headers): # Ensure consistent number of columns
+            parsed_rows.append(row_values)
+            
+    df = pd.DataFrame(parsed_rows, columns=headers)
+    
+    processed_data = []
+    for _, row in df.iterrows():
+        metric = row['Metric']
+        for col_name in headers[1:]: # Iterate through company columns (skip 'Metric')
+            company = col_name
+            value_str = row[col_name]
+            
+            numeric_value = None
+            if isinstance(value_str, str):
+                cleaned_str = value_str.replace('~', '').replace('$', '').strip()
+                
+                if 'Trillion' in cleaned_str:
+                    numeric_value = float(cleaned_str.replace('Trillion', '')) * 1_000_000_000_000
+                elif 'Billion' in cleaned_str:
+                    numeric_value = float(cleaned_str.replace('Billion', '')) * 1_000_000_000
+                elif '%' in cleaned_str:
+                    num_match = re.search(r'(\d+\.?\d*)%', cleaned_str)
+                    if num_match:
+                        numeric_value = float(num_match.group(1)) / 100.0
+                elif 'x' in cleaned_str:
+                    try: # Handle P/E ratios like '32.5x'
+                        numeric_value = float(cleaned_str.replace('x', ''))
+                    except ValueError:
+                        pass
+                else: # Generic float conversion
+                    try:
+                        numeric_value = float(cleaned_str)
+                    except ValueError:
+                        pass # Keep as None if not parsable
 
-    key_metrics = {
-        "Ticker": ticker,
-        "Market Cap ($B)": np.random.randint(1500, 3000), # Billion USD
-        "P/E Ratio (TTM)": round(np.random.uniform(25.0, 35.0), 1),
-        "Dividend Yield": round(np.random.uniform(0.5, 1.0), 2),
-        "Net Margin (TTM)": round((current_net_income / current_revenue) * 100, 1) if current_revenue != 0 else 0,
-        "Revenue Growth (YoY)": round(((current_revenue - prev_revenue) / prev_revenue) * 100, 1) if prev_revenue != 0 else 0
-    }
+            processed_data.append({
+                'Metric': metric,
+                'Company': company,
+                'Value': numeric_value
+            })
 
-    # Simulated competitive data (including the selected ticker)
-    # This data is also mock, designed for a large-cap tech comparison
-    competitors = {
-        "AAPL": {"Revenue Growth (%)": key_metrics["Revenue Growth (YoY)"], "Net Margin (%)": key_metrics["Net Margin (TTM)"], "P/E Ratio": 29.5, "Market Cap ($B)": 2800},
-        "MSFT": {"Revenue Growth (%)": 13.0, "Net Margin (%)": 36.5, "P/E Ratio": 35.2, "Market Cap ($B)": 3000},
-        "GOOGL": {"Revenue Growth (%)": 10.5, "Net Margin (%)": 25.1, "P/E Ratio": 27.8, "Market Cap ($B)": 2200},
-        "AMZN": {"Revenue Growth (%)": 12.0, "Net Margin (%)": 6.8, "P/E Ratio": 50.1, "Market Cap ($B)": 1900},
-    }
-
-    # If the selected ticker is not one of the predefined, add it with generated data
-    if ticker not in competitors:
-        competitors[ticker] = {
-            "Revenue Growth (%)": key_metrics["Revenue Growth (YoY)"],
-            "Net Margin (%)": key_metrics["Net Margin (TTM)"],
-            "P/E Ratio": key_metrics["P/E Ratio (TTM)"],
-            "Market Cap ($B)": key_metrics["Market Cap ($B)"]
-        }
-    else: # Update predefined ticker with generated values to ensure consistency
-        competitors[ticker]["Revenue Growth (%)"] = key_metrics["Revenue Growth (YoY)"]
-        competitors[ticker]["Net Margin (%)"] = key_metrics["Net Margin (TTM)"]
-        competitors[ticker]["P/E Ratio"] = key_metrics["P/E Ratio (TTM)"]
-        competitors[ticker]["Market Cap ($B)"] = key_metrics["Market Cap ($B)"]
-
-
-    comp_df = pd.DataFrame.from_dict(competitors, orient='index')
-
-    return financial_df, key_metrics, comp_df
-
-# --- Main App ---
-st.title("🍎 Financial Analysis Dashboard (Simulated Data)")
-st.caption("This dashboard presents a simulated financial analysis, demonstrating visualization capabilities based on hypothetical data.")
-
-# Sidebar for controls
-st.sidebar.header("Analysis Controls")
-selected_ticker = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL)", "AAPL").upper()
-st.sidebar.markdown("---")
-st.sidebar.warning("Note: All financial data presented here is **simulated** for demonstration purposes and does not reflect real-time market data or actual company performance.")
-
-# Generate mock data based on the (mock) selected ticker
-financial_df, key_metrics, comp_df = generate_mock_financial_data(selected_ticker)
-
-# Calculate peer averages for delta metrics
-peer_metrics_for_avg = comp_df.drop(selected_ticker, errors='ignore')
-avg_peer_net_margin = peer_metrics_for_avg['Net Margin (%)'].mean() if not peer_metrics_for_avg.empty else key_metrics['Net Margin (TTM)']
-avg_peer_revenue_growth = peer_metrics_for_avg['Revenue Growth (%)'].mean() if not peer_metrics_for_avg.empty else key_metrics['Revenue Growth (YoY)']
+    df_melted = pd.DataFrame(processed_data)
+    
+    return df_melted
 
 
-# --- 1. Key Metrics ---
-st.header("📊 Key Metrics")
-st.markdown("A quick glance at the most recent fundamental indicators.")
+def extract_key_metrics(text):
+    """
+    Extracts specific key financial metrics from the analysis text.
+    """
+    metrics = {}
+    
+    # Intelligent Cloud Revenue and Growth
+    # Regex for "Intelligent Cloud revenue ($26.7 billion, up 21%)" or similar
+    ic_revenue_match = re.search(r'Intelligent Cloud revenue \(\$([\d.]+)\s*billion, up (\d+)%\)', text)
+    if ic_revenue_match:
+        revenue_value = float(ic_revenue_match.group(1)) * 1_000_000_000 # Convert to actual number
+        growth_rate = int(ic_revenue_match.group(2))
+        metrics['Intelligent Cloud Revenue'] = revenue_value
+        metrics['Intelligent Cloud Growth'] = growth_rate
+        
+    # Security Business Revenue
+    # Regex for "Microsoft Security is now a $20+ billion annual business"
+    security_revenue_match = re.search(r'Microsoft Security is now a \$([\d.]+)\+ billion annual business', text)
+    if security_revenue_match:
+        metrics['Security Business Revenue'] = float(security_revenue_match.group(1)) * 1_000_000_000
+        
+    return metrics
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+# --- Main Streamlit App ---
+def main():
+    st.title("📊 MSFT: Deep Dive into a Dominant Tech Giant")
+    st.markdown("As a Senior Equity Research Analyst, I'm presenting a high-conviction, forward-looking analysis of Microsoft Corporation (MSFT). MSFT's entrenched position across cloud, productivity, and increasingly, AI, makes it a compelling investment.")
+    st.markdown("---")
 
-with col1:
-    st.metric(label="Ticker", value=key_metrics["Ticker"])
-with col2:
-    st.metric(label="Market Cap", value=f"${key_metrics['Market Cap ($B)']:.0f}B")
-with col3:
-    st.metric(label="P/E Ratio (TTM)", value=f"{key_metrics['P/E Ratio (TTM)']:.1f}x")
-with col4:
-    st.metric(label="Dividend Yield", value=f"{key_metrics['Dividend Yield']:.2f}%")
-with col5:
-    net_margin_diff = key_metrics['Net Margin (TTM)'] - avg_peer_net_margin
-    st.metric(label="Net Margin (TTM)", value=f"{key_metrics['Net Margin (TTM)']:.1f}%", 
-              delta=f"{net_margin_diff:.1f}% vs Peer Avg", 
-              delta_color="normal" if net_margin_diff >= 0 else "inverse")
-with col6:
-    revenue_growth_diff = key_metrics['Revenue Growth (YoY)'] - avg_peer_revenue_growth
-    st.metric(label="Revenue Growth (YoY)", value=f"{key_metrics['Revenue Growth (YoY)']:.1f}%", 
-              delta=f"{revenue_growth_diff:.1f}% vs Peer Avg", 
-              delta_color="normal" if revenue_growth_diff >= 0 else "inverse")
+    # --- Key Metrics Section ---
+    st.header("Key Financial Metrics & Highlights")
+    st.markdown("Snapshot of key performance indicators directly extracted from the analysis.")
 
-st.markdown("---")
+    col1, col2, col3 = st.columns(3)
 
-# --- 2. Company Overview ---
-st.header(f"🏛️ {selected_ticker} - Company Overview")
-st.write(f"""
-**Industry:** Technology, Consumer Electronics, Software & Services.
-**Business Model:** {selected_ticker} designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. It also sells related services. The company's products are known for their premium design, strong brand loyalty, and integrated ecosystem.
-**Key Products:** iPhone, Mac, iPad, Apple Watch, AirPods, Apple TV.
-**Services:** Apple Music, iCloud, App Store, Apple Pay, Apple Care, Apple TV+.
-""")
+    # Extract metrics using the helper function
+    metrics = extract_key_metrics(analysis_text)
+    
+    if 'Intelligent Cloud Revenue' in metrics:
+        col1.metric(
+            label="Intelligent Cloud Revenue (Q3 FY24)",
+            value=f"${metrics['Intelligent Cloud Revenue'] / 1_000_000_000:.1f}B",
+            delta=f"{metrics['Intelligent Cloud Growth']}% YoY Growth"
+        )
+    if 'Security Business Revenue' in metrics:
+        col2.metric(
+            label="Security Business Annual Revenue",
+            value=f"${metrics['Security Business Revenue'] / 1_000_000_000:.1f}B+",
+            help="Growing rapidly, leveraging AI (Security Copilot)"
+        )
+    
+    # Extract Market Cap for MSFT from the peer table for display in metrics
+    peer_df_melted = parse_peer_benchmarking(analysis_text)
+    msft_market_cap = None
+    if not peer_df_melted.empty:
+        # Filter for MSFT's Market Cap, ensuring a valid value exists
+        msft_market_cap_row = peer_df_melted[(peer_df_melted['Metric'] == 'Market Cap') & (peer_df_melted['Company'] == 'Microsoft (MSFT)')]
+        if not msft_market_cap_row.empty and pd.notna(msft_market_cap_row['Value'].iloc[0]):
+            msft_market_cap = msft_market_cap_row['Value'].iloc[0]
+            col3.metric(
+                label="Microsoft Market Cap",
+                value=f"${msft_market_cap / 1_000_000_000_000:.1f} Trillion"
+            )
 
-st.markdown("---")
+    st.markdown("---")
 
-# --- 3. Financial Performance Visualizations ---
-st.header("📈 Financial Performance (Last 5 Years)")
-st.markdown("Analyzing historical trends in key financial indicators.")
+    # --- Peer Benchmarking Visualizations ---
+    st.header("Competitive Peer Benchmarking")
+    st.markdown("A visual comparison of Microsoft against key competitors across important financial and operational metrics.")
 
-# Revenue Chart
-fig_revenue = px.line(
-    financial_df,
-    x=financial_df.index,
-    y='Revenue ($B)',
-    title=f'{selected_ticker} Annual Revenue',
-    labels={'index': 'Year', 'Revenue ($B)': 'Revenue (Billions USD)'},
-    markers=True,
-    line_shape='spline' # Smooth the line
-)
-fig_revenue.update_layout(hovermode="x unified")
-st.plotly_chart(fig_revenue, use_container_width=True)
+    if not peer_df_melted.empty:
+        # Filter for each metric and drop rows with NaN values in 'Value' column to prevent chart errors
+        pe_ratio_df = peer_df_melted[peer_df_melted['Metric'] == 'P/E Ratio (TTM)'].dropna(subset=['Value'])
+        yoy_growth_df = peer_df_melted[peer_df_melted['Metric'] == 'YoY Revenue Growth'].dropna(subset=['Value'])
+        market_share_df = peer_df_melted[peer_df_melted['Metric'] == 'Market Share (Cloud)'].dropna(subset=['Value'])
+        market_cap_df = peer_df_melted[peer_df_melted['Metric'] == 'Market Cap'].dropna(subset=['Value'])
 
-# Net Income Chart
-fig_net_income = px.line(
-    financial_df,
-    x=financial_df.index,
-    y='Net Income ($B)',
-    title=f'{selected_ticker} Annual Net Income',
-    labels={'index': 'Year', 'Net Income ($B)': 'Net Income (Billions USD)'},
-    markers=True,
-    color_discrete_sequence=px.colors.qualitative.Plotly[1:2],
-    line_shape='spline'
-)
-fig_net_income.update_layout(hovermode="x unified")
-st.plotly_chart(fig_net_income, use_container_width=True)
+        col_charts1, col_charts2 = st.columns(2)
+        col_charts3, col_charts4 = st.columns(2)
 
-# EPS Chart
-fig_eps = px.line(
-    financial_df,
-    x=financial_df.index,
-    y='EPS ($)',
-    title=f'{selected_ticker} Annual Earnings Per Share (EPS)',
-    labels={'index': 'Year', 'EPS ($)': 'EPS (USD)'},
-    markers=True,
-    color_discrete_sequence=px.colors.qualitative.Plotly[2:3],
-    line_shape='spline'
-)
-fig_eps.update_layout(hovermode="x unified")
-st.plotly_chart(fig_eps, use_container_width=True)
+        # P/E Ratio (TTM) Chart
+        if not pe_ratio_df.empty:
+            fig_pe = px.bar(
+                pe_ratio_df, x='Company', y='Value', title='P/E Ratio (TTM)',
+                labels={'Value': 'P/E Ratio'}, color='Company',
+                color_discrete_sequence=px.colors.qualitative.Plotly
+            )
+            fig_pe.update_layout(showlegend=False)
+            col_charts1.plotly_chart(fig_pe, use_container_width=True)
+        else: col_charts1.write("P/E Ratio data not available for charting.")
 
-st.markdown("---")
+        # YoY Revenue Growth Chart
+        if not yoy_growth_df.empty:
+            fig_yoy = px.bar(
+                yoy_growth_df, x='Company', y='Value', title='YoY Revenue Growth',
+                labels={'Value': 'Growth Rate'}, color='Company',
+                color_discrete_sequence=px.colors.qualitative.Plotly
+            )
+            fig_yoy.update_layout(yaxis_tickformat=".0%", showlegend=False) # Format as percentage
+            col_charts2.plotly_chart(fig_yoy, use_container_width=True)
+        else: col_charts2.write("YoY Revenue Growth data not available for charting.")
+            
+        # Cloud Market Share Chart
+        if not market_share_df.empty:
+            fig_share = px.bar(
+                market_share_df, x='Company', y='Value', title='Cloud Market Share',
+                labels={'Value': 'Market Share'}, color='Company',
+                color_discrete_sequence=px.colors.qualitative.Plotly
+            )
+            fig_share.update_layout(yaxis_tickformat=".0%", showlegend=False) # Format as percentage
+            col_charts3.plotly_chart(fig_share, use_container_width=True)
+        else: col_charts3.write("Cloud Market Share data not available for charting.")
 
-# --- 4. Competitive Comparison ---
-st.header("🆚 Competitive Landscape")
-st.markdown(f"Comparing {selected_ticker} against selected peers on key financial and valuation metrics.")
+        # Market Cap Chart
+        if not market_cap_df.empty:
+            fig_mcap = px.bar(
+                market_cap_df, x='Company', y='Value', title='Market Cap',
+                labels={'Value': 'Market Cap'}, color='Company',
+                color_discrete_sequence=px.colors.qualitative.Plotly,
+                hover_data={'Value': ':.2s'} # Format large numbers nicely on hover
+            )
+            fig_mcap.update_layout(yaxis_tickformat=".2s", showlegend=False) # Format as significant figures
+            col_charts4.plotly_chart(fig_mcap, use_container_width=True)
+        else: col_charts4.write("Market Cap data not available for charting.")
 
-# Display competitive data in a sortable table
-st.dataframe(comp_df.style.highlight_max(subset=['Revenue Growth (%)', 'Net Margin (%)', 'Market Cap ($B)'], axis=0, props='background-color: #d1ffd1;')
-                               .highlight_min(subset=['Revenue Growth (%)', 'Net Margin (%)', 'P/E Ratio'], axis=0, props='background-color: #ffd1d1;')
-                               .format("{:.1f}", subset=['Revenue Growth (%)', 'Net Margin (%)', 'P/E Ratio'])
-                               .format("${:,.0f}B", subset=['Market Cap ($B)']),
-             use_container_width=True)
+    else:
+        st.warning("Could not parse peer benchmarking data from the analysis text. Please ensure the table format is correct.")
 
-# Competitive Charts
-col_comp1, col_comp2 = st.columns(2)
+    st.markdown("---")
 
-with col_comp1:
-    fig_comp_growth = px.bar(
-        comp_df.sort_values('Revenue Growth (%)', ascending=False),
-        x=comp_df.index,
-        y='Revenue Growth (%)',
-        title='Revenue Growth (%) Last Year',
-        labels={'index': 'Company'},
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    fig_comp_growth.update_traces(marker_line_width=1, marker_line_color='black')
-    st.plotly_chart(fig_comp_growth, use_container_width=True)
+    # --- Sections and Summaries ---
+    st.header("Detailed Analysis Sections")
+    st.markdown("Explore the complete in-depth breakdown of Microsoft's performance, outlook, and risks in collapsible sections.")
+    
+    # Split the analysis text into logical blocks based on the '---' separators for easier display.
+    # We find the indices of the separators to extract content between them.
+    
+    # The initial block starts after the main title and ends before the first '---'
+    start_first_block_content = analysis_text.find("### Fundamental Evaluation") # Start after intro and main title
+    end_first_block_content = analysis_text.find("---", start_first_block_content)
+    first_major_block_content = analysis_text[start_first_block_content:end_first_block_content].strip()
 
-with col_comp2:
-    fig_comp_margin = px.bar(
-        comp_df.sort_values('Net Margin (%)', ascending=False),
-        x=comp_df.index,
-        y='Net Margin (%)',
-        title='Net Margin (%) Last Year',
-        labels={'index': 'Company'},
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    fig_comp_margin.update_traces(marker_line_width=1, marker_line_color='black')
-    st.plotly_chart(fig_comp_margin, use_container_width=True)
+    # The second block is between the first and second '---'
+    start_second_block_content = end_first_block_content + 3 # Skip '---' and newline
+    end_second_block_content = analysis_text.find("---", start_second_block_content)
+    second_major_block_content = analysis_text[start_second_block_content:end_second_block_content].strip()
+    
+    # The third block is after the second '---'
+    start_third_block_content = end_second_block_content + 3
+    third_major_block_content = analysis_text[start_third_block_content:].strip()
 
-fig_comp_pe = px.bar(
-    comp_df.sort_values('P/E Ratio', ascending=True),
-    x=comp_df.index,
-    y='P/E Ratio',
-    title='P/E Ratio (Lower generally indicates better value)',
-    labels={'index': 'Company'},
-    color_discrete_sequence=px.colors.qualitative.Pastel
-)
-fig_comp_pe.update_traces(marker_line_width=1, marker_line_color='black')
-st.plotly_chart(fig_comp_pe, use_container_width=True)
+    # Display each major block in a Streamlit expander for a clean layout
+    with st.expander("**1. Fundamental Evaluation, Adjacent Industries & Risk Assessment**"):
+        st.markdown(first_major_block_content)
 
-st.markdown("---")
+    with st.expander("**2. Company Overview, Outlook & Detailed Competitive Comparison**"):
+        st.markdown(second_major_block_content)
+        
+    with st.expander("**3. Comprehensive Analysis: Market Sentiment, Positioning & Critical Findings**"):
+        st.markdown(third_major_block_content)
 
-# --- 5. 3-6 Month Outlook ---
-st.header("🔭 3-6 Month Outlook")
-st.markdown(f"""
-The outlook for {selected_ticker} appears stable with continued strong demand for its premium products, especially within the services segment which shows consistent growth and higher margins.
+    st.markdown("---")
+    st.info("Disclaimer: This analysis is forward-looking commentary and not investment advice; outcomes will depend on material developments in macroeconomics, competitive moves, and Microsoft’s execution.")
 
-**Fundamentals:** Expected to remain robust, driven by innovation in new product categories (e.g., Vision Pro, though initial impact is small) and continued expansion of its services ecosystem.
-**Macro:** Potential headwinds include global economic slowdowns affecting consumer spending on high-ticket items and increased regulatory scrutiny in major markets. However, the company's strong cash flow and brand resilience offer a buffer.
-**Industry Dynamics:** The consumer electronics market remains highly competitive. {selected_ticker}'s ability to differentiate through design, ecosystem lock-in, and powerful branding continues to be a key advantage. The AI trend is a significant opportunity, and {selected_ticker}'s strategy in integrating AI into its devices and services will be crucial.
-""")
-
-st.markdown("---")
-
-# --- 6. Key Risks and Opportunities ---
-st.header("⚠️ Key Risks & Opportunities")
-
-col_risk, col_opp = st.columns(2)
-
-with col_risk:
-    st.subheader("Risks")
-    st.markdown("""
-    *   **Supply Chain Disruptions:** Over-reliance on a few key manufacturing partners and geopolitical tensions (e.g., US-China) pose risks to production.
-    *   **Regulatory Scrutiny:** Antitrust investigations and new regulations targeting large tech companies could impact business practices and profitability.
-    *   **Increased Competition:** Aggressive competition from Android manufacturers and emerging tech players could erode market share.
-    *   **Innovation Cycle:** The market's high expectations for groundbreaking products mean failure to innovate consistently could lead to investor disappointment.
-    """)
-
-with col_opp:
-    st.subheader("Opportunities")
-    st.markdown("""
-    *   **Services Growth:** Continued expansion of its high-margin services segment (App Store, Apple Music, iCloud, Advertising) offers a stable and growing revenue stream.
-    *   **Emerging Markets:** Untapped potential in certain emerging markets could drive future growth.
-    *   **New Product Categories:** Successful ventures into new areas like AR/VR (Vision Pro) or automotive could unlock significant long-term value.
-    *   **AI Integration:** Deep integration of AI capabilities into its devices and software ecosystem could enhance user experience and create new revenue streams.
-    """)
-
-st.markdown("---")
-
-# --- 7. Summary Judgment ---
-st.header("✨ Summary Judgment")
-st.markdown(f"""
-{selected_ticker} remains a market leader with a robust business model characterized by strong brand loyalty, an integrated ecosystem, and significant cash generation. While facing macro-economic headwinds and intense competition, its consistent innovation, especially in the services segment and potential new product categories, positions it well for long-term growth. Investors should monitor regulatory developments and the company's execution on its AI strategy.
-""")
-
-st.markdown("---")
-st.info("Disclaimer: This analysis is based on simulated data and for informational purposes only. It is not investment advice.")
+if __name__ == "__main__":
+    main()
