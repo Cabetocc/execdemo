@@ -69,539 +69,591 @@ import pandas as pd
 import altair as alt
 import re
 
-# Set Streamlit page configuration for a wider layout and custom title/icon
-st.set_page_config(layout="wide", page_title="Nokia (NOK) Financial Ecosystem Analysis", page_icon="📈")
+# Set Streamlit page configuration
+st.set_page_config(
+    page_title="CSCO Financial Ecosystem Analysis",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# --- Raw Financial Analysis Text ---
-# This variable holds the entire financial analysis provided by the user.
-# It is embedded directly into the app for completeness and easy execution.
+# --- Full Analysis Text (as provided by the user) ---
 ANALYSIS_TEXT = """
-Let's dive into a comprehensive financial ecosystem analysis of Nokia (NOK). As a global leader in network infrastructure and technology, Nokia operates within a dynamic and interconnected landscape.
+Let's dive into a comprehensive financial analysis of Cisco Systems, Inc. (CSCO).
 
-## Nokia (NOK): A Financial Ecosystem Analysis
+## Financial Ecosystem Analysis of Cisco Systems, Inc. (CSCO)
 
-Nokia's stock (NOK) is influenced by a complex web of financial relationships, market dependencies, sector connections, competitor dynamics, and broader economic factors. Here's a breakdown:
+Cisco Systems, Inc. (CSCO) is a multinational technology conglomerate that designs, manufactures, and sells networking hardware, telecommunications equipment, and other high-technology services and products. Its business model is deeply intertwined with the global technology landscape, enterprise spending, and the ongoing digital transformation.
 
-### 1. Key Financial Relationships and Metrics
-*   **Revenue Streams:** Nokia's revenue is primarily derived from:
-    *   **Network Infrastructure:** This is their core business, encompassing mobile networks (5G, 4G), fixed networks, and IP networks. Sales here are project-based and often involve long-term contracts with telecom operators.
-    *   **Nokia Technologies:** This segment includes their patent licensing business, which is a significant and relatively high-margin revenue source.
-    *   **Nokia Enterprise:** This segment focuses on providing network solutions to non-telecom enterprises, such as industrial IoT, smart cities, and government sectors.
+### 1. Key Financial Relationships & Performance Metrics:
+
+*   **Revenue Growth & Diversification:**
+    *   **Historical Trends:** Cisco has demonstrated consistent revenue generation, though growth rates can fluctuate with the IT spending cycles. Historically, it was heavily reliant on hardware (routers, switches), but has been strategically shifting towards software and services.
+    *   **Subscription Revenue:** A critical metric is the growth of its **Software & Services revenue**. This recurring revenue stream provides greater predictability and higher gross margins compared to hardware. The transition to a "subscriptions-led" business model is a key focus.
+    *   **Product Mix:** Analyzing the performance of different product segments (e.g., Enterprise Networking, Collaboration, Security, Data Center) is crucial to understand growth drivers and potential headwinds.
 *   **Profitability & Margins:**
-    *   **Gross Margins:** Driven by R&D intensity and competitive pricing in the network infrastructure segment. Patent licensing (Nokia Technologies) generally offers higher gross margins.
-    *   **Operating Margins:** Sensitive to R&D spending, sales, general, and administrative expenses, and the overall demand for network equipment.
-    *   **Net Income:** Influenced by operating performance, interest expenses, and taxes.
-*   **Capital Structure:**
-    *   **Debt:** Nokia maintains a certain level of debt to finance its operations, R&D, and potential acquisitions. Its ability to manage debt is crucial for financial stability.
-    *   **Equity:** The market capitalization of NOK reflects investor sentiment and the company's perceived future earnings potential.
-*   **Cash Flow:**
-    *   **Operating Cash Flow:** Essential for funding R&D, capital expenditures, and debt repayment. It can be lumpy due to project-based revenue.
-    *   **Free Cash Flow:** Indicates the cash available after capital expenditures, a key metric for evaluating financial health and shareholder returns.
-*   **R&D Investment:** Nokia invests heavily in research and development to stay competitive in the fast-evolving technology sector, especially with 5G and future network generations. This is a significant cost but crucial for long-term survival and growth.
-*   **Dividend Policy:** While Nokia has paid dividends in the past, its current policy is subject to its financial performance and strategic priorities. Investors closely watch for dividend announcements.
+    *   **Gross Margins:** Generally strong, especially in software and services. Hardware margins are more competitive. The shift towards higher-margin software is a positive trend.
+    *   **Operating Margins:** Reflect operational efficiency. Investments in R&D and sales & marketing are significant. Examining trends in these expenses relative to revenue is important.
+    *   **Net Income & EPS:** Core profitability metrics. Analysis of trends and any impact from acquisitions or restructuring is key.
+*   **Balance Sheet Strength:**
+    *   **Cash & Equivalents:** Cisco typically holds substantial cash reserves, providing flexibility for acquisitions, R&D, share buybacks, and dividends.
+    *   **Debt Levels:** Historically, Cisco has managed its debt conservatively. A low debt-to-equity ratio indicates financial stability.
+    *   **Working Capital Management:** Efficiency in managing inventory and receivables is important, particularly for a hardware-heavy business.
+*   **Cash Flow Generation:**
+    *   **Operating Cash Flow:** A very strong indicator of Cisco's ability to generate cash from its core operations. Consistent and growing operating cash flow is a sign of financial health.
+    *   **Free Cash Flow (FCF):** Cash available after capital expenditures. This is crucial for dividends, share repurchases, and strategic investments. Cisco has a strong track record of FCF generation.
+*   **Shareholder Returns:**
+    *   **Dividends:** Cisco is a dividend-paying stock and has a history of dividend growth, making it attractive to income-seeking investors.
+    *   **Share Buybacks:** The company regularly engages in share repurchases, which can boost EPS and return capital to shareholders.
 
-### 2. Market Dependencies
-*   **Telecommunications Operator Spending:** Nokia's primary customers are mobile and fixed network operators worldwide. Their capital expenditure (CapEx) budgets, driven by network upgrades (e.g., 5G rollout, fiber expansion), technology evolution, and customer demand, directly impact Nokia's sales.
-*   **Global Economic Growth & Consumer Demand:** Indirectly, economic growth fuels consumer demand for mobile data and services, which in turn drives telecom operators' need for network expansion and upgrades.
-*   **Government Policies & Regulations:** Spectrum allocation, net neutrality rules, and national security concerns can influence telecom operator spending patterns and the types of vendors they can use.
-*   **Technology Adoption Rates:** The speed at which new technologies like 5G, IoT, and AI are adopted by consumers and enterprises dictates the demand for Nokia's solutions.
-*   **Supply Chain Stability:** Like all hardware manufacturers, Nokia is dependent on the stability and availability of components from its suppliers. Geopolitical events and trade disputes can disrupt this.
+### 2. Market Dependencies:
 
-### 3. Sector Connections
-*   **Telecommunications Equipment Sector:** Nokia is a direct player in this sector. Its performance is intertwined with the overall health and trends of this industry.
-*   **Semiconductor Sector:** Nokia relies on advanced chips and components from semiconductor manufacturers. Disruptions or price changes in this sector can impact Nokia's costs and product availability.
-*   **Software & Services Sector:** As networks become more software-defined, Nokia's integration of software and services with its hardware offerings is crucial. Its success depends on its ability to deliver robust software solutions.
-*   **Cloud Computing Sector:** The convergence of telecom networks and cloud infrastructure presents both opportunities and dependencies for Nokia as it integrates its solutions with cloud platforms.
-*   **Cybersecurity Sector:** Network security is paramount. Nokia's solutions must be secure, and the company may also partner with or acquire cybersecurity firms to enhance its offerings.
+*   **Global IT Spending:** Cisco's fortunes are directly tied to the overall health of the global IT spending market. This includes enterprise hardware, software, and services. Economic downturns or slowdowns in IT investment will negatively impact Cisco.
+*   **Enterprise Capital Expenditure (CapEx):** Businesses are the primary customers for Cisco. Their willingness and ability to invest in network infrastructure, data centers, and collaboration tools are paramount.
+*   **Digital Transformation & Cloud Adoption:** The ongoing shift towards digital services and cloud computing creates both opportunities and challenges. Cisco benefits from the infrastructure build-out required for these transformations but also faces competition from cloud-native providers.
+*   **Globalization & Emerging Markets:** Economic and political stability in key global markets influences demand for Cisco's products and services. Emerging markets represent significant growth potential.
+*   **Supply Chain Dynamics:** As a hardware manufacturer, Cisco is susceptible to supply chain disruptions (e.g., chip shortages), which can affect production volumes and costs.
 
-### 4. Competitor Relationships
+### 3. Sector Connections:
 
-Nokia operates in a highly competitive landscape. Its key competitors include:
+*   **Networking Hardware:** Cisco is a dominant player in this sector, but it's a mature market with intense competition.
+*   **Telecommunications Equipment:** Cisco plays a role here, particularly with its service provider offerings.
+*   **Software & Cloud Services:** This is where Cisco is increasingly focusing, competing with software giants and cloud providers.
+*   **Cybersecurity:** A growing and critical area. Cisco has made significant acquisitions and investments in this space.
+*   **Collaboration Tools:** With the rise of remote work, the demand for unified communications and collaboration solutions (e.g., Webex) has increased.
 
-*   **Ericsson (ERIC):** A direct and major competitor, especially in mobile network infrastructure. They vie for the same large operator contracts.
-*   **Huawei (Private):** Despite geopolitical challenges, Huawei remains a significant competitor, particularly in emerging markets.
-*   **Samsung (005930.KS):** Increasingly a strong player in mobile network equipment, particularly with its 5G solutions.
-*   **Cisco Systems (CSCO):** A dominant player in enterprise networking and IP routing, areas where Nokia also competes.
-*   **Juniper Networks (JNPR):** Another key competitor in routing and switching.
-*   **ZTE (0763.HK):** A Chinese competitor that also competes for global network contracts.
+### 4. Competitor Relationships:
 
-The competitive dynamics are characterized by:
-*   **Price Wars:** Intense competition can lead to pricing pressure, impacting margins.
-*   **Technological Innovation:** Companies constantly race to develop and deploy the next generation of network technology.
-*   **Geopolitical Influence:** Government policies and trade restrictions can significantly impact market access and competitive positioning (especially for Huawei).
-*   **Acquisition/Partnership Activity:** Companies may merge, acquire others, or form strategic alliances to gain market share or technological advantages.
+Cisco operates in a highly competitive landscape. Key competitors vary by product segment:
 
-### 5. Economic Factors
-*   **Global Interest Rates:** Higher interest rates increase Nokia's cost of borrowing and can also impact the CapEx budgets of telecom operators if they have to borrow more for their investments.
-*   **Inflation:** Can increase Nokia's raw material costs, labor expenses, and potentially affect its pricing power.
-*   **Foreign Exchange Rates:** As a global company, Nokia's reported earnings are subject to fluctuations in currency exchange rates.
-*   **Geopolitical Stability:** Conflicts, trade wars, and political instability can disrupt supply chains, impact international sales, and lead to shifts in government spending on critical infrastructure.
-*   **Technological Disruption:** Emergence of new communication paradigms or significant breakthroughs in areas like quantum computing could alter the long-term demand for current network infrastructure.
-*   **Economic Recessions:** During economic downturns, telecom operators may scale back their CapEx spending, directly impacting Nokia's revenue.
+*   **Networking Hardware:**
+    *   **Arista Networks (ANET):** A strong competitor, particularly in high-performance data center networking.
+    *   **Juniper Networks (JNPR):** A long-standing competitor in enterprise and service provider networking.
+    *   **Hewlett Packard Enterprise (HPE) / Aruba Networks:** Competes in enterprise networking solutions.
+*   **Software & Cloud:**
+    *   **Microsoft (MSFT):** For collaboration (Teams vs. Webex) and increasingly in hybrid cloud solutions.
+    *   **Amazon (AMZN) / Amazon Web Services (AWS):** For cloud infrastructure and services.
+    *   **Google (GOOGL) / Google Cloud:** Similar to AWS.
+    *   **VMware (now part of Broadcom - AVGO):** In virtualization and hybrid cloud.
+*   **Cybersecurity:**
+    *   **Palo Alto Networks (PANW):** A major player in firewalls and security platforms.
+    *   **Fortinet (FTNT):** Another significant cybersecurity competitor.
+    *   **CrowdStrike (CRWD):** In endpoint security.
+    *   **Zscaler (ZS):** In cloud security.
+*   **Collaboration:**
+    *   **Zoom Video Communications (ZM):** A direct competitor to Webex.
+    *   **Microsoft (MSFT):** Teams.
 
-### Conclusion: Nokia's Financial Ecosystem
+Cisco's strategy often involves acquiring companies to gain market share or technological capabilities, making M&A activity a key dynamic in its competitive ecosystem.
 
-Nokia's financial health is intricately linked to the global telecommunications industry's investment cycles, driven by the relentless demand for faster, more reliable, and ubiquitous connectivity. Its success hinges on its ability to innovate rapidly, manage its extensive supply chain, navigate complex geopolitical landscapes, and secure long-term contracts with major telecom operators. The patent licensing arm provides a valuable, more stable revenue stream, while the enterprise segment offers diversification.
+### 5. Economic Factors Impacting CSCO:
 
-Investors in NOK should closely monitor:
+*   **Interest Rates:** Higher interest rates can increase the cost of capital for businesses, potentially leading to reduced IT spending and impacting Cisco's ability to finance acquisitions.
+*   **Inflation:** Rising inflation can lead to higher input costs for hardware manufacturing and increase operating expenses, potentially impacting margins if not passed on to customers.
+*   **Economic Growth & Recessions:** Strong economic growth generally correlates with increased IT investment. Recessions often lead to budget cuts and delayed projects, negatively affecting demand.
+*   **Currency Fluctuations:** As a global company, currency exchange rate movements can impact its reported revenue and profitability when translated into USD.
+*   **Geopolitical Stability:** Trade wars, political tensions, and international conflicts can disrupt global supply chains, impact international sales, and create uncertainty for businesses.
+*   **Technological Advancements:** Rapid innovation in areas like AI, 5G, and edge computing creates both opportunities for Cisco to offer new solutions and threats from new entrants or disruptive technologies.
+*   **Regulatory Environment:** Regulations related to data privacy, cybersecurity, antitrust, and international trade can impact Cisco's operations and market access.
 
-*   **Telecom operator CapEx trends.**
-*   **The pace of 5G and future network deployments.**
-*   **Nokia's R&D pipeline and technological leadership.**
-*   **Competitive pressures and pricing dynamics.**
-*   **Geopolitical developments impacting global trade and infrastructure security.**
-*   **The performance of its Nokia Technologies segment.**
+### Conclusion:
 
-By understanding these interconnected elements, one can gain a more holistic view of Nokia's financial ecosystem and its potential future trajectory.
+Cisco Systems (CSCO) operates within a dynamic and complex financial ecosystem. Its financial health is closely linked to global economic conditions and enterprise IT spending. The company's strategic pivot towards software and recurring revenue models is crucial for future growth and margin expansion, but it also introduces it to new competitive pressures from software and cloud giants. Understanding the interplay between its financial performance, market dependencies, competitor landscape, and broader economic forces is essential for a comprehensive analysis of CSCO's stock. Investors should monitor its progress in transitioning to a software-led business, its ability to innovate and adapt to new technologies, and its resilience in the face of economic headwinds.
 
 ---
 
-Below is a structured, comprehensive analysis of NOK (Nokia Corporation) and the financial ecosystem that determines its performance. I cover Nokia’s business model and revenue drivers, key financial relationships and sensitivities, market and sector linkages, principal competitors, macro and geopolitical factors, principal risks and catalysts, and the financial/operational metrics investors should monitor.
+Summary (company in one line)
+- Cisco Systems (CSCO) is a dominant, cash-generative networking-hardware company that has been shifting its mix toward software, subscriptions and security — a business exposed to enterprise, service-provider and public-sector IT/capex cycles, with strong recurring revenue and a capital-return focus (dividends + buybacks).
 
-1) Business model and revenue mix (high level)
-- Core activities: telecommunications network equipment (RAN, core networks), optical and fixed networks, software and cloud infrastructure for operators, services (integration/managed services), and technology licensing (Nokia Technologies / patents).
-- Revenue characteristics: mix of multi‑year equipment contracts (lumpy, high ticket), recurring software/subscription and services revenue (higher margin and more predictable), and licensing/royalty income (variable but high-margin).
-- Segment margin profile: hardware/equipment (RAN, optical) typically lower margin and capital-intensive; software, services and licensing generally higher margin and steadier cash flow.
+Note on currency and data
+- Analysis based on facts and structural relationships known through June 2024. I do not have live price/quarterly numbers; any valuation or ratio references below are qualitative or directional. Check the latest 10-Q/earnings release for up-to-date metrics.
 
-2) Key financial relationships and sensitivities
-- Telco capex cycles: Nokia revenue and order flow are strongly correlated with global carrier CAPEX for 4G/5G rollouts, upgrades (NSA → SA), fiber/backhaul and core replacements. A slowdown in carrier spending directly hits orders and near-term revenue.
-- Large customers concentration: a handful of major carriers (global Tier‑1 operators) account for a meaningful share of orders; wins/losses or contract timing with several large customers can materially impact quarterly results.
-- Backlog and book‑to‑bill: order backlog gives visibility; book‑to‑to-bill is a critical indicator of demand momentum.
-- Supply chain inputs: dependence on semiconductor and optical components. Chip shortages, single‑source supplier issues, or lead‑time spikes affect delivery timing and costs.
-- Currency exposure: revenues and costs denominated across euros, dollars, other currencies — FX movements affect reported sales and margins.
-- Working capital and cash conversion: large contracts drive receivables and inventory swings; management of working capital impacts free cash flow.
-- Debt and interest rates: Nokia’s financing costs and valuation are sensitive to interest rates and credit market conditions (affects net interest expense and debt refinancing).
+1) Business / revenue structure and key financial relationships
+- Revenue mix: historically dominated by hardware (switches, routers, optics) with increasing contributions from software (subscriptions, licenses), security, and services. The trend toward higher-margin recurring revenue improves revenue visibility and supports multiple expansion.
+- Gross margin and operating margin profile: hardware sales have lower margins than software/subscription and services; a shift to software tends to lift operating margins over time if hardware declines are offset.
+- Cash flow: strong operating cash flow and free cash flow are structural strengths. This funds dividends, buybacks and acquisitions. FCF stability is aided by recurring revenue and large enterprise/customer contracts.
+- Capital allocation: conservative balance sheet (investment-grade) with ongoing dividend and substantial buyback programs. M&A used strategically to acquire software/security capabilities.
+- Booking metrics: bookings, backlog, deferred revenue and subscription renewal rates are important leading indicators of revenue and cash flows.
 
-3) Market and sector connections
-- Telecom equipment sector: Nokia sits in the global telecom infrastructure market alongside Ericsson, Huawei, Samsung, ZTE, etc. Trends in 5G deployment, private networks, Open RAN, and fiber/higher‑speed optical networks directly affect Nokia.
-- Optical and IP transport: strong link to data growth and operators upgrading backbone capacity — competitors in this vertical include Ciena, Infinera, Cisco, Fujitsu.
-- Cloud and edge ecosystems: partnerships with hyperscalers and cloud providers for network cloudification, MEC (multi‑access edge computing), vRAN deployments; demand for cloud-native software and orchestration platforms ties Nokia to cloud ecosystem trends.
-- Enterprise/industrial IoT: private 5G, Industry 4.0, smart factories, and critical infrastructure projects create growth opportunities outside traditional carrier customers.
-- Semiconductor industry: advances in RF front‑ends, ASICs, FPGAs and system on chips influence product roadmaps and costs. Supply tightness or new chip offerings can be limiting or enabling.
+2) Product / segment drivers and their financial effects
+- Campus/enterprise switching (Catalyst line) and wireless (including Aruba overlap via competition): tied to corporate LAN/Wi‑Fi refresh cycles and office reopening trends.
+- Data center switching & routing (Nexus, UCS relationships): driven by cloud, hyper-scale/data center expansions and AI/ML workloads; optics and high-speed switches are higher ASP items that materially affect revenue and gross margin.
+- Service provider / carrier routing: tied to telecom spend, 5G rollouts and edge infrastructure spending.
+- Security and software (CX, Secure Access, Secure Firewall, SD-WAN, Intent-Based Networking): subscription revenue increases recurring revenue and improves gross margins. Growth here is critical for valuation as the market values recurring software more highly than hardware.
+- Collaboration and Webex: competes with software providers; growth stabilizes recurring revenue but has stiff competition affecting pricing/ARPU.
+- Channel & partners: Cisco sells heavily through an indirect channel (distributors, VARs, managed service providers). Channel inventory levels affect near-term revenue lumpyness.
 
-4) Principal competitors and how they shape Nokia’s market
-- Ericsson: closest direct competitor in RAN and core networks in many regions — price competition and feature parity battles. Ericsson’s contract wins/losses and pricing strategy heavily influence Nokia.
-- Huawei: largest global market share in many regions; subject to bans and restrictions in several Western markets. Where Huawei is restricted, Nokia benefits; where Huawei competes freely, price and volume pressure intensify.
-- Samsung: competitor in RAN and 5G in some markets; strong where it has operator relationships and price advantage.
-- Ciena / Infinera / Cisco / Fujitsu: main rivals in optical transport and IP routing for backhaul/core networks.
-- Smaller/adjacent: Juniper, Ribbon, NEC, ZTE (regionally), and emerging Open RAN specialists (Mavenir, Altiostar, Parallel Wireless) which can disrupt traditional RAN supply chains.
+3) Key competitors and relationships
+- Arista Networks: primary competitor in cloud/data-center switching (high-speed Ethernet). Arista competes on performance and software-driven architectures.
+- Juniper Networks: competitor across routing, switching and network OS; strong in service provider markets and software (Contrail).
+- HPE/Aruba: strong in enterprise wireless/LAN and switching in SMB and enterprise markets.
+- Extreme Networks, Huawei, Nokia (and Ericsson in carrier space): varying degrees of competition globally; Huawei remains a low-cost competitor in many non-US markets.
+- Security peers: Palo Alto Networks, Fortinet, Check Point — compete in firewall, secure access and NGFW markets where Cisco is pushing to grow its software/security business.
+- Virtualization/SW-defined: VMware (NSX) historically overlaps in virtualization and SDN; public cloud providers (AWS, Microsoft, GCP) both compete and buy from Cisco.
+- Semiconductor/optics suppliers: Broadcom, Marvell, Intel, and others supply key ASICs/optical components. These suppliers are crucial to product roadmaps; pricing/availability directly impact margins and time-to-market.
 
-5) Geopolitical and regulatory factors
-- Security/sovereignty policies: bans or restrictions on Huawei/ZTE in the US, parts of Europe, Australia and elsewhere create openings for Nokia (and Ericsson). Conversely, relaxation of bans or Huawei regaining ground would be negative.
-- Export controls and sanctions: Russia, China policies, export licensing for sensitive telecom tech can affect market access and revenue.
-- Government subsidies and industrial policy: EU digital sovereignty programs, US CHIPS/Infrastructure funding, and national 5G subsidies can accelerate deals and shift competitive dynamics.
-- Trade tensions and tariffs: affect supply chains, component sourcing costs, and local footprint decisions.
+4) Customers & channel dynamics
+- Customer base: large enterprises, service providers/carriers, public sector/government and SMBs (via channels). Large carriers and cloud providers are meaningful customers but also strategic partners/competitors in some areas.
+- Channel inventory and purchasing patterns: Cisco’s revenue can be lumpy due to channel stocking/unsticking and customer capex cycles. Watch channel inventory and distributor order trends in quarterly commentary.
+- Geographical exposure: large share of revenue from Americas, EMEA, APAC — China exposure is material enough to be affected by US-China tensions and export controls.
 
-6) Economic and macro drivers
-- Global GDP and telecom operator revenue growth: operator profitability and ARPU influence their ability to invest in networks.
-- Inflation and input costs: higher materials/transport costs compress margins if not passed to customers.
-- Interest rates: influence cost of debt and the discount rate investors use to value future cash flows.
-- Capex cycles: replacement cycles for RAN and fiber infrastructure drive multi-year waves of spending.
+5) Macro & regulatory dependencies
+- Enterprise IT capex cycle: global GDP growth, corporate IT budgets and macro uncertainty (recession risk) directly influence hardware refresh and network upgrade spending.
+- Interest rates: higher rates raise discount rates (lowering multiples) and can lead to reduced enterprise capex; they also increase borrowing costs for customers.
+- Trade policy & export controls: US export restrictions to China (semiconductors/network equipment) can materially constrain sales and product functionality in China; compliance/regulatory risks exist.
+- Supply chain/semiconductor cycle: shortages or price increases in ASICs, optics and other components affect product availability, ASPs and margins.
+- Currency: FX fluctuations affect reported revenue and margins.
+- Government/telco stimulus (5G, broadband spending): public programs for broadband/5G can be tailwinds.
 
-7) Strategic/technology trends that are tailwinds or headwinds
-- Tailwinds:
-  - Continued 5G deployments and migration to standalone 5G (SA).
-  - Fiberization and optical upgrades driven by data traffic growth.
-  - Open RAN adoption — if Nokia can lead or adapt, opportunity to win modular contracts; but Open RAN also enables new competitors, creating mixed impact.
-  - Private 5G and enterprise deployments.
-  - Growth of cloud-native network functions and software subscriptions.
-  - Regulatory restrictions on Chinese vendors benefiting Nokia in certain markets.
-- Headwinds:
-  - Aggressive price competition and margin erosion (especially if Huawei competes).
-  - Slow carrier CAPEX in a macro slowdown.
-  - Delays in contract awards or multiyear project postponements.
-  - Supply chain disruptions and component cost inflation.
-  - Rapid tech shifts that favor nimbler, software-first competitors.
+6) Valuation and investor-relevant metrics to monitor
+- Recurring revenue percentage and growth rate (subscriptions & services): rising recurring revenue typically supports re-rating.
+- Software ARR / subscription bookings and renewal rates: ARR growth and churn are key to long-term cash flow stability.
+- Book-to-bill and order trends: leading indicators of near-term revenue.
+- Gross margin & operating margin trajectory: measure impact of software mix and cost control.
+- Free cash flow and cash/debt balances: liquidity and ability to maintain dividends/buybacks and M&A capacity.
+- R&D and SG&A trends: investment in software/security vs. cost discipline.
+- Dividend coverage (FCF per share vs dividend) and buyback pace.
+- Customer concentration / geographic revenue by region (especially China).
 
-8) Financial metrics and KPIs to monitor (what investors should watch)
-- Order intake and backlog (bookings, book-to-bill): forward revenue visibility.
-- Revenue by segment and geography: RAN vs. optical vs. software/services vs. licensing; exposure to key markets (North America, Europe, APAC).
-- Gross margin and operating margin trends: product mix and pricing pressure effects.
-- Free cash flow and cash conversion: working capital swings from large projects.
-- Net debt / leverage metrics and interest expense: balance sheet strength.
-- R&D as % of sales: investment level required to maintain competitive position.
-- Licensing revenues and unusually large one-off settlements or disputes.
-- Major contract awards / customer wins and timing of deliveries.
-- Management guidance and changes to long-range targets.
+7) Strategic opportunities, catalysts
+- Transition to software/subscription model: higher-margin, predictable revenue could drive multiple expansion if growth is demonstrated.
+- Security and observability: acquisitions and internal growth can accelerate higher-margin recurring revenue.
+- Cloud, data center and AI networking demand: growth in high-speed switching and optics for AI clusters is a potential revenue and ASP tailwind.
+- 5G and edge computing: network modernization for telcos and private 5G deployments creates opportunities.
+- Channel transformation and managed services growth: growth of Cisco+ and partner-managed offerings could increase sticky revenue.
 
-9) Key risks
-- Competitive pricing undercutting margins.
-- Failure to win or execute large contracts.
-- Concentration risk from a few large customers.
-- Geopolitical exclusions or sanctions that close markets or complicate supply chains.
-- Patent litigation or unfavorable licensing rulings.
-- Technology disruption from Open RAN or non‑traditional vendors that reduce incumbents’ share.
+8) Key risks and downside drivers
+- Hardware commoditization and pricing pressure: reduced ASPs and margin compression.
+- Aggressive competition (Arista, Juniper, HPE, cloud providers) leading to share loss or lower pricing.
+- Macro downturn triggering capex cuts across enterprise and carriers.
+- Export controls, geopolitical tensions and supply chain disruptions harming revenue in key markets (China).
+- Execution risk in software transition: failing to grow ARR or integrate M&A.
+- Customer consolidation toward cloud providers that bypass traditional network hardware vendors.
+- Regulatory or legal risks (antitrust, IP litigation) and cybersecurity breaches that damage reputation.
 
-10) Valuation and investment catalysts (how value could be realized)
-- Catalysts that could re-rate the stock:
-  - Consistent growth in software and services revenue (higher margin recurring revenue).
-  - Significant contract wins with Tier‑1 carriers (especially in North America and Europe).
-  - Positive impacts from government subsidy programs or exclusion of Huawei in new countries.
-  - Improving free cash flow and deleveraging the balance sheet.
-  - Successful commercialization of new products (cloud-native core, vRAN, optical platforms).
-- Bear case scenario drivers:
-  - Prolonged CAPEX weakness, significant market share loss, sustained margin compression, or costly patent/legal outcomes.
+9) Sector/market interconnections to watch
+- Semiconductors & optics makers (Broadcom, Marvell) — cost/availability and potential supplier concentration.
+- Cloud providers (AWS, Azure, GCP) — both customers and competitors; their on-prem offerings and white-box networking trends matter.
+- Cybersecurity market dynamics — willingness of customers to consolidate security vendors or buy best-of-breed.
+- Telecom capex cycles and government stimulus for broadband/5G.
 
-11) Practical monitoring checklist for ongoing tracking
-- Quarterly earnings: watch order intake, backlog, guidance, segment margins.
-- Press releases: large contract awards, partnership announcements (hyperscalers, governments), and Open RAN activity.
-- Competitor news: Ericsson/Huawei contract awards and pricing trends.
-- Macro indicators: carrier CAPEX announcements, government funding programs, semiconductor supply developments.
-- Regulatory actions: bans, security reviews, and sanctions that affect market access.
+10) Practical monitoring checklist (what to watch each quarter)
+- Software & subscription revenue growth and ARR figures.
+- Book-to-bill ratio, backlog and channel inventory commentary.
+- Gross margin and operating margin trends (are margins improving as software mix grows?).
+- Free cash flow, cash balance and net debt, and size of buyback/dividend programs.
+- Large enterprise or carrier wins/losses and commentary on China exposure.
+- R&D spend relative to revenue (deployment of software/security roadmap).
+- Macro indicators: enterprise IT spend guidance, telco capex commentary, interest rates, and semiconductor lead times.
+- Competitor earnings and product cycle announcements (Arista, Juniper, Palo Alto, Fortinet).
 
-Summary
-Nokia’s fortunes are driven by telecom carrier CAPEX cycles, market share wins/losses in 5G and optical, its ability to grow higher‑margin software and services, and geopolitical/regulatory shifts that reallocate market share among vendors. Key risks are pricing pressure, supply chain constraints, and lumpy contract timing; key opportunities are Open RAN (if monetized), fiber/optical upgrades, private 5G, and any regulatory moves that restrict Huawei. From a financial-investment standpoint, focus on order intake/book‑to‑bill, margin trajectory (especially software mix), free cash flow conversion, and management guidance around large contract execution.
+11) Scenario thinking (examples)
+- Bull case: successful transition to >50% recurring revenue over time, strong ARR growth, expanding margins, continued FCF generation and multiple expansion due to software-like growth profile; data-center/AI optics demand accelerates revenue.
+- Base case: modest software growth offsets hardware cyclicality, stable dividend and buybacks continue, slow single-digit revenue growth and steady margins.
+- Bear case: macro-driven capex cuts and increased competition lead to hardware margin erosion, software growth disappoints, revenue declines and multiple contraction.
+
+Bottom line
+- Cisco is structurally advantaged by market leadership, a wide product portfolio, strong cash generation, and a large partner/channel ecosystem. The critical financial and strategic hinge points for future valuation are (1) the pace and profitability of the software/subscription transition, (2) data-center/AI optics and high-speed networking demand, and (3) exposure to macro/telco cycles and geopolitical constraints (notably China/export controls). Monitor ARR, bookings, margin trends, FCF and channel inventory as the most informative metrics for near-term and structural health.
 
 If you want, I can:
-- Pull the latest financial metrics (revenue, margins, debt, cash) and compare Nokia to Ericsson, Huawei (estimates), and Ciena; or
-- Build bull/baseline/bear scenario projections for revenue and free cash flow over the next 3 years based on assumed market share and capex scenarios. Which would you prefer?
+- Pull the latest quarterly figures (revenue by segment, ARR, margins, FCF) if you give me a specific date or the latest report to reference.
+- Produce a competitor peer-comps table with current multiples (P/E, EV/EBITDA) if you provide current market data or let me fetch it.
 
 ---
 
-### **Comprehensive Financial Analysis: Nokia Corporation (NOK)**
+Of course. As a financial analysis expert, here is a comprehensive ecosystem analysis for **Cisco Systems, Inc. (CSCO)**.
 
-#### **1. Company Overview**
-Nokia Corporation (NOK) is a Finnish multinational telecommunications, information technology, and consumer electronics company. Historically known for mobile phones, Nokia has transformed into a **networking and telecommunications infrastructure leader**, focusing on 5G, cloud networking, and software-defined networks. It operates through four segments:  
-- **Mobile Networks** (5G, radio access)  
-- **Network Infrastructure** (fixed networks, IP routing)  
-- **Cloud and Network Services** (core networks, cloud solutions)  
-- **Nokia Technologies** (licensing, R&D).
+### **1. Core Business & Financial Profile**
+Cisco is the global leader in networking hardware, software, and services. Its core revenue drivers are:
+*   **Infrastructure Platforms:** Switches, routers, wireless, and data center networking (comprising ~55% of revenue). This is the legacy cash cow.
+*   **Applications & Security:** Collaboration (Webex), cybersecurity, and observability software (comprising ~30% of revenue). This is the strategic growth vector.
+*   **Services:** Technical support and advisory services (comprising ~15% of revenue). This provides high-margin, recurring revenue.
 
----
-
-#### **2. Key Financial Relationships**
-- **Revenue Streams**: Heavily dependent on capital expenditure cycles of telecom operators (e.g., AT&T, Verizon, Vodafone). 5G rollout drives equipment sales.  
-- **Profitability**: Margins are influenced by R&D spending (~14% of revenue) and competitive pricing in network hardware.  
-- **Balance Sheet**: Strong liquidity (€8.9B cash & equivalents as of 2023), but carries debt (€5.6B). Dividend was reinstated in 2023 after a hiatus.  
-- **Geographic Exposure**: ~30% revenue from North America, ~20% from Europe. Emerging markets (Asia, Africa) offer growth but higher volatility.
+**Key Financial Characteristics:** Mature, cash-rich, with a strong balance sheet. It has transitioned from pure hardware to a **software and subscription-based model** (Annual Recurring Revenue, or ARR, is a critical metric). Its generous dividend (current yield ~3.3%) and consistent share buybacks make it a "value" and "income" stock.
 
 ---
 
-#### **3. Market Dependencies**
-- **Telecom Capex Cycles**: NOK’s performance is tied to global telecom infrastructure spending. Economic slowdowns may delay 5G investments.  
-- **Technology Adoption**: Demand for 5G standalone networks, edge computing, and fiber broadband directly impacts orders.  
-- **Regulation**: Spectrum auctions, cybersecurity policies (e.g., EU regulations), and trade restrictions (e.g., China-West tensions) affect operations.  
-- **Supply Chain**: Relies on semiconductors, optical components. Disruptions (e.g., chip shortages) can delay deliveries.
+### **2. Key Market Dependencies & Sector Connections**
+CSCO's performance is tied to several overarching market trends:
+
+*   **Enterprise & Cloud Capital Expenditure (CapEx):** Cisco's fortunes rise and fall with the IT spending budgets of large corporations, governments, and service providers. Economic slowdowns that cause CapEx tightening are a direct headwind.
+*   **Digital Transformation & Hybrid Work:** The permanent shift to hybrid work models drives demand for secure, agile networking (SD-WAN, SASE) and collaboration tools. This is a structural tailwind.
+*   **Public Cloud vs. On-Premise (The "Cloud Dilemma"):** While cloud adoption (AWS, Azure, Google Cloud) initially threatened Cisco's on-premise hardware sales, Cisco has pivoted. It now provides networking for cloud data centers (with competitors like Arista) and *connects* enterprises to the cloud. Its strategy is "hybrid cloud."
+*   **Cybersecurity Spending:** As a top player in network security (firewalls, zero-trust), Cisco benefits from the non-discretionary, ever-growing global cybersecurity market.
+*   **Service Provider 5G Rollouts:** Investments in 5G infrastructure by telecom carriers drive demand for Cisco's routing and optical networking products.
 
 ---
 
-#### **4. Sector Connections & Competitor Relationships**
-- **Primary Competitors**:  
-  - **Ericsson (ERIC)**: Direct rival in radio access networks. Market share battles in 5G contracts (e.g., recent AT&T deal lost to ERIC).  
-  - **Huawei**: Dominant in China and emerging markets; geopolitical pressures have opened opportunities in Western markets.  
-  - **Cisco (CSCO)**: Competes in IP routing and enterprise networks.  
-  - **Samsung**: Emerging in 5G infrastructure, especially in North America.  
-- **Partnerships**: Collaborates with **Microsoft Azure**, **Amazon Web Services** for cloud solutions, and **Qualcomm** for chipset design.  
-- **Customer Base**: Major telecom operators (e.g., T-Mobile, Deutsche Telekom) and enterprises adopting private 5G networks.
+### **3. Competitor Relationships (The Competitive Ecosystem)**
+Cisco operates in a fiercely competitive landscape across its segments:
+
+*   **Networking Hardware:**
+    *   **Arista Networks (ANET):** The primary disruptor in high-speed data center switching, leveraging software-defined networking. A major threat in the core cloud provider space.
+    *   **Juniper Networks (JNPR):** A direct, long-standing competitor in enterprise and service provider routing/switching.
+    *   **Hewlett Packard Enterprise (HPE) / Aruba:** Strong competitor in enterprise wireless and campus networking.
+    *   **Broadcom (AVGO) / Intel (INTC):** As chip suppliers, but also competitors in some merchant silicon.
+
+*   **Security:**
+    *   **Palo Alto Networks (PANW):** The pure-play leader in next-gen firewalls and security platforms, often out-innovating Cisco.
+    *   **Fortinet (FTNT):** A strong competitor in unified threat management (UTM) and SD-WAN, known for cost-effectiveness.
+    *   **CrowdStrike (CRWD), Zscaler (ZS):** Leaders in cloud-native security (endpoint, zero-trust network access), areas where Cisco is playing catch-up.
+
+*   **Collaboration & Software:**
+    *   **Microsoft (MSFT) Teams:** The dominant competitor to Webex, leveraging its ubiquitous Office 365 ecosystem.
+    *   **Zoom Video Communications (ZM):** A pioneer in user-friendly video conferencing that took significant market share.
+    *   **Software-Defined Networking (SDN):** Competes with VMware (now Broadcom) and a host of open-source and cloud-native software players.
+
+**Cisco's M&A Strategy:** It has historically used its massive cash reserves to acquire growth and innovation (e.g., Splunk for observability/AI, Duo for zero-trust security), integrating them into its ecosystem.
 
 ---
 
-#### **5. Economic & Macro Factors**
-- **Interest Rates**: High rates increase borrowing costs for telecom clients, potentially slowing capex. NOK’s debt servicing costs also rise.  
-- **Inflation**: Increases component and logistics costs, squeezing margins if not passed to customers.  
-- **Currency Fluctuations**: As a global company, NOK faces EUR/USD exchange rate risks (reported in EUR).  
-- **Geopolitical Risks**: US-China tensions impact supply chains and market access (e.g., restrictions on Huawei benefit NOK but raise trade uncertainty).  
-- **Sustainability Trends**: Demand for energy-efficient networks drives R&D in "green" telecom solutions.
+### **4. Economic & Macroeconomic Factors**
+*   **Interest Rates & Valuation:** As a mature, dividend-paying stock, CSCO is sensitive to interest rates. Higher rates make its yield less attractive relative to bonds, often putting pressure on its share price.
+*   **Global Economic Health:** A global recession would lead to delayed or reduced enterprise IT spending, directly impacting Cisco's top line. It is a cyclical stock in this regard.
+*   **Supply Chain & Geopolitics:** As a hardware manufacturer, Cisco is exposed to semiconductor shortages, logistics costs, and tariffs. Geopolitical tensions (e.g., US-China relations) affect its sales in key markets and its complex global supply chain.
+*   **Foreign Exchange (FX):** With over 50% of revenue from outside the Americas, a strong US dollar negatively impacts reported earnings.
 
 ---
 
-#### **6. Stock Performance Drivers**
-- **Catalysts**:  
-  - Major 5G contract wins (especially with operators in India, US, Europe).  
-  - Growth in high-margin software/services (e.g., SaaS offerings).  
-  - Patent licensing revenue (Nokia’s portfolio includes over 20,000 patents).  
-- **Risks**:  
-  - Market share loss to Ericsson or Samsung.  
-  - Slowdown in 5G adoption post-initial rollout.  
-  - Integration challenges from acquisitions (e.g., Alcatel-Lucent).
+### **5. Forward-Looking Catalysts & Risks**
+**Catalysts (Upside):**
+1.  **Successful Integration of Splunk:** This $28B acquisition is transformative, giving Cisco unparalleled visibility into network and security data, enabling AI-driven insights.
+2.  **Acceleration of Subscription Mix:** Higher software/subscription revenue improves margins, predictability, and valuation multiples.
+3.  **AI Networking Demand:** The AI/ML boom requires massive, high-performance backend networks in data centers. Cisco's **Ethernet-based** strategy (competing with NVIDIA's InfiniBand) could see a major growth cycle.
+4.  **Security Consolidation:** Enterprises prefer fewer security vendors. Cisco's integrated "security cloud" platform could gain share.
 
----
+**Risks (Downside):**
+1.  **Execution in a Shifting Market:** Failure to transition fast enough from hardware to software, or to fend off cloud-native competitors.
+2.  **Increased Competition:** Relentless pressure from best-of-breed players like Arista, Palo Alto, and Microsoft in their respective domains.
+3.  **Macroeconomic Slowdown:** A prolonged downturn in enterprise IT spending.
+4.  **Integration Risk:** Large acquisitions (like Splunk) carry significant execution and cultural integration risks.
 
-#### **7. Valuation & Outlook**
-- **Trading Metrics**: P/E ~7x (as of 2024), below sector average, reflecting market skepticism about growth sustainability.  
-- **Dividend Yield**: ~3.5%, appealing to income investors.  
-- **Growth Strategy**: Focus on expanding in enterprise networks, IoT, and cloud-native software.  
-- **ESG Factors**: Strong ESG ratings due to circular economy initiatives and net-zero targets.
+### **Conclusion: The Financial Ecosystem Summary**
+**CSCO is a bellwether for global enterprise IT spending.** Its ecosystem is defined by the tension between its legacy, cash-generating hardware dominance and its strategic push into higher-growth, software-defined networking, security, and observability. Its stock performance is a function of:
+*   **Macro Conditions** (IT CapEx cycles, interest rates),
+*   **Competitive Execution** against more agile pure-plays,
+*   **Successful Business Model Transition** to software/subscriptions, and
+*   **Strategic Acquisitions** that plug innovation gaps.
 
----
-
-#### **8. Investment Considerations**
-- **Bull Case**: Accelerated 5G/6G deployment, margin expansion in software, and geopolitical tailwinds from Huawei restrictions.  
-- **Bear Case**: Intense price competition, capex cuts by telecoms in a recession, and failure to innovate in cloud networking.  
-- **Monitoring Points**: Quarterly order book growth, patent litigation outcomes, and management’s margin guidance.
-
-Nokia’s transformation from a handset maker to a B2B infrastructure player has stabilized its business, but it remains cyclical and competitive. Success hinges on executing its technology roadmap and capturing higher-margin software opportunities while navigating a complex geopolitical landscape.
+It is no longer a high-growth tech stock but a **mature, financially stable company** navigating a pivotal transformation. Investors value it for its defensive qualities, strong cash flow, and shareholder returns, while watching closely for signs of durable growth in its software-defined future.
 """
 
-# Function to parse the analysis text into sections based on the latest, most structured analysis
-def parse_analysis_text(text):
+
+def parse_analysis(text):
+    """
+    Parses the financial analysis text into a structured dictionary.
+    Prioritizes the structured "expert analysis" for key metrics and lists.
+    """
     sections = {}
-    # Find the start of the last comprehensive analysis, which uses '####' for sections
-    last_analysis_start_idx = text.rfind("### **Comprehensive Financial Analysis: Nokia Corporation (NOK)**")
-    
-    if last_analysis_start_idx != -1:
-        text_to_parse = text[last_analysis_start_idx:]
-    else:
-        # Fallback if the specific header isn't found, try to parse the whole text
-        text_to_parse = text
 
-    # Regex to split by '#### N. Section Title' and capture title and content
-    # It captures the title (Group 1) and content (Group 2) up to the next '####' or end of string
-    pattern = r'#### (\d+\.\s*.*?)\n(.*?)(?=\n#### \d+\.|\Z)'
-    matches = re.findall(pattern, text_to_parse, re.DOTALL)
+    # --- Extract overarching summaries and notes ---
+    summary_match = re.search(r"Summary \(company in one line\)\n- (.*)", text)
+    sections["Summary (one line)"] = summary_match.group(1).strip() if summary_match else "N/A"
 
-    for title, content in matches:
-        sections[title.strip()] = content.strip()
+    note_match = re.search(r"Note on currency and data\n- (.*)", text, re.DOTALL)
+    sections["Note on currency and data"] = note_match.group(1).strip() if note_match else "N/A"
+
+    # --- Extract the "expert analysis" section (starts with "Of course. As a financial analysis expert...") ---
+    expert_analysis_start_marker = "Of course. As a financial analysis expert,"
+    expert_analysis_full_match = re.search(re.escape(expert_analysis_start_marker) + r"(.*)", text, re.DOTALL)
+
+    if expert_analysis_full_match:
+        expert_text = expert_analysis_full_match.group(1).strip()
+
+        # Core Business & Financial Profile
+        core_business_match = re.search(r"### \*\*1\. Core Business & Financial Profile\*\*(.*?)(?=\n### |\Z)", expert_text, re.DOTALL)
+        if core_business_match:
+            core_business_content = core_business_match.group(1).strip()
+            sections["Core Business & Financial Profile"] = core_business_content
+
+            # Revenue Mix from the expert analysis (e.g., ~55%)
+            revenue_mix_pattern = r"\*   \*\*(.*?):\*\* .*?\(comprising ~(\d+)% of revenue\)"
+            revenue_mix_data = re.findall(revenue_mix_pattern, core_business_content)
+            sections["Revenue Mix"] = [{"segment": s, "percentage": int(p)} for s, p in revenue_mix_data]
+
+            # Key Financial Characteristics
+            key_financial_chars_match = re.search(r"^\*\*Key Financial Characteristics:\*\* (.*)", core_business_content, re.MULTILINE)
+            sections["Key Financial Characteristics"] = key_financial_chars_match.group(1).strip() if key_financial_chars_match else "N/A"
             
-    # If no '####' sections found, try parsing the first analysis style ('### N. Section Title')
-    if not sections:
-        pattern = r'### (\d+\.\s*.*?)\n(.*?)(?=\n### \d+\.|\Z)'
-        matches = re.findall(pattern, text, re.DOTALL)
-        for title, content in matches:
-            sections[title.strip()] = content.strip()
-    
-    # If still no sections, try the numbered list style ('N) Section Title')
-    if not sections:
-        pattern = r'\n(\d+\)\s*.*?)\n(.*?)(?=\n\d+\)|\Z)'
-        matches = re.findall(pattern, text, re.DOTALL)
-        for title, content in matches:
-            sections[title.strip()] = content.strip()
+        # Key Market Dependencies & Sector Connections
+        market_deps_match = re.search(r"### \*\*2\. Key Market Dependencies & Sector Connections\*\*(.*?)(?=\n### |\Z)", expert_text, re.DOTALL)
+        sections["Key Market Dependencies & Sector Connections"] = market_deps_match.group(1).strip() if market_deps_match else "N/A"
 
-    # As a last resort, if no clear sections are found, put the entire text into one section
-    if not sections:
-        sections["Full Analysis"] = text.strip()
+        # Competitor Relationships
+        competitor_relationships_match = re.search(r"### \*\*3\. Competitor Relationships \(The Competitive Ecosystem\)\*\*(.*?)(?=\n### |\Z)", expert_text, re.DOTALL)
+        if competitor_relationships_match:
+            comp_content = competitor_relationships_match.group(1).strip()
+            sections["Competitor Relationships (Expert)"] = comp_content
+
+            # Structured Competitors from expert section
+            structured_competitors = []
+            segment_pattern = r"\*+\s*\*\*(.*?):\*\*\n((?:(?:\s+\*+)\s*\*+.*?\s*)+)"
+            segments = re.findall(segment_pattern, comp_content)
+            for segment_name, competitors_block in segments:
+                # Corrected regex for competitor description, removing spurious `\*\*`
+                competitors = re.findall(r"\*+\s*\*\*(.*?)\s*\(.*?\):\s*(.*)", competitors_block)
+                for comp_name, comp_desc in competitors:
+                    structured_competitors.append({
+                        "Segment": segment_name.strip(),
+                        "Competitor": comp_name.strip(),
+                        "Description": comp_desc.strip()
+                    })
+            sections["Structured Competitors"] = structured_competitors
+
+
+        # Economic & Macroeconomic Factors
+        economic_factors_match = re.search(r"### \*\*4\. Economic & Macroeconomic Factors\*\*(.*?)(?=\n### |\Z)", expert_text, re.DOTALL)
+        sections["Economic & Macroeconomic Factors (Expert)"] = economic_factors_match.group(1).strip() if economic_factors_match else "N/A"
+
+        # Forward-Looking Catalysts & Risks
+        catalysts_risks_match = re.search(r"### \*\*5\. Forward-Looking Catalysts & Risks\*\*(.*?)(?=\n### |\Z)", expert_text, re.DOTALL)
+        if catalysts_risks_match:
+            catalysts_risks_content = catalysts_risks_match.group(1).strip()
+            
+            catalysts_match = re.search(r"\*\*Catalysts \(Upside\):\*\*(.*?)(?=\n\*\*Risks \(Downside\):|\Z)", catalysts_risks_content, re.DOTALL)
+            sections["Catalysts (Expert)"] = [item.strip() for item in catalysts_match.group(1).strip().split('\n') if item.strip()] if catalysts_match else []
+            
+            risks_match = re.search(r"\*\*Risks \(Downside\):\*\*(.*)", catalysts_risks_content, re.DOTALL)
+            sections["Risks (Expert)"] = [item.strip() for item in risks_match.group(1).strip().split('\n') if item.strip()] if risks_match else []
+
+        # Conclusion from the expert analysis
+        expert_conclusion_match = re.search(r"### \*\*Conclusion: The Financial Ecosystem Summary\*\*(.*)", expert_text, re.DOTALL)
+        sections["Expert Conclusion"] = expert_conclusion_match.group(1).strip() if expert_conclusion_match else "N/A"
+
+
+    # --- Extract the detailed numbered sections (1) Business / revenue structure... etc.) ---
+    # These sections start after the first '---' and before the 'Of course...' part
+    detailed_sections_start = text.find("1) Business / revenue structure and key financial relationships")
+    detailed_sections_end = text.find(expert_analysis_start_marker)
+    
+    if detailed_sections_start != -1 and detailed_sections_end != -1:
+        detailed_text_block = text[detailed_sections_start:detailed_sections_end].strip()
+        
+        # Mapping for the numbered sections
+        sections_map = {
+            r"1\) Business / revenue structure and key financial relationships": "Business / Revenue Structure & Key Financial Relationships",
+            r"2\) Product / segment drivers and their financial effects": "Product / Segment Drivers & Financial Effects",
+            r"3\) Key competitors and relationships": "Key Competitors and Relationships (Detailed)",
+            r"4\) Customers & channel dynamics": "Customers & Channel Dynamics",
+            r"5\) Macro & regulatory dependencies": "Macro & Regulatory Dependencies",
+            r"6\) Valuation and investor-relevant metrics to monitor": "Valuation & Investor Metrics",
+            r"7\) Strategic opportunities, catalysts": "Strategic Opportunities / Catalysts (Detailed)",
+            r"8\) Key risks and downside drivers": "Key Risks & Downside Drivers (Detailed)",
+            r"9\) Sector/market interconnections to watch": "Sector/Market Interconnections",
+            r"10\) Practical monitoring checklist \(what to watch each quarter\)": "Practical Monitoring Checklist",
+            r"11\) Scenario thinking \(examples\)": "Scenario Thinking",
+            r"Bottom line": "Bottom Line (Detailed)" 
+        }
+        
+        # Regex to split content by these numbered headers
+        # Use re.split with a lookahead assertion to keep the delimiter in the result
+        section_splits = re.split(r"(?=\d+\)\s|Bottom line)", detailed_text_block)
+
+        current_title_key = None
+        for part in section_splits:
+            part = part.strip()
+            if not part:
+                continue
+
+            found_header = False
+            for pattern, title in sections_map.items():
+                if re.match(pattern, part):
+                    current_title_key = title
+                    # Remove the header line from the content
+                    content = re.sub(pattern, "", part, count=1).strip()
+                    sections[current_title_key] = content
+                    found_header = True
+                    break
+            
+            # Special case for "Bottom line" at the end of this block
+            if not found_header and part.startswith("Bottom line"):
+                 sections["Bottom Line (Detailed)"] = re.sub(r"Bottom line", "", part, count=1).strip()
+
+        # Extract explicit key financial metrics from "Business / Revenue Structure & Key Financial Relationships"
+        if "Business / Revenue Structure & Key Financial Relationships" in sections:
+            metrics_text = sections["Business / Revenue Structure & Key Financial Relationships"]
+            detailed_key_metrics = []
+            
+            # Patterns for bullet points (e.g., - Revenue mix: ...)
+            metric_items = re.findall(r"^- (.*?):(.*)", metrics_text, re.MULTILINE)
+
+            for metric_name, description in metric_items:
+                detailed_key_metrics.append({
+                    "Metric Category": "Business/Revenue Structure",
+                    "Metric": metric_name.strip(),
+                    "Description": description.strip()
+                })
+            sections["Extracted Key Metrics (Detailed)"] = detailed_key_metrics
+            
+        # Additional metrics from "6) Valuation and investor-relevant metrics to monitor"
+        if "Valuation & Investor Metrics" in sections:
+            val_metrics_text = sections["Valuation & Investor Metrics"]
+            val_metric_items = re.findall(r"^- (.*?):(.*)", val_metrics_text, re.MULTILINE)
+            if "Extracted Key Metrics (Detailed)" not in sections:
+                sections["Extracted Key Metrics (Detailed)"] = []
+            for metric, desc in val_metric_items:
+                 sections["Extracted Key Metrics (Detailed)"].append({
+                    "Metric Category": "Valuation & Investor",
+                    "Metric": metric.strip(),
+                    "Description": desc.strip()
+                })
 
     return sections
 
-# Function to extract key numerical/factual metrics from the entire text
-def extract_key_metrics(full_text):
-    metrics = {
-        "R&D Investment (% of Revenue)": "N/A",
-        "Cash & Equivalents (2023)": "N/A",
-        "Debt (2023)": "N/A",
-        "P/E Ratio (2024)": "N/A",
-        "Dividend Yield": "N/A",
-        "Geographic Revenue (North America)": "N/A",
-        "Geographic Revenue (Europe)": "N/A",
-        "Patents Held": "N/A",
-        "Dividend Policy": "N/A"
-    }
 
-    # R&D Investment (% of Revenue)
-    rd_match = re.search(r'R&D spending \((~?\d+\%?) of revenue\)', full_text)
-    if rd_match:
-        metrics["R&D Investment (% of Revenue)"] = rd_match.group(1)
-    else: # Fallback to another mention if first pattern fails
-        rd_match = re.search(r'R&D Investment:.*?invests heavily.*?This is a significant cost', full_text, re.DOTALL)
-        if rd_match:
-            metrics["R&D Investment (% of Revenue)"] = "Heavy & Crucial"
-        
-    # Cash & Equivalents
-    cash_match = re.search(r'Strong liquidity \(€([\d\.]+)B cash & equivalents as of (\d{4})\)', full_text)
-    if cash_match:
-        metrics["Cash & Equivalents (2023)"] = f"€{cash_match.group(1)} Billion (as of {cash_match.group(2)})"
+# --- Streamlit App ---
+def main():
+    st.title("📈 Financial Ecosystem Analysis: Cisco Systems, Inc. (CSCO)")
+    st.markdown("A comprehensive analysis of Cisco's financial health, market dependencies, and strategic outlook.")
+
+    parsed_data = parse_analysis(ANALYSIS_TEXT)
+
+    # --- Initial Summary and Note ---
+    st.subheader("Company Snapshot")
+    st.markdown(f"**{parsed_data.get('Summary (one line)', 'N/A')}**")
+    st.info(f"**Note on Currency & Data:** {parsed_data.get('Note on currency and data', 'N/A')}")
+
+    st.markdown("---")
+
+    # --- Core Business & Financial Profile (from expert analysis) ---
+    st.header("🔍 Core Business & Financial Profile")
+    if "Core Business & Financial Profile" in parsed_data:
+        # Split to separate the initial narrative from the Key Financial Characteristics bullet
+        core_business_narrative = parsed_data["Core Business & Financial Profile"].split('**Key Financial Characteristics:**')[0].strip()
+        st.markdown(core_business_narrative)
     
-    # Debt
-    debt_match = re.search(r'carries debt \(€([\d\.]+)B\)', full_text)
-    if debt_match:
-        metrics["Debt (2023)"] = f"€{debt_match.group(1)} Billion"
+    # Key Financial Characteristics
+    if "Key Financial Characteristics" in parsed_data:
+        st.markdown(f"**Key Financial Characteristics:** {parsed_data['Key Financial Characteristics']}")
 
-    # P/E Ratio
-    pe_match = re.search(r'P/E (~?\d+x) \(as of (\d{4})\)', full_text)
-    if pe_match:
-        metrics["P/E Ratio (2024)"] = f"{pe_match.group(1)} (as of {pe_match.group(2)})"
-
-    # Dividend Yield
-    div_yield_match = re.search(r'Dividend Yield: (~?\d+\.\d+\%)', full_text)
-    if div_yield_match:
-        metrics["Dividend Yield"] = div_yield_match.group(1)
+    # Revenue Mix Chart
+    if "Revenue Mix" in parsed_data and parsed_data["Revenue Mix"]:
+        st.subheader("📊 Revenue Mix")
+        df_revenue_mix = pd.DataFrame(parsed_data["Revenue Mix"])
         
-    # Dividend Policy
-    div_policy_match = re.search(r'Dividend was reinstated in (\d{4})', full_text)
-    if div_policy_match:
-        metrics["Dividend Policy"] = f"Reinstated {div_policy_match.group(1)}"
-    else: # Fallback to general statement
-        div_policy_match = re.search(r'While Nokia has paid dividends in the past, its current policy is subject to its financial performance and strategic priorities.', full_text)
-        if div_policy_match and metrics["Dividend Policy"] == "N/A":
-            metrics["Dividend Policy"] = "Subject to Performance"
-
-    # Geographic Revenue (North America)
-    na_rev_match = re.search(r'~?(\d+\%) revenue from North America', full_text)
-    if na_rev_match:
-        metrics["Geographic Revenue (North America)"] = na_rev_match.group(1)
-
-    # Geographic Revenue (Europe)
-    eu_rev_match = re.search(r'~?(\d+\%) from Europe', full_text)
-    if eu_rev_match:
-        metrics["Geographic Revenue (Europe)"] = eu_rev_match.group(1)
-
-    # Patents Held
-    patents_match = re.search(r'over ([\d,]+) patents', full_text)
-    if patents_match:
-        metrics["Patents Held"] = f"{patents_match.group(1)} Patents"
-        
-    return metrics
-
-
-# --- Streamlit Application Layout ---
-
-st.title("📈 Nokia (NOK) Financial Ecosystem Analysis")
-st.markdown("A comprehensive breakdown of Nokia's financial landscape, market dynamics, and strategic outlook, based on the provided analysis text.")
-
-# Parse the main analysis text and extract key metrics
-parsed_sections = parse_analysis_text(ANALYSIS_TEXT)
-key_metrics = extract_key_metrics(ANALYSIS_TEXT) # Pass full text for comprehensive metric extraction
-
-# --- Key Metrics Section ---
-st.header("📊 Key Metrics & Financial Snapshot")
-
-# Define the order of metrics to display and their default values
-metrics_display_order = [
-    ("P/E Ratio (2024)", "N/A"),
-    ("Dividend Yield", "N/A"),
-    ("Dividend Policy", "N/A"),
-    ("Cash & Equivalents (2023)", "N/A"),
-    ("Debt (2023)", "N/A"),
-    ("R&D Investment (% of Revenue)", "N/A"),
-    ("Patents Held", "N/A"),
-    ("Geographic Revenue (North America)", "N/A"),
-    ("Geographic Revenue (Europe)", "N/A")
-]
-
-# Create columns for metric display
-cols = st.columns(4) 
-
-# Display metrics dynamically
-for i, (label, default_value) in enumerate(metrics_display_order):
-    col_idx = i % 4
-    cols[col_idx].metric(label, key_metrics.get(label, default_value))
+        chart = alt.Chart(df_revenue_mix).mark_bar().encode(
+            x=alt.X("percentage", type="quantitative", title="Percentage (%)", axis=alt.Axis(format=".0f")),
+            y=alt.Y("segment", type="nominal", title="Revenue Segment", sort="-x"),
+            tooltip=["segment", "percentage"]
+        ).properties(
+            title="Cisco's Core Revenue Drivers (Approximate Mix)"
+        )
+        st.altair_chart(chart, use_container_width=True)
     
-st.markdown("---") # Separator for visual clarity
+    st.markdown("---")
 
-# --- Tabs for Detailed Analysis Sections ---
-# Define a preferred order for tabs for better readability
-preferred_tab_order = [
-    "1. Company Overview", 
-    "2. Key Financial Relationships", 
-    "3. Market Dependencies",
-    "4. Sector Connections & Competitor Relationships", 
-    "5. Economic & Macro Factors",
-    "6. Stock Performance Drivers", 
-    "7. Valuation & Outlook", 
-    "8. Investment Considerations"
-]
+    # --- Key Financial Relationships & Performance Metrics (from detailed section) ---
+    st.header("💰 Key Financial Relationships & Performance Metrics")
+    if "Extracted Key Metrics (Detailed)" in parsed_data and parsed_data["Extracted Key Metrics (Detailed)"]:
+        df_metrics = pd.DataFrame(parsed_data["Extracted Key Metrics (Detailed)"])
+        df_metrics.index = df_metrics.index + 1 # 1-based indexing for display
+        st.dataframe(df_metrics, use_container_width=True)
+    
+    with st.expander("Show Full Business / Revenue Structure & Key Financial Relationships"):
+        st.markdown(parsed_data.get("Business / Revenue Structure & Key Financial Relationships", "No detailed text available."))
 
-# Sort the parsed section titles according to the preferred order
-sorted_tab_titles = [title for title in preferred_tab_order if title in parsed_sections]
-# Add any remaining parsed sections that were not in the preferred order
-for title in parsed_sections:
-    if title not in sorted_tab_titles:
-        sorted_tab_titles.append(title)
+    st.markdown("---")
 
-# Create Streamlit tabs for each section
-tabs = st.tabs(sorted_tab_titles)
+    # --- Market Dependencies & Sector Connections ---
+    st.header("🌐 Market Dependencies & Sector Connections")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Market Dependencies")
+        if "Key Market Dependencies & Sector Connections" in parsed_data:
+            # Extract bullet points from the expert summary for concise display
+            market_deps_text = parsed_data["Key Market Dependencies & Sector Connections"]
+            market_deps_bullet_points = re.findall(r"\*   \*\*(.*?)\*\*: (.*)", market_deps_text)
+            if market_deps_bullet_points:
+                for dep, desc in market_deps_bullet_points:
+                    st.markdown(f"- **{dep.strip()}:** {desc.strip()}")
+            else: 
+                 st.markdown(parsed_data.get("Market Dependencies (Detailed)", "No market dependencies text available."))
 
-for i, title in enumerate(sorted_tab_titles):
-    with tabs[i]:
-        st.subheader(title)
-        st.markdown(parsed_sections[title])
+    with col2:
+        st.subheader("Sector Connections")
+        if "Sector Connections (Detailed)" in parsed_data:
+            st.markdown(parsed_data["Sector Connections (Detailed)"])
+    st.markdown("---")
 
-        # --- Charts (Illustrative Data) ---
-        # Add specific charts based on the content of each section where meaningful
-        if title == "1. Company Overview":
-            st.markdown("#### Nokia's Business Segments (Illustrative Revenue Share)")
-            # Illustrative pie chart showing revenue distribution across segments
-            revenue_streams_data = pd.DataFrame({
-                'Segment': ['Mobile Networks', 'Network Infrastructure', 'Cloud and Network Services', 'Nokia Technologies'],
-                'Revenue Share': [35, 30, 20, 15] # Assumed percentages based on text description
-            })
-            chart_revenue_streams = alt.Chart(revenue_streams_data).mark_arc(outerRadius=120).encode(
-                theta=alt.Theta(field="Revenue Share", type="quantitative"),
-                color=alt.Color(field="Segment", type="nominal", title="Segment"),
-                order=alt.Order("Revenue Share", sort="descending"),
-                tooltip=["Segment", alt.Tooltip("Revenue Share", format=".1f")]
-            ).properties(
-                title="Illustrative Revenue Segment Distribution"
-            )
-            st.altair_chart(chart_revenue_streams, use_container_width=True)
+    # --- Competitor Relationships ---
+    st.header("🤝 Competitor Relationships")
+    st.markdown("Cisco operates in a fiercely competitive landscape across its segments.")
 
-        elif title == "2. Key Financial Relationships":
-            # R&D Investment Chart
-            st.markdown("#### R&D Investment Over Time (Conceptual)")
-            # Attempt to parse R&D percentage, default to 14.0 if extraction fails
-            rd_val_str = key_metrics.get("R&D Investment (% of Revenue)", "14%").replace('~', '').replace('%', '')
-            rd_val = float(rd_val_str) if rd_val_str.replace('.', '', 1).isdigit() else 14.0
-            
-            # Illustrative data for R&D over a few years, showing consistency around the extracted value
-            rd_data = pd.DataFrame({
-                'Year': [2021, 2022, 2023, 2024],
-                'R&D_as_percent_revenue': [rd_val - 0.5, rd_val + 0.2, rd_val, rd_val - 0.3] 
-            })
-            chart_rd = alt.Chart(rd_data).mark_line(point=True).encode(
-                x=alt.X('Year:O', axis=alt.Axis(title="Year")),
-                y=alt.Y('R&D_as_percent_revenue', title="R&D as % of Revenue", scale=alt.Scale(domain=[max(0, rd_val - 5), rd_val + 5])),
-                tooltip=['Year', alt.Tooltip('R&D_as_percent_revenue', format=".1f")]
-            ).properties(
-                title=f"Conceptual R&D Investment ({rd_val:.1f}% average)"
-            )
-            st.altair_chart(chart_rd, use_container_width=True)
+    if "Structured Competitors" in parsed_data and parsed_data["Structured Competitors"]:
+        df_competitors = pd.DataFrame(parsed_data["Structured Competitors"])
+        df_competitors.index = df_competitors.index + 1
+        st.dataframe(df_competitors, use_container_width=True)
 
-            # Geographic Revenue Breakdown Chart
-            st.markdown("#### Geographic Revenue Breakdown (Illustrative)")
-            # Attempt to parse geographic revenue percentages, default if extraction fails
-            na_percent_str = key_metrics.get("Geographic Revenue (North America)", "30%").replace('~', '').replace('%', '')
-            eu_percent_str = key_metrics.get("Geographic Revenue (Europe)", "20%").replace('~', '').replace('%', '')
-            
-            na_percent = float(na_percent_str) if na_percent_str.replace('.', '', 1).isdigit() else 30.0
-            eu_percent = float(eu_percent_str) if eu_percent_str.replace('.', '', 1).isdigit() else 20.0
-            other_percent = 100 - na_percent - eu_percent # Calculate remaining for "Other"
-            
-            geo_data = pd.DataFrame({
-                'Region': ['North America', 'Europe', 'Asia, Africa & Other'],
-                'Revenue Share': [na_percent, eu_percent, other_percent]
-            })
-            chart_geo = alt.Chart(geo_data).mark_arc(outerRadius=120).encode(
-                theta=alt.Theta(field="Revenue Share", type="quantitative"),
-                color=alt.Color(field="Region", type="nominal", title="Region"),
-                order=alt.Order("Revenue Share", sort="descending"),
-                tooltip=["Region", alt.Tooltip("Revenue Share", format=".1f")]
-            ).properties(
-                title="Geographic Revenue Distribution (Illustrative)"
-            )
-            st.altair_chart(chart_geo, use_container_width=True)
+    with st.expander("View More Competitors & Detailed Relationships"):
+        st.markdown(parsed_data.get("Key Competitors and Relationships (Detailed)", "No detailed text available."))
 
-        elif title == "4. Sector Connections & Competitor Relationships":
-            st.markdown("#### Key Competitors Landscape (Illustrative Strength)")
-            # Bar chart showing illustrative strength/presence of key competitors
-            competitor_data = pd.DataFrame({
-                'Competitor': ['Ericsson (ERIC)', 'Huawei (Private)', 'Samsung', 'Cisco Systems (CSCO)', 'Juniper Networks (JNPR)', 'ZTE'],
-                'Strength': [90, 85, 70, 60, 40, 50] # Illustrative strength score out of 100
-            })
-            chart_competitors = alt.Chart(competitor_data).mark_bar().encode(
-                x=alt.X('Competitor:N', sort='-y', axis=alt.Axis(title="Competitor")),
-                y=alt.Y('Strength:Q', title="Illustrative Market Presence/Strength"),
-                tooltip=['Competitor', 'Strength']
-            ).properties(
-                title="Illustrative Competitor Presence"
-            )
-            st.altair_chart(chart_competitors, use_container_width=True)
+    st.markdown("---")
 
-        elif title == "6. Stock Performance Drivers" or title == "8. Investment Considerations":
-            st.markdown("#### Investment Scenario Outlook (Conceptual)")
-            # Bar chart for conceptual investment scenarios (Bull, Bear, Base Case)
-            scenario_data = pd.DataFrame({
-                'Scenario': ['Bull Case', 'Bear Case', 'Base Case'],
-                'Outlook': [80, 20, 50] # Illustrative outlook score out of 100
-            })
-            chart_scenario = alt.Chart(scenario_data).mark_bar().encode(
-                x=alt.X('Scenario:N', axis=alt.Axis(title="Scenario")),
-                y=alt.Y('Outlook:Q', title="Conceptual Outlook Score"),
-                color=alt.Color('Scenario', scale=alt.Scale(range=['#4CAF50', '#F44336', '#FFEB3B'])), # Green, Red, Yellow for scenarios
-                tooltip=['Scenario', 'Outlook']
-            ).properties(
-                title="Conceptual Investment Scenario Outlook"
-            )
-            st.altair_chart(chart_scenario, use_container_width=True)
-            
-st.markdown("---") # Final separator
-st.info("Disclaimer: This analysis is based on the provided text and aims to present the information in a structured, visual manner. All numerical data, especially for charts, are illustrative based on descriptive text and not real-time financial figures.")
+    # --- Economic & Macroeconomic Factors ---
+    st.header("🌍 Economic & Macroeconomic Factors")
+    if "Economic & Macroeconomic Factors (Expert)" in parsed_data:
+        st.markdown(parsed_data["Economic & Macroeconomic Factors (Expert)"])
+    else:
+        st.markdown(parsed_data.get("Macro & Regulatory Dependencies", "No detailed economic factors available."))
+    st.markdown("---")
+
+    # --- Forward-Looking Catalysts & Risks ---
+    st.header("🎯 Forward-Looking Catalysts & Risks")
+    col_catalysts, col_risks = st.columns(2)
+
+    with col_catalysts:
+        st.subheader("🚀 Catalysts (Upside)")
+        if "Catalysts (Expert)" in parsed_data and parsed_data["Catalysts (Expert)"]:
+            for i, catalyst in enumerate(parsed_data["Catalysts (Expert)"]):
+                st.markdown(f"{i+1}. {catalyst}")
+        else:
+            st.markdown(parsed_data.get("Strategic Opportunities / Catalysts (Detailed)", "No specific catalysts identified."))
+
+    with col_risks:
+        st.subheader("🚧 Risks (Downside)")
+        if "Risks (Expert)" in parsed_data and parsed_data["Risks (Expert)"]:
+            for i, risk in enumerate(parsed_data["Risks (Expert)"]):
+                st.markdown(f"{i+1}. {risk}")
+        else:
+            st.markdown(parsed_data.get("Key Risks & Downside Drivers (Detailed)", "No specific risks identified."))
+    st.markdown("---")
+    
+    # --- Other Detailed Sections ---
+    st.header("📋 Additional Detailed Analysis Areas")
+
+    if "Product / Segment Drivers & Financial Effects" in parsed_data:
+        with st.expander("Product / Segment Drivers & Financial Effects"):
+            st.markdown(parsed_data["Product / Segment Drivers & Financial Effects"])
+
+    if "Customers & Channel Dynamics" in parsed_data:
+        with st.expander("Customers & Channel Dynamics"):
+            st.markdown(parsed_data["Customers & Channel Dynamics"])
+
+    if "Sector/Market Interconnections" in parsed_data:
+        with st.expander("Sector/Market Interconnections to Watch"):
+            st.markdown(parsed_data["Sector/Market Interconnections"])
+
+    if "Practical Monitoring Checklist" in parsed_data:
+        with st.expander("Practical Monitoring Checklist (What to Watch Each Quarter)"):
+            st.markdown(parsed_data["Practical Monitoring Checklist"])
+
+    if "Scenario Thinking" in parsed_data:
+        with st.expander("Scenario Thinking (Examples)"):
+            st.markdown(parsed_data["Scenario Thinking"])
+    st.markdown("---")
+
+    # --- Overall Conclusion ---
+    st.header("✔️ Overall Conclusion & Bottom Line")
+    if "Expert Conclusion" in parsed_data:
+        st.markdown(parsed_data["Expert Conclusion"])
+    else: 
+        st.markdown(parsed_data.get("Bottom Line Summary", "No overall conclusion available."))
+        st.markdown(parsed_data.get("Bottom Line (Detailed)", ""))
+
+    st.markdown("""
+        ---
+        _Analysis based on the provided text. For up-to-date metrics, always consult the latest official financial reports._
+    """)
+
+if __name__ == "__main__":
+    main()
