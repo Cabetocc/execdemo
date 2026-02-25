@@ -3,57 +3,62 @@ import requests
 import time
 from pathlib import Path
 
-WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook-test/stock-analysis"
+WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook/stock-analysis"  # production
 LATEST_FILE = Path("data/latest.md")
 
-def read_latest():
+def read_latest() -> str:
     if not LATEST_FILE.exists():
         return ""
     return LATEST_FILE.read_text(encoding="utf-8")
 
-ticker = st.text_input("Enter stock ticker", value="?").upper().strip()
+st.title("AI Stock Analysis")
+
+ticker = st.text_input("Enter stock ticker", value="NVDA").strip().upper()
 generate = st.button("Generate")
 
 if generate:
     if not ticker:
         st.warning("Please enter a ticker.")
-    else:
-        before = read_latest()
+        st.stop()
 
-        status = st.empty()
-        progress = st.progress(0)
+    before = read_latest()
 
-        with st.spinner(f"Generating analysis for {ticker}..."):
-            # Trigger n8n
-            try:
-                requests.post(WEBHOOK_URL, json={"ticker": ticker}, timeout=30)
-            except Exception as e:
-                st.error(f"Could not start analysis: {e}")
-                st.stop()
+    status = st.empty()
+    progress = st.progress(0)
 
-            # Wait up to 120 seconds for latest.md to change
-            max_wait_seconds = 120
-            interval_seconds = 2
-            steps = max_wait_seconds // interval_seconds
+    with st.spinner(f"Generating analysis for {ticker}..."):
+        # Trigger n8n ONCE
+        try:
+            r = requests.post(WEBHOOK_URL, json={"ticker": ticker}, timeout=30)
+            status.write(f"Webhook status: {r.status_code}")
+            r.raise_for_status()
+        except Exception as e:
+            st.error(f"Webhook call failed: {e}")
+            st.stop()
 
-            updated = before
-            for i in range(int(steps)):
-                time.sleep(interval_seconds)
-                updated = read_latest()
+        # Wait up to 120 seconds for latest.md to change
+        max_wait_seconds = 120
+        interval_seconds = 2
+        steps = max_wait_seconds // interval_seconds
 
-                pct = int(((i + 1) / steps) * 100)
-                progress.progress(pct)
-                status.write(f"Still working… {pct}%")
+        updated = before
+        for i in range(int(steps)):
+            time.sleep(interval_seconds)
+            updated = read_latest()
 
-                if updated and updated.strip() and updated != before:
-                    status.success("New analysis is ready!")
-                    progress.progress(100)
-                    break
+            pct = int(((i + 1) / steps) * 100)
+            progress.progress(pct)
+            status.write(f"Still working… {pct}%")
 
-            if updated == before:
-                status.warning("Still processing. Please wait a bit longer and press Generate again (or refresh).")
+            if updated and updated.strip() and updated != before:
+                status.success("New analysis is ready!")
+                progress.progress(100)
+                break
 
-        st.rerun()
+        if updated == before:
+            status.warning("Still processing. Please wait a bit longer and press Generate again (or refresh).")
+
+    st.rerun()
 
 
 import pandas as pd
