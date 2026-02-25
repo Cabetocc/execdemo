@@ -32,8 +32,8 @@ if generate:
                 st.error(f"Could not start analysis: {e}")
                 st.stop()
 
-            # Wait up to 120 seconds for latest.md to change
-            max_wait_seconds = 120
+            # Wait up to 180 seconds for latest.md to change
+            max_wait_seconds = 180
             interval_seconds = 2
             steps = max_wait_seconds // interval_seconds
 
@@ -61,311 +61,482 @@ if generate:
 
 import pandas as pd
 import plotly.express as px
+import textwrap
 
-# --- App Configuration ---
-st.set_page_config(
-    page_title="AstraZeneca (AZN) Financial Ecosystem Analysis",
-    page_icon="🔬",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(layout="wide", page_title="Financial Analysis Dashboard")
 
 # --- Helper Functions ---
-def display_section_title(title):
-    st.markdown(f"## {title}")
-    st.markdown("---")
+def clean_text(text):
+    """Cleans and wraps text for better display."""
+    if text is None:
+        return "N/A"
+    return text.strip()
 
-def display_metric(label, value, is_percentage=False):
-    if is_percentage and value is not None:
-        formatted_value = f"{value:.1%}"
-    elif value is not None:
-        formatted_value = f"{value:,.2f}"
-    else:
-        formatted_value = "N/A"
-    st.metric(label, formatted_value)
+def extract_key_metrics(analysis_text):
+    """
+    A simple placeholder to extract potential key metrics.
+    In a real application, this would involve more sophisticated NLP.
+    """
+    metrics = {}
+    # Example: Looking for patterns like "ratio of X to Y is Z" or "growth of X by Y%"
+    # This is highly simplified and would need to be robust for real-world data.
+    lines = analysis_text.split('\n')
+    for line in lines:
+        line = line.lower()
+        if "ratio" in line and (" of " in line or " and " in line):
+            parts = line.split("is")
+            if len(parts) > 1:
+                metric_name = parts[0].replace("ratio", "").strip()
+                try:
+                    metric_value = float(parts[1].strip())
+                    metrics[f"Ratio: {metric_name.title()}"] = metric_value
+                except ValueError:
+                    pass
+        elif "growth" in line and "%" in line:
+            parts = line.split("growth")
+            if len(parts) > 1:
+                try:
+                    growth_value = float(parts[1].split("%")[0].strip())
+                    metrics[f"Growth: {parts[0].strip().title()}"] = growth_value
+                except ValueError:
+                    pass
+        elif "level" in line and "debt" in line:
+            parts = line.split("is")
+            if len(parts) > 1:
+                try:
+                    debt_level = float(parts[1].strip())
+                    metrics[f"Debt Level: {parts[0].strip().title()}"] = debt_level
+                except ValueError:
+                    pass
+        elif "margins" in line and ":" in line:
+            parts = line.split(":")
+            if len(parts) > 1:
+                try:
+                    margin_value = float(parts[1].strip().replace('%', ''))
+                    metrics[f"Margin: {parts[0].strip().title()}"] = margin_value
+                except ValueError:
+                    pass
+        elif "valuation" in line and "multiple" in line:
+            parts = line.split(":")
+            if len(parts) > 1:
+                try:
+                    valuation_value = float(parts[1].strip())
+                    metrics[f"Valuation Multiple: {parts[0].strip().title()}"] = valuation_value
+                except ValueError:
+                    pass
+    return metrics
 
-def create_bar_chart(data, x_col, y_col, title, color_col=None, hover_data=None):
-    if data is None or data.empty:
-        st.warning("No data available for chart.")
-        return
-    fig = px.bar(data, x=x_col, y=y_col, title=title, color=color_col,
-                 labels={x_col: x_col.replace("_", " ").title(), y_col: y_col.replace("_", " ").title()},
-                 hover_data=hover_data)
-    fig.update_layout(title_x=0.5)
-    st.plotly_chart(fig, use_container_width=True)
+def format_section_title(title):
+    """Formats section titles for better readability."""
+    return f"**{title}**"
 
-def create_pie_chart(data, names_col, values_col, title):
-    if data is None or data.empty:
-        st.warning("No data available for chart.")
-        return
-    fig = px.pie(data, names=names_col, values=values_col, title=title)
-    fig.update_layout(title_x=0.5)
-    st.plotly_chart(fig, use_container_width=True)
+def format_summary_point(point):
+    """Formats individual summary points."""
+    return f"- {point}"
 
-# --- Load Data (Simulated) ---
-# In a real application, this would come from APIs, databases, or files.
-# For demonstration, we'll create sample dataframes.
-
-# --- Key Metrics (Extracted/Simulated) ---
-key_metrics_data = {
-    "Metric": [
-        "Revenue (USD)", "Gross Profit Margin", "Operating Profit Margin",
-        "Net Profit Margin", "R&D as % of Revenue", "Debt-to-Equity Ratio",
-        "Dividend Yield"
-    ],
-    "Value": [
-        79.0e9, 0.75, 0.22, 0.15, 0.20, 0.8, 0.025
-    ],
-    "Is_Percentage": [
-        False, True, True, True, True, False, True
-    ]
+# --- Sample Data (to simulate analysis output) ---
+# In a real app, this would come from an API call or a more complex parser.
+sample_analysis = {
+    "AAPL": {
+        "overview": "Apple Inc. is a multinational technology company headquartered in Cupertino, California. It designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories, and sells related services. Apple's key revenue drivers are its iPhone, Mac, iPad, and Wearables, Home and Accessories segments, alongside its growing Services business (App Store, Apple Music, iCloud, AppleCare, etc.).",
+        "key_financial_relationships": {
+            "Gross Profit Margin": "67.1%",
+            "Operating Profit Margin": "29.7%",
+            "Net Profit Margin": "25.3%",
+            "Return on Equity (ROE)": "155.0%",
+            "Debt to Equity Ratio": "1.8",
+            "Current Ratio": "1.0",
+            "Revenue Growth (YoY)": "2.0%",
+            "EPS Growth (YoY)": "5.0%"
+        },
+        "market_dependencies": {
+            "market_sentiment": "Generally positive, influenced by consumer spending trends and product innovation cycles.",
+            "beta_vs_sp500": 1.1,
+            "volatility": "Moderate, typically tracks broader tech market movements.",
+            "key_drivers": ["consumer confidence", "disposable income", "new product launches", "global supply chain stability"]
+        },
+        "sector_connections": {
+            "sector": "Technology (Consumer Electronics, Software & Services)",
+            "industry_trends": "Growth in cloud computing, AI integration, subscription services, and demand for premium devices.",
+            "sector_performance": "Historically strong, but subject to cyclical consumer spending and regulatory scrutiny.",
+            "regulatory_impact": "Antitrust concerns, privacy regulations, and App Store policies can influence operations."
+        },
+        "competitor_relationships": {
+            "major_competitors": ["Samsung", "Google (Alphabet)", "Microsoft", "Amazon"],
+            "competitive_landscape": "Highly competitive, especially in smartphones and PCs. Apple maintains strong brand loyalty and ecosystem integration.",
+            "market_share_dynamics": "Dominant in premium smartphone segment, significant player in tablets and PCs. Services continue to gain share.",
+            "pricing_power": "Strong pricing power for its hardware due to brand and ecosystem."
+        },
+        "economic_factors": {
+            "macro_influence": "Sensitive to global economic growth, inflation affecting consumer spending, and currency fluctuations (due to international sales).",
+            "interest_rates": "Higher interest rates can impact consumer borrowing for expensive devices and increase the cost of debt for the company.",
+            "gdp_growth": "Direct correlation with global GDP growth, especially in developed markets.",
+            "fx_impact": "Significant impact from USD strength/weakness on international revenues and profits."
+        },
+        "revenue_drivers": [
+            "iPhone Sales",
+            "Mac and iPad Sales",
+            "Wearables, Home and Accessories",
+            "Apple Services (App Store, iCloud, Apple Music, Apple TV+)",
+            "Advertising"
+        ],
+        "financial_highlights": {
+            "income_statement": {
+                "revenue": "$383.3 Billion (FY23)",
+                "gross_profit": "$257.0 Billion (FY23)",
+                "net_income": "$97.0 Billion (FY23)"
+            },
+            "balance_sheet": {
+                "total_assets": "$352.6 Billion (FY23)",
+                "total_liabilities": "$290.4 Billion (FY23)",
+                "total_equity": "$62.2 Billion (FY23)"
+            },
+            "cash_flow": {
+                "operating_cash_flow": "$110.5 Billion (FY23)",
+                "free_cash_flow": "$99.6 Billion (FY23)"
+            }
+        },
+        "valuation_context": {
+            "pe_ratio": 28.5,
+            "ps_ratio": 7.2,
+            "ev_ebitda": 19.0,
+            "peer_comparison": "Trades at a premium compared to many tech hardware peers, reflecting its strong brand, profitability, and ecosystem."
+        },
+        "risks_scenarios": {
+            "key_risks": [
+                "Intensifying competition",
+                "Regulatory pressures (antitrust, privacy)",
+                "Supply chain disruptions",
+                "Dependence on iPhone sales",
+                "Geopolitical tensions impacting manufacturing and sales",
+                "Macroeconomic slowdown impacting consumer spending"
+            ],
+            "upside_scenarios": [
+                "Successful new product categories (e.g., AR/VR)",
+                "Accelerated growth in Services",
+                "Stronger than expected consumer adoption of new iPhone models",
+                "Favorable regulatory outcomes"
+            ],
+            "sensitivity": "Sensitive to consumer discretionary spending, global economic health, and technological innovation pace."
+        },
+        "catalyst_calendar": {
+            "upcoming_events": [
+                "Q4 2023 Earnings (expected Nov 2023)",
+                "WWDC (Worldwide Developers Conference) - typically June",
+                "Annual iPhone/Mac Product Launches - typically September/October"
+            ]
+        },
+        "suggested_next_steps": [
+            "Review latest 10-K and 10-Q filings for detailed financial data.",
+            "Read recent analyst reports and earnings call transcripts.",
+            "Compare detailed valuation multiples against a curated list of peers.",
+            "Analyze geographic revenue breakdown in filings."
+        ]
+    },
+    "TSLA": {
+        "overview": "Tesla, Inc. designs, develops, manufactures, sells, leases, and arranges for the charging of electric vehicles, and generates and sells solar energy and energy storage systems. Its primary revenue streams come from electric vehicle sales and regulatory credits.",
+        "key_financial_relationships": {
+            "Gross Profit Margin": "18.0%",
+            "Operating Profit Margin": "10.0%",
+            "Net Profit Margin": "9.0%",
+            "Return on Equity (ROE)": "28.0%",
+            "Debt to Equity Ratio": "0.2",
+            "Current Ratio": "1.5",
+            "Revenue Growth (YoY)": "25.0%",
+            "EPS Growth (YoY)": "30.0%"
+        },
+        "market_dependencies": {
+            "market_sentiment": "Highly volatile, driven by Elon Musk's statements, production news, and broader market sentiment towards growth stocks and EVs.",
+            "beta_vs_sp500": 1.8,
+            "volatility": "Very high, subject to significant daily price swings.",
+            "key_drivers": ["production numbers", "delivery targets", "Elon Musk's public statements", "competitor EV launches", "government EV incentives", "interest rates"]
+        },
+        "sector_connections": {
+            "sector": "Automotive (Electric Vehicles), Energy Storage",
+            "industry_trends": "Rapid growth in EV adoption, increasing competition, focus on autonomous driving technology, battery technology advancements.",
+            "sector_performance": "High growth potential but subject to capital intensity, regulatory changes, and technological disruption.",
+            "regulatory_impact": "Emissions standards, safety regulations, and EV subsidies play a crucial role."
+        },
+        "competitor_relationships": {
+            "major_competitors": ["BYD", "Volkswagen", "Ford", "General Motors", "Rivian", "Lucid"],
+            "competitive_landscape": "Increasingly crowded. Tesla is a pioneer but faces growing competition from legacy automakers and new EV startups.",
+            "market_share_dynamics": "Historically dominant in premium EVs, but market share is gradually being eroded by new entrants.",
+            "pricing_power": "Has shown willingness to cut prices to maintain volume, impacting pricing power."
+        },
+        "economic_factors": {
+            "macro_influence": "Sensitive to consumer purchasing power for high-ticket items, availability of financing, and commodity prices (lithium, cobalt for batteries).",
+            "interest_rates": "Higher interest rates significantly impact car affordability and the cost of capital for expansion.",
+            "gdp_growth": "Correlates with global GDP growth, but also with specific trends in EV adoption and renewable energy.",
+            "fx_impact": "Significant exposure to currency fluctuations due to global manufacturing and sales."
+        },
+        "revenue_drivers": [
+            "Electric Vehicle Sales (Model S, 3, X, Y)",
+            "Energy Generation and Storage (Solar Roof, Powerwall)",
+            "Automotive Leasing",
+            "Automotive Software and Services (FSD, Premium Connectivity)",
+            "Regulatory Credits"
+        ],
+        "financial_highlights": {
+            "income_statement": {
+                "revenue": "$96.77 Billion (FY22)",
+                "gross_profit": "$21.58 Billion (FY22)",
+                "net_income": "$12.59 Billion (FY22)"
+            },
+            "balance_sheet": {
+                "total_assets": "$67.45 Billion (FY22)",
+                "total_liabilities": "$23.56 Billion (FY22)",
+                "total_equity": "$43.89 Billion (FY22)"
+            },
+            "cash_flow": {
+                "operating_cash_flow": "$14.71 Billion (FY22)",
+                "free_cash_flow": "$7.57 Billion (FY22)"
+            }
+        },
+        "valuation_context": {
+            "pe_ratio": 75.0,
+            "ps_ratio": 8.0,
+            "ev_ebitda": 30.0,
+            "peer_comparison": "Trades at a significant premium to traditional automakers due to its growth prospects, technology leadership, and perceived future potential (robotaxis, AI)."
+        },
+        "risks_scenarios": {
+            "key_risks": [
+                "Intense competition from established and new EV players",
+                "Production ramp-up challenges and quality control issues",
+                "Reliance on Elon Musk's leadership and public persona",
+                "Regulatory hurdles and safety recalls",
+                "Supply chain disruptions (especially batteries)",
+                "Execution risk for ambitious projects (FSD, Optimus)",
+                "Interest rate sensitivity affecting consumer demand"
+            ],
+            "upside_scenarios": [
+                "Breakthroughs in autonomous driving (FSD)",
+                "Successful launch and scaling of new models (Cybertruck, new platform)",
+                "Significant growth in energy storage business",
+                "Profitability from robotaxi network or AI services",
+                "Successful battery cost reductions and production scaling"
+            ],
+            "sensitivity": "Extremely sensitive to news flow, production numbers, regulatory pronouncements, and Elon Musk's actions."
+        },
+        "catalyst_calendar": {
+            "upcoming_events": [
+                "Q4 2023 Earnings (expected Jan 2024)",
+                "Delivery/Production Updates (quarterly)",
+                "New Model Announcements/Launches (e.g., Cybertruck)",
+                "Updates on FSD Beta progress"
+            ]
+        },
+        "suggested_next_steps": [
+            "Monitor production and delivery numbers closely.",
+            "Track competitor EV launches and market share shifts.",
+            "Read Musk's Twitter/X feed and official company updates.",
+            "Analyze the impact of regulatory changes on EV incentives.",
+            "Assess progress and timeline for FSD and other ambitious projects."
+        ]
+    }
 }
-df_key_metrics = pd.DataFrame(key_metrics_data)
 
-# --- Revenue Breakdown (Simulated) ---
-revenue_breakdown_data = {
-    "Source": [
-        "Product Sales", "Partnerships & Licensing", "Acquisitions"
-    ],
-    "Revenue": [
-        75.0e9, 3.0e9, 1.0e9
-    ]
-}
-df_revenue_breakdown = pd.DataFrame(revenue_breakdown_data)
 
-# --- Cost Structure Breakdown (Simulated) ---
-cost_structure_data = {
-    "Cost_Category": [
-        "R&D", "COGS", "SG&A", "Amortization"
-    ],
-    "Cost": [
-        15.8e9, 19.75e9, 17.38e9, 3.95e9
-    ]
-}
-df_cost_structure = pd.DataFrame(cost_structure_data)
+# --- Streamlit App Layout ---
+st.title("Financial Analysis Dashboard")
 
-# --- Therapeutic Area Revenue (Simulated) ---
-therapeutic_area_revenue_data = {
-    "Therapeutic_Area": [
-        "Oncology", "CVRM", "Respiratory/Immunology", "Rare Disease", "Other"
-    ],
-    "Revenue": [
-        31.6e9, 19.75e9, 15.8e9, 7.9e9, 4.0e9
-    ]
-}
-df_therapeutic_area = pd.DataFrame(therapeutic_area_area_revenue_data)
+st.sidebar.header("Analysis Configuration")
+ticker_input = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL, TSLA)", "AAPL")
+analysis_detail = st.sidebar.selectbox(
+    "Level of Detail",
+    ["High-Level Overview", "Deep Quantitative Analysis"],
+    index=0
+)
+timeframe = st.sidebar.selectbox(
+    "Timeframe/Focus",
+    ["Near-term Catalysts", "12-24 Month Outlook", "Long-term Secular View"],
+    index=1
+)
+specific_concerns = st.sidebar.multiselect(
+    "Specific Concerns",
+    ["Valuation", "Dividend Safety", "Debt", "FX", "Commodity Exposure", "Cyclical Risk", "Regulatory Risk", "Competition"]
+)
 
-# --- Geographic Revenue (Simulated) ---
-geographic_revenue_data = {
-    "Region": [
-        "United States", "Europe", "China", "Emerging Markets", "Rest of World"
-    ],
-    "Revenue": [
-        28.0e9, 19.0e9, 12.0e9, 14.0e9, 6.0e9
-    ]
-}
-df_geographic_revenue = pd.DataFrame(geographic_revenue_data)
+# --- Load Data ---
+analysis_data = sample_analysis.get(ticker_input.upper())
 
-# --- Competitor Revenue (Simulated - relative scale) ---
-competitor_revenue_data = {
-    "Competitor": [
-        "Pfizer", "Novartis", "Roche", "Merck & Co.", "Bristol Myers Squibb", "AstraZeneca (AZN)"
-    ],
-    "Revenue_Billion_USD": [
-        100.0, 65.0, 60.0, 59.0, 46.0, 79.0
-    ]
-}
-df_competitors = pd.DataFrame(competitor_revenue_data)
+if not analysis_data:
+    st.warning(f"No analysis found for ticker: {ticker_input}. Please try AAPL or TSLA for a sample.")
+else:
+    # --- Main Content Area ---
+    st.header(f"Financial Analysis for {ticker_input.upper()}")
 
-# --- Market Dependencies (Qualitative Summary) ---
-market_dependencies_summary = """
-- **Drug Pricing & Reimbursement**: Highly sensitive to government policies (e.g., US Inflation Reduction Act), payer negotiations (PBMs, national health systems), and overall healthcare spending trends.
-- **Patent Expirations & Generic Competition**: Critical for maintaining revenue streams. Loss of exclusivity (LOE) for key drugs significantly impacts top-line. Pipeline is crucial to offset these losses.
-- **Clinical Trial Success Rates**: Positive Phase I, II, and III trial results and subsequent regulatory approvals (FDA, EMA, etc.) are major value drivers. Failures lead to R&D write-offs.
-- **Disease Prevalence & Demographics**: Aging populations and rising chronic disease rates drive demand. Emerging diseases can create new opportunities (e.g., COVID-19 vaccine).
-- **Geopolitical Factors**: Trade relations, political stability, and regional regulatory environments (e.g., China's market dynamics) can affect market access and costs.
-"""
+    # --- Section: Overview ---
+    st.subheader(format_section_title("Company Overview"))
+    st.write(clean_text(analysis_data.get("overview", "N/A")))
 
-# --- Sector Connections (Qualitative Summary) ---
-sector_connections_summary = """
-- **Pharmaceutical & Biotechnology Sector**: Characterized by high R&D intensity, strict regulation, long product lifecycles, capital intensity, and innovation-driven growth.
-- **Healthcare Services**: AZN's products are integrated into the healthcare delivery system, relying on prescribers, pharmacies, and distributors.
-- **Life Sciences**: Fundamental research in biology, chemistry, and medicine underpins drug discovery and development.
-- **Biotechnology Advancements**: Leverages progress in areas like genomics, gene editing, and AI for drug discovery.
-"""
+    # --- Section: Key Financial Metrics ---
+    st.subheader(format_section_title("Key Financial Metrics & Relationships"))
+    key_metrics = analysis_data.get("key_financial_relationships", {})
+    if key_metrics:
+        metrics_df = pd.DataFrame(list(key_metrics.items()), columns=['Metric', 'Value'])
+        # Attempt to convert values for charting
+        metrics_df['Numeric_Value'] = pd.to_numeric(metrics_df['Value'].str.replace('%', '').str.replace(',', ''), errors='coerce')
+        metrics_df['Type'] = metrics_df['Metric'].apply(lambda x: 'Percentage' if '%' in x else ('Ratio' if 'Ratio' in x or 'Level' in x else 'Growth'))
 
-# --- Economic Factors (Qualitative Summary) ---
-economic_factors_summary = """
-- **Global Economic Growth**: Strong economies tend to boost healthcare spending. Recessions can lead to budget constraints and price sensitivity.
-- **Interest Rates**: Higher rates increase borrowing costs for R&D and M&A, and affect discount rates used in valuation models.
-- **Inflation**: Can increase the cost of raw materials, manufacturing, and labor, potentially requiring price adjustments which face payer resistance.
-- **Currency Exchange Rates**: As a global company, fluctuations in USD, EUR, GBP, CNY, etc., impact reported earnings.
-- **Government Healthcare Policy & Reforms**: Changes in healthcare access, drug pricing regulations, and R&D incentives (e.g., ACA, IRA) are highly impactful.
-- **Technological Advancements**: AI, genomics, and personalized medicine create both opportunities and potential disruptions.
-- **Supply Chain Stability**: Global supply chain disruptions can affect manufacturing, costs, and availability of essential materials.
-- **Demographic Shifts**: Aging populations and changing disease patterns directly influence demand for specific treatments.
-"""
-
-# --- Sidebar ---
-st.sidebar.title("AstraZeneca (AZN) Analysis")
-st.sidebar.markdown("Financial Ecosystem Analysis")
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Sections")
-st.sidebar.markdown("- [Company Overview & Snapshot](#company-overview--snapshot)")
-st.sidebar.markdown("- [Key Metrics](#key-metrics)")
-st.sidebar.markdown("- [Revenue Generation](#revenue-generation)")
-st.sidebar.markdown("- [Cost Structure](#cost-structure)")
-st.sidebar.markdown("- [Profitability & Margins](#profitability--margins)")
-st.sidebar.markdown("- [Capital Allocation](#capital-allocation)")
-st.sidebar.markdown("- [Debt & Liquidity](#debt--liquidity)")
-st.sidebar.markdown("- [Market Dependencies](#market-dependencies)")
-st.sidebar.markdown("- [Sector Connections](#sector-connections)")
-st.sidebar.markdown("- [Competitor Relationships](#competitor-relationships)")
-st.sidebar.markdown("- [Economic Factors](#economic-factors)")
-st.sidebar.markdown("- [Conclusion](#conclusion)")
-
-# --- Main Content ---
-
-st.title("AstraZeneca (AZN) - Financial Ecosystem Analysis")
-st.markdown("""
-AstraZeneca (AZN) is a global, research-driven biopharmaceutical company operating within a complex and dynamic financial ecosystem. This analysis breaks down its key financial relationships, market dependencies, sector connections, competitor landscape, and relevant economic factors.
-""")
-
-# --- Company Overview & Snapshot ---
-display_section_title("Company Overview & Snapshot")
-st.markdown("""
-AstraZeneca plc is a global pharmaceutical and biotechnology company focused on the discovery, development, and commercialization of prescription medicines. It operates primarily in oncology, cardiovascular, renal & metabolism (CVRM), respiratory & immunology, and rare diseases. Key products include Tagrisso (oncology), Farxiga (CVRM), and Imfinzi (oncology). The company has dual primary listings on the London Stock Exchange and NASDAQ (as an ADR).
-""")
-
-# --- Key Metrics ---
-display_section_title("Key Metrics")
-st.markdown("Key financial indicators that reflect AstraZeneca's performance and financial health.")
-
-col1, col2, col3 = st.columns(3)
-for i, row in df_key_metrics.iterrows():
-    if i < 3:
+        col1, col2 = st.columns([2, 1])
         with col1:
-            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
-    elif i < 6:
+            st.dataframe(metrics_df[['Metric', 'Value']].to_html(escape=False), use_container_width=True)
+
         with col2:
-            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
+            # Filter for numeric values to plot
+            numeric_metrics_df = metrics_df.dropna(subset=['Numeric_Value'])
+
+            # Pie chart for percentages (margins, ROE)
+            percentage_metrics = numeric_metrics_df[numeric_metrics_df['Type'] == 'Percentage']
+            if not percentage_metrics.empty:
+                fig_pie = px.pie(percentage_metrics,
+                                 values='Numeric_Value',
+                                 names='Metric',
+                                 title='Key Percentage Metrics')
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+            # Bar chart for growth and ratios
+            other_metrics = numeric_metrics_df[numeric_metrics_df['Type'] != 'Percentage']
+            if not other_metrics.empty:
+                fig_bar = px.bar(other_metrics,
+                                 x='Metric',
+                                 y='Numeric_Value',
+                                 color='Type',
+                                 title='Growth & Ratio Metrics')
+                st.plotly_chart(fig_bar, use_container_width=True)
     else:
+        st.info("No specific key financial relationships detailed in this sample.")
+
+    # --- Section: Market Dependencies ---
+    st.subheader(format_section_title("Market Dependencies"))
+    market_deps = analysis_data.get("market_dependencies", {})
+    if market_deps:
+        st.write(f"**Market Sentiment:** {clean_text(market_deps.get('market_sentiment'))}")
+        st.write(f"**Beta vs. S&P 500:** {market_deps.get('beta_vs_sp500', 'N/A')}")
+        st.write(f"**Volatility:** {clean_text(market_deps.get('volatility'))}")
+        st.write(f"**Key Drivers:** {', '.join(market_deps.get('key_drivers', ['N/A']))}")
+        if 'beta_vs_sp500' in market_deps:
+            beta = market_deps['beta_vs_sp500']
+            if beta > 1.2:
+                st.warning("High Beta: Stock is more volatile than the broader market.")
+            elif beta < 0.8:
+                st.info("Low Beta: Stock is less volatile than the broader market.")
+            else:
+                st.info("Moderate Beta: Stock volatility is similar to the broader market.")
+    else:
+        st.info("No specific market dependencies detailed in this sample.")
+
+    # --- Section: Sector Connections ---
+    st.subheader(format_section_title("Sector Connections"))
+    sector_conns = analysis_data.get("sector_connections", {})
+    if sector_conns:
+        st.write(f"**Sector:** {clean_text(sector_conns.get('sector'))}")
+        st.write(f"**Industry Trends:** {clean_text(sector_conns.get('industry_trends'))}")
+        st.write(f"**Sector Performance:** {clean_text(sector_conns.get('sector_performance'))}")
+        st.write(f"**Regulatory Impact:** {clean_text(sector_conns.get('regulatory_impact'))}")
+    else:
+        st.info("No specific sector connections detailed in this sample.")
+
+    # --- Section: Competitor Relationships ---
+    st.subheader(format_section_title("Competitor Relationships"))
+    competitor_rels = analysis_data.get("competitor_relationships", {})
+    if competitor_rels:
+        st.write(f"**Major Competitors:** {', '.join(competitor_rels.get('major_competitors', ['N/A']))}")
+        st.write(f"**Competitive Landscape:** {clean_text(competitor_rels.get('competitive_landscape'))}")
+        st.write(f"**Market Share Dynamics:** {clean_text(competitor_rels.get('market_share_dynamics'))}")
+        st.write(f"**Pricing Power:** {clean_text(competitor_rels.get('pricing_power'))}")
+    else:
+        st.info("No specific competitor relationships detailed in this sample.")
+
+    # --- Section: Economic Factors ---
+    st.subheader(format_section_title("Economic Factors"))
+    economic_factors = analysis_data.get("economic_factors", {})
+    if economic_factors:
+        st.write(f"**Macro Influence:** {clean_text(economic_factors.get('macro_influence'))}")
+        st.write(f"**Interest Rates Sensitivity:** {clean_text(economic_factors.get('interest_rates'))}")
+        st.write(f"**GDP Growth Correlation:** {clean_text(economic_factors.get('gdp_growth'))}")
+        st.write(f"**FX Impact:** {clean_text(economic_factors.get('fx_impact'))}")
+    else:
+        st.info("No specific economic factors detailed in this sample.")
+
+    # --- Section: Financial Highlights ---
+    st.subheader(format_section_title("Financial Highlights (Illustrative)"))
+    financial_highlights = analysis_data.get("financial_highlights", {})
+    if financial_highlights:
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.write("**Income Statement**")
+            for key, value in financial_highlights.get("income_statement", {}).items():
+                st.write(f"*{key}:* {value}")
+
+        with col2:
+            st.write("**Balance Sheet**")
+            for key, value in financial_highlights.get("balance_sheet", {}).items():
+                st.write(f"*{key}:* {value}")
+
         with col3:
-            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
+            st.write("**Cash Flow**")
+            for key, value in financial_highlights.get("cash_flow", {}).items():
+                st.write(f"*{key}:* {value}")
+    else:
+        st.info("No specific financial highlights detailed in this sample.")
 
-# --- Revenue Generation ---
-display_section_title("Revenue Generation")
-st.markdown("AstraZeneca's revenue streams are diversified across product sales and strategic collaborations.")
+    # --- Section: Valuation Context ---
+    st.subheader(format_section_title("Valuation Context"))
+    valuation_context = analysis_data.get("valuation_context", {})
+    if valuation_context:
+        valuation_metrics = {k: v for k, v in valuation_context.items() if k not in ['peer_comparison']}
+        if valuation_metrics:
+            val_df = pd.DataFrame(list(valuation_metrics.items()), columns=['Metric', 'Value'])
+            val_df['Numeric_Value'] = pd.to_numeric(val_df['Value'], errors='coerce')
+            st.dataframe(val_df.to_html(escape=False), use_container_width=True)
 
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown("**Primary Revenue Sources:**")
-    st.markdown("""
-    *   **Product Sales**: The core driver, generated from its diverse portfolio of prescription medicines across various therapeutic areas.
-    *   **Partnerships & Licensing**: Agreements for co-development, licensing, and co-commercialization generate upfront payments, milestones, and royalties.
-    *   **Acquisitions**: Strategic M&A activity can significantly boost revenue and expand market share (e.g., Alexion acquisition).
-    """)
-with col2:
-    create_pie_chart(df_revenue_breakdown, "Source", "Revenue", "Revenue Breakdown by Source")
+            numeric_val_df = val_df.dropna(subset=['Numeric_Value'])
+            if not numeric_val_df.empty:
+                fig_val = px.bar(numeric_val_df, x='Metric', y='Numeric_Value', title='Common Valuation Multiples')
+                st.plotly_chart(fig_val, use_container_width=True)
 
-# --- Cost Structure ---
-display_section_title("Cost Structure")
-st.markdown("Understanding the significant expenses incurred by AstraZeneca.")
+        st.write(f"**Peer Comparison:** {clean_text(valuation_context.get('peer_comparison'))}")
+    else:
+        st.info("No specific valuation context detailed in this sample.")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown("**Key Cost Components:**")
-    st.markdown("""
-    *   **Research & Development (R&D)**: A substantial investment essential for pipeline advancement and future growth.
-    *   **Cost of Goods Sold (COGS)**: Manufacturing, production, and distribution expenses.
-    *   **Sales, General & Administrative (SG&A)**: Costs associated with marketing, sales force, and operations.
-    *   **Amortization of Intangible Assets**: Primarily related to acquired patents and intellectual property.
-    """)
-with col2:
-    create_bar_chart(df_cost_structure, "Cost_Category", "Cost", "Cost Structure Breakdown", hover_data=["Cost_Category", "Cost"])
+    # --- Section: Risks and Scenarios ---
+    st.subheader(format_section_title("Key Risks and Upside Scenarios"))
+    risks_scenarios = analysis_data.get("risks_scenarios", {})
+    if risks_scenarios:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Key Risks**")
+            for risk in risks_scenarios.get("key_risks", []):
+                st.write(format_summary_point(clean_text(risk)))
+        with col2:
+            st.write("**Upside Scenarios**")
+            for scenario in risks_scenarios.get("upside_scenarios", []):
+                st.write(format_summary_point(clean_text(scenario)))
+        st.write(f"**Sensitivity:** {clean_text(risks_scenarios.get('sensitivity'))}")
+    else:
+        st.info("No specific risks and scenarios detailed in this sample.")
 
-# --- Profitability & Margins ---
-display_section_title("Profitability & Margins")
-st.markdown("Indicators of AstraZeneca's profitability across its operations.")
-# Metrics are already displayed in Key Metrics section, but we can emphasize them here
-st.markdown("Key profitability metrics (Gross Profit Margin, Operating Profit Margin, Net Profit Margin) are detailed in the 'Key Metrics' section above. High gross margins from specialty drugs fund extensive R&D investments.")
+    # --- Section: Catalyst Calendar ---
+    st.subheader(format_section_title("Catalyst Calendar (Illustrative)"))
+    catalyst_calendar = analysis_data.get("catalyst_calendar", {})
+    if catalyst_calendar:
+        st.write("**Upcoming Events:**")
+        for event in catalyst_calendar.get("upcoming_events", []):
+            st.write(format_summary_point(clean_text(event)))
+    else:
+        st.info("No specific catalyst calendar detailed in this sample.")
 
-# --- Capital Allocation ---
-display_section_title("Capital Allocation")
-st.markdown("How AstraZeneca reinvests its capital for growth and shareholder returns.")
-st.markdown("""
-AstraZeneca strategically allocates its capital through:
-*   **R&D Investment**: Significant reinvestment to maintain a robust pipeline and drive future innovation.
-*   **Capital Expenditures (CapEx)**: Investments in manufacturing facilities, research labs, and infrastructure.
-*   **Share Buybacks**: Returning capital to shareholders by repurchasing its own stock.
-*   **Dividends**: Distributing a portion of profits to shareholders, with a history of consistent payouts.
-*   **Mergers & Acquisitions (M&A)**: Strategic investments to acquire new technologies, drugs, or market access.
-""")
+    # --- Section: Suggested Next Steps ---
+    st.subheader(format_section_title("Suggested Next Steps"))
+    next_steps = analysis_data.get("suggested_next_steps", [])
+    if next_steps:
+        for step in next_steps:
+            st.write(format_summary_point(clean_text(step)))
+    else:
+        st.info("No specific next steps provided in this sample.")
 
-# --- Debt & Liquidity ---
-display_section_title("Debt & Liquidity")
-st.markdown("Assessment of AstraZeneca's financial leverage and ability to meet obligations.")
-st.markdown("""
-AstraZeneca maintains a **moderate level of debt**, typically around a **Debt-to-Equity ratio of ~0.8**. This financing supports its R&D programs and strategic acquisitions. The company generates **strong operating cash flow**, ensuring sufficient liquidity to meet short-term obligations and fund ongoing operations without excessive reliance on external financing. Analysts monitor its interest coverage ratios closely.
-""")
-
-# --- Market Dependencies ---
-display_section_title("Market Dependencies")
-st.markdown("External forces that significantly influence AstraZeneca's success and market performance.")
-st.markdown(f"```{market_dependencies_summary}```")
-
-# --- Sector Connections ---
-display_section_title("Sector Connections")
-st.markdown("AstraZeneca's position within the broader pharmaceutical and healthcare landscape.")
-st.markdown(f"```{sector_connections_summary}```")
-
-# --- Competitor Relationships ---
-display_section_title("Competitor Relationships")
-st.markdown("AstraZeneca operates in a highly competitive environment across its key therapeutic areas.")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown("**Key Competitors:**")
-    st.markdown("""
-    *   **Major Pharmaceutical Giants**: Pfizer, Novartis, Roche, Merck & Co., Bristol Myers Squibb, Johnson & Johnson.
-    *   **Biotechnology Companies**: Amgen, Gilead Sciences, and numerous smaller, innovative biotech firms.
-    *   **Generic & Biosimilar Manufacturers**: Compete once patent exclusivity expires.
-    """)
-    st.markdown("**Competitive Dynamics:**")
-    st.markdown("""
-    *   Focus on developing best-in-class therapies (efficacy, safety).
-    *   Aggressive market share capture and sales strategies.
-    *   Continuous pipeline advancement to replace aging products.
-    *   Navigating complex global pricing environments.
-    *   Strategic M&A to bolster portfolios.
-    """)
-with col2:
-    create_bar_chart(df_competitors.sort_values("Revenue_Billion_USD", ascending=False),
-                     "Competitor", "Revenue_Billion_USD", "Estimated Revenue of Key Competitors (USD Billion)",
-                     color_col="Competitor", hover_data=["Competitor", "Revenue_Billion_USD"])
-
-# --- Economic Factors ---
-display_section_title("Economic Factors")
-st.markdown("Macroeconomic trends and conditions impacting AstraZeneca's operations and financial outlook.")
-st.markdown(f"```{economic_factors_summary}```")
-
-# --- Additional Visualizations ---
-display_section_title("Revenue Breakdown by Therapeutic Area")
-st.markdown("AstraZeneca's revenue is significantly driven by its oncology and CVRM segments.")
-create_pie_chart(df_therapeutic_area, "Therapeutic_Area", "Revenue", "Revenue by Therapeutic Area (USD)")
-
-display_section_title("Geographic Revenue Distribution")
-st.markdown("The United States and Europe are AstraZeneca's largest markets.")
-create_bar_chart(df_geographic_revenue.sort_values("Revenue", ascending=False),
-                 "Region", "Revenue", "Revenue by Geographic Region (USD)",
-                 color_col="Region", hover_data=["Region", "Revenue"])
-
-
-# --- Conclusion ---
-display_section_title("Conclusion")
-st.markdown("""
-AstraZeneca (AZN) is a formidable player in the global pharmaceutical industry, deeply integrated into a complex financial ecosystem. Its financial performance is a testament to the intricate balance between successful research and development, effective commercialization strategies, navigating stringent regulatory and pricing environments, and managing intense competition.
-
-Key drivers of AZN's success include the strength and longevity of its patent protections, the positive outcomes of its clinical trials, evolving global healthcare spending patterns, and its agility in adapting to scientific advancements and economic shifts. Understanding the interplay of these factors—from product sales and R&D investment to market access challenges and macroeconomic influences—is crucial for assessing the long-term prospects and valuation of AstraZeneca.
-""")
+# --- Footer ---
+st.markdown("---")
+st.markdown("This is a simplified financial analysis dashboard. Real-world analysis requires access to live data and more advanced NLP/quantitative methods.")
