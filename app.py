@@ -68,255 +68,378 @@ if generate:
 import pandas as pd
 import altair as alt
 
-# --- Configuration ---
-st.set_page_config(layout="wide", page_title="EchoStar (SATS) Financial Analysis")
+# Set Streamlit page configuration
+st.set_page_config(
+    layout="wide",
+    page_title="AstraZeneca (AZN) Financial Ecosystem Analysis",
+    page_icon="💊"
+)
 
-# --- Data Extraction (Simulated/Qualitative for Charts) ---
-# Since the analysis is descriptive, we create qualitative data points
-# to illustrate the relative importance or impact mentioned in the text.
+# --- Content for sections ---
 
-# Qualitative data for Revenue Streams
-revenue_data = pd.DataFrame({
-    'Stream': ['Subscription Services (TV & Broadband)', 'Equipment Sales', 'Satellite Leasing'],
-    'Contribution': [70, 15, 15] # Arbitrary percentages based on text description
-})
-
-# Qualitative data for Profitability Challenges
-profitability_data = pd.DataFrame({
-    'Challenge': ['High Capital Expenditures', 'Debt Burden', 'Operational Costs'],
-    'Impact': [50, 40, 10] # Arbitrary percentages for impact severity
-})
-
-# Qualitative data for Competitive Pressures
-competitive_data = pd.DataFrame({
-    'Pressure': ['Price Wars (Streaming)', 'Technology Disruption (Starlink)', 'Scale Disadvantages (Larger Telecoms)'],
-    'Severity': [45, 40, 15] # Arbitrary percentages for severity
-})
-
-# --- Streamlit App ---
-
-st.title("📡 EchoStar Corporation (SATS) Financial Ecosystem Analysis")
-st.markdown("---")
-
-st.info("""
-This interactive analysis is based on a comprehensive financial assessment of EchoStar Corporation (SATS), 
-which completed its merger with Dish Network in December 2023. 
-It covers key financial relationships, market dependencies, competitive landscape, and economic factors.
-""")
-
-# --- Company Overview ---
-st.header("1. Company Overview")
-st.markdown("""
-- **Full Name:** EchoStar Corporation (post-merger with Dish Network, completed in December 2023).
-- **Business Model:** Provides satellite communication, broadband, and streaming services globally. Operates through segments like Hughes (satellite broadband), EchoStar Satellite Services (satellite capacity), and Dish Wireless (5G network).
-- **Key Products/Services:** Satellite TV (Dish Network), satellite broadband (HughesNet), satellite capacity leasing, and a nascent 5G wireless network (Dish Wireless).
-- **Market Position:** A major player in satellite communications but faces intense competition from cable, fiber, and streaming services.
-""")
-
-st.markdown("---")
-
-# --- Key Financial Relationships ---
-st.header("2. Key Financial Relationships")
-
-st.subheader("Revenue Streams")
-st.write("EchoStar's primary revenue sources and their estimated contribution:")
-col1, col2 = st.columns([0.6, 0.4])
-with col1:
-    st.dataframe(revenue_data.set_index('Stream'))
-with col2:
-    chart_revenue = alt.Chart(revenue_data).mark_arc(outerRadius=120).encode(
-        theta=alt.Theta(field="Contribution", type="quantitative"),
-        color=alt.Color(field="Stream", type="nominal", title="Revenue Stream"),
-        order=alt.Order(field="Contribution", sort="descending"),
-        tooltip=["Stream", alt.Tooltip("Contribution", format=".1f", title="Contribution (%)")]
-    ).properties(
-        title="Estimated Revenue Contribution"
-    )
-    st.altair_chart(chart_revenue, use_container_width=True)
-st.write("") # Add some space
-
-st.subheader("Profitability Challenges")
-st.write("The company faces significant pressures on its profitability due to:")
-col_p1, col_p2 = st.columns(2)
-with col_p1:
-    st.markdown("""
-    - **High Capital Expenditures:** Extensive investments in satellite launches and 5G network rollout.
-    - **Debt Burden:** Over **$20 billion** in long-term debt post-merger, leading to substantial interest expenses.
-    - **Operational Costs:** Managing a vast satellite and ground infrastructure.
+def intro_content():
+    st.write(f"""
+    This app provides a comprehensive financial ecosystem analysis of AstraZeneca (AZN), a prominent global biopharmaceutical company.
+    The analysis delves into AZN's internal financial drivers, market dependencies, sector connections, competitive landscape,
+    and external economic factors, based on the provided qualitative financial overview.
     """)
-with col_p2:
-    st.metric(label="Long-term Debt Burden", value="$20+ Billion", delta="High Impact on Profitability", delta_color="inverse")
-    chart_profitability = alt.Chart(profitability_data).mark_bar(color='#B76E79').encode(
-        x=alt.X('Impact', type='quantitative', title='Estimated Impact (%)'),
-        y=alt.Y('Challenge', type='nominal', sort='-x', title='Challenge'),
-        tooltip=['Challenge', 'Impact']
-    ).properties(
-        title="Major Profitability Challenges"
-    )
-    st.altair_chart(chart_profitability, use_container_width=True)
 
-st.subheader("Cash Flow & Balance Sheet")
-st.markdown("""
-- **Cash Flow:** Operations generate cash, but heavy investments in spectrum and 5G infrastructure lead to negative free cash flow.
-- **Balance Sheet:** Highly leveraged with significant intangible assets (spectrum licenses) from past acquisitions. Liquidity is managed through revolving credit facilities and potential asset sales.
-""")
-st.markdown("---")
-
-# --- Market Dependencies ---
-st.header("3. Market Dependencies")
-st.markdown("""
-EchoStar's performance is heavily influenced by:
--   **Consumer Demand:** Relies on subscription growth for TV and broadband, facing secular declines due to cord-cutting and competition.
--   **Regulatory Environment:** Heavily influenced by FCC policies on spectrum allocation, satellite licensing, and broadband subsidies (e.g., Rural Digital Opportunity Fund).
--   **Technology Shifts:** Dependent on successful deployment of its 5G network to offset satellite declines.
--   **Capital Markets:** Access to financing is critical given high debt levels; stock performance is sensitive to interest rate changes and investor sentiment.
-""")
-st.markdown("---")
-
-# --- Sector Connections ---
-st.header("4. Sector Connections")
-st.markdown("""
-EchoStar operates at the intersection of several key sectors:
--   **Satellite Communications:** Part of the broader telecom sector, facing trends like consolidation and demand for rural broadband/IoT services.
--   **Media & Entertainment:** Satellite TV competes with streaming (Netflix, Disney+) and traditional cable; content partnerships affect costs.
--   **Wireless Telecommunications:** Dish Wireless aims to be a fourth U.S. 5G carrier, competing with Verizon, AT&T, and T-Mobile.
--   **Technology:** Relies on advancements in satellite technology (e.g., LEO satellites) and 5G infrastructure.
-""")
-st.markdown("---")
-
-# --- Competitor Relationships ---
-st.header("5. Competitor Relationships")
-
-st.subheader("Direct Competitors")
-st.markdown("""
--   **Satellite TV/Broadband:** DirecTV (owned by AT&T), Viasat, Starlink (SpaceX).
--   **Wireless:** Verizon, AT&T, T-Mobile (for 5G ambitions).
--   **Streaming/Content:** Netflix, Hulu, YouTube TV, Disney+.
-""")
-
-st.subheader("Competitive Pressures")
-st.write("The company faces intense competitive pressures:")
-col_c1, col_c2 = st.columns([0.4, 0.6])
-with col_c1:
+def company_overview_content():
+    st.subheader("Company Overview")
     st.markdown("""
-    -   **Price Wars:** Streaming services undercut satellite TV pricing significantly.
-    -   **Technology Disruption:** Starlink’s LEO satellites threaten HughesNet’s geostationary broadband advantage with lower latency and higher speeds.
-    -   **Scale Disadvantages:** Larger telecoms have more resources for 5G deployment and market penetration.
+    AstraZeneca (AZN) is a global, science-led biopharmaceutical company focused on the discovery, development, manufacturing,
+    and commercialization of prescription medicines. Its primary therapeutic areas include **oncology, cardiovascular, renal & metabolism (CVRM),
+    respiratory & immunology, and rare diseases** (largely via the Alexion acquisition).
+
+    It is dual-listed (primary market exposure to Europe and the U.S.), reports in USD, and sells drugs globally through a mix of direct sales, partners, and collaborators.
+    Headquartered in Cambridge, UK. Key products include Tagrisso (oncology), Farxiga (diabetes/heart failure), and COVID-19 vaccine Vaxzevria.
     """)
-with col_c2:
-    chart_competitive = alt.Chart(competitive_data).mark_bar(color='#E58C4B').encode(
-        x=alt.X('Severity', type='quantitative', title='Estimated Severity (%)'),
-        y=alt.Y('Pressure', type='nominal', sort='-x', title='Competitive Pressure'),
-        tooltip=['Pressure', 'Severity']
+
+def financial_drivers_content():
+    st.subheader("Financial Drivers & Relationships")
+    st.markdown("""
+    AZN's financial performance is shaped by a complex interplay of internal and external factors:
+    - **Revenue Streams:** Primarily driven by sales of prescription drugs, with blockbuster drugs in oncology (e.g., Imfinzi, Tagrisso), CVRM (e.g., Farxiga), and respiratory (e.g., Symbicort) being key.
+    - **Cost of Goods Sold (COGS):** Manufacturing costs, raw materials, and packaging directly impact profitability.
+    - **Research & Development (R&D) Expenses:** A significant portion of expenditure dedicated to new drug discovery and development, crucial for future growth but a substantial ongoing cost.
+    - **Sales, General, and Administrative (SG&A) Expenses:** Encompasses marketing, sales force, and corporate overhead.
+    - **Gross Profit & Operating Profit Margins:** Indicators of pricing power and operational efficiency.
+    - **Net Profit & Earnings Per Share (EPS):** The bottom line for investor returns.
+    - **Debt Levels & Interest Expense:** Impact profitability and financial flexibility.
+    - **Cash Flow from Operations (CFO) & Free Cash Flow (FCF):** Essential for funding R&D, dividends, and acquisitions, and cash available for debt repayment or share buybacks.
+    - **Dividend Payout Ratio:** Important for income-seeking investors.
+    - **Capital Allocation:** Decisions on R&D, acquisitions, dividends, or share buybacks significantly influence financial trajectory.
+    """)
+
+    st.markdown("---")
+    st.markdown("#### Illustrative Financial Mix (Dummy Data)")
+    st.info("The charts below use *dummy data* to illustrate the conceptual proportions mentioned in the analysis, not actual AstraZeneca financial figures.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("##### Revenue Mix by Therapeutic Area")
+        revenue_data = {
+            'Therapeutic Area': ['Oncology', 'CVRM', 'Rare Diseases', 'Respiratory & Immunology', 'Other'],
+            'Revenue Share (%)': [40, 25, 15, 10, 10]
+        }
+        df_revenue = pd.DataFrame(revenue_data)
+
+        chart_revenue = alt.Chart(df_revenue).mark_arc(outerRadius=120).encode(
+            theta=alt.Theta(field="Revenue Share (%)", type="quantitative"),
+            color=alt.Color(field="Therapeutic Area", type="nominal", title="Area"),
+            order=alt.Order("Revenue Share (%)", sort="descending"),
+            tooltip=["Therapeutic Area", "Revenue Share (%)"]
+        ).properties(
+            title="Illustrative Revenue Mix"
+        )
+        st.altair_chart(chart_revenue, use_container_width=True)
+
+    with col2:
+        st.write("##### Illustrative Expense Allocation")
+        expense_data = {
+            'Expense Category': ['R&D', 'COGS', 'SG&A', 'Other Operating Expenses', 'Net Profit/Margin'],
+            'Share (%)': [20, 30, 25, 10, 15] # Illustrative, not actual AZN
+        }
+        df_expense = pd.DataFrame(expense_data)
+
+        chart_expense = alt.Chart(df_expense).mark_arc(outerRadius=120).encode(
+            theta=alt.Theta(field="Share (%)", type="quantitative"),
+            color=alt.Color(field="Expense Category", type="nominal", title="Category"),
+            order=alt.Order("Share (%)", sort="descending"),
+            tooltip=["Expense Category", "Share (%)"]
+        ).properties(
+            title="Illustrative Expense Allocation"
+        )
+        st.altair_chart(chart_expense, use_container_width=True)
+
+def therapeutic_assets_content():
+    st.subheader("Key Therapeutic Assets and their Strategic Roles")
+    st.markdown("""
+    AstraZeneca's portfolio is strategically diversified across high-growth and high-value therapeutic areas:
+    - **Oncology portfolio:** Core growth engine (immune-oncology agents, targeted therapies like Tagrisso, Imfinzi, Enhertu). Often command premium pricing but face intense competition and high trial-readout dependency.
+    - **CVRM/diabetes drugs:** Major growth area with expanding indications (heart failure, CKD) that drive durable sales across large patient populations (e.g., Farxiga).
+    - **Rare diseases (Alexion products):** High Average Selling Prices (ASPs), lower patient counts, but revenue stability while patents/exclusivity hold.
+    - **Respiratory & Immunology:** Symbicort and newer biologics.
+
+    Many of AstraZeneca’s major drugs are co-developed or marketed under collaboration agreements, shaping revenue recognition, margins, and future upside.
+    """)
+
+def relationships_content():
+    st.subheader("Market, Partner, and Sector Connections")
+
+    st.markdown("#### Market Dependencies")
+    st.markdown("""
+    - **Global Healthcare Demand:** Tied to population growth, aging demographics, and rising disposable incomes.
+    - **Reimbursement Policies & Payer Landscape:** Government and private health insurance policies, drug pricing regulations. Favorable policies are essential for market access.
+    - **Patent Expirations & Generic/Biosimilar Competition:** Can significantly erode revenue and profitability.
+    - **New Drug Launches & Product Pipeline Success:** Primary driver of growth; clinical trial failures impact future revenue.
+    - **Global Economic Conditions:** Pharmaceuticals are relatively recession-resistant, but downturns can impact healthcare spending.
+    - **Foreign Exchange Rates:** Fluctuations significantly affect reported financial results due to global operations.
+    """)
+
+    st.markdown("#### Partner, Collaborator, and Supply Relationships")
+    st.markdown("""
+    - **Co-development partners:** Alliances with companies like Daiichi Sankyo and Merck/MSD share clinical costs, development risk, and future revenue/royalty exposure.
+    - **Contract Manufacturers (CMOs):** Outsourcing portions of manufacturing depends on CMO relationships, quality inspections, and capacity.
+    - **Contract Research Organizations (CROs):** Clinical trials rely on CROs for execution; delays impact timelines and cash burn.
+    - **Payers and PBMs:** Influence formulary placement and net pricing in markets like the U.S. and Europe.
+    """)
+
+    st.markdown("#### Sector Connections")
+    st.markdown("""
+    - **Pharmaceutical & Biotechnology Industry:** Performance is intrinsically linked to broader industry trends.
+    - **Healthcare Services & Providers:** Demand for drugs is driven by needs of hospitals, clinics, and providers.
+    - **Medical Device Manufacturers:** Potential synergies or indirect competition.
+    - **Life Sciences & Research Institutions:** Collaboration and licensing agreements are crucial for early-stage discovery.
+    """)
+
+    st.markdown("---")
+    st.markdown("#### Illustrative R&D Pipeline Progression (Dummy Data)")
+    st.info("This chart uses *dummy data* to conceptually visualize the stages of drug development and the decreasing number of candidates as they progress through trials.")
+
+    pipeline_data = {
+        'Stage': ['Discovery/Pre-Clinical', 'Phase I', 'Phase II', 'Phase III', 'Regulatory Review', 'Marketed'],
+        'Number of Programs (Illustrative)': [100, 40, 20, 10, 5, 3] # Fictional numbers
+    }
+    df_pipeline = pd.DataFrame(pipeline_data)
+
+    chart_pipeline = alt.Chart(df_pipeline).mark_bar().encode(
+        x=alt.X('Number of Programs (Illustrative)', title='Number of Programs'),
+        y=alt.Y('Stage', sort='-x', title='Development Stage'),
+        tooltip=['Stage', 'Number of Programs (Illustrative)']
     ).properties(
-        title="Key Competitive Pressures"
+        title='Conceptual Drug Pipeline Progression'
     )
-    st.altair_chart(chart_competitive, use_container_width=True)
+    st.altair_chart(chart_pipeline, use_container_width=True)
 
+
+def competitor_landscape_content():
+    st.subheader("Competitor Landscape and Interactions")
+    st.markdown("""
+    AZN operates in a highly competitive landscape. Key competitors include:
+    - **Major Pharmaceutical Companies:** Pfizer, Roche, Novartis, Merck & Co., Bristol Myers Squibb, Eli Lilly, Sanofi, Johnson & Johnson, Takeda Pharmaceutical.
+    - **Biotechnology Companies:** Smaller, specialized biotech firms with innovative pipelines in specific therapeutic areas.
+    """)
+    st.markdown("#### Competitive Dynamics:")
+    st.markdown("""
+    - **Therapeutic Area Overlap:** Competitors often target the same disease areas, leading to direct competition for market share.
+    - **R&D Race:** Constant vying to be first to market with innovative treatments.
+    - **Pricing & Market Access:** Competition influences pricing strategies and ability to secure favorable market access.
+    - **Mergers & Acquisitions (M&A):** Industry is characterized by significant M&A activity to acquire assets or consolidate positions.
+    - **Biosimilar Competition:** Emergence of biosimilars intensifies competition as patents expire.
+    """)
+    st.markdown("#### Direct Competitors by Area (Examples):")
+    st.markdown("""
+    - **Oncology:** Merck (Keytruda), Bristol-Myers Squibb (Opdivo/Yervoy), Roche/Genentech (multiple oncology franchises).
+    - **CVRM/Diabetes:** Eli Lilly, Novo Nordisk (GLP-1 and other metabolic drugs), Boehringer Ingelheim / Lilly (SGLT2 competitor Jardiance/empagliflozin).
+    - **Rare diseases:** Sanofi, Roche and specialty biotechs.
+    """)
+
+
+def external_factors_content():
+    st.subheader("Regulatory, Economic & Macro Factors")
+
+    st.markdown("#### Regulatory, Reimbursement and Legal Dependencies")
+    st.markdown("""
+    - **Regulatory Approvals:** FDA/EMA/PMDA approvals, label expansions, and safety findings are binary catalysts.
+    - **Reimbursement Negotiations & Pricing Controls:** Determine net realized prices in major markets (U.S., EU, China, Japan, UK). Policy changes (e.g., U.S. Medicare negotiation) are material risk factors.
+    - **Patent Litigation & Exclusivity:** Outcomes of patent challenges affect future revenue streams.
+    - **Safety Events:** Black-box warnings or manufacturing compliance failures can trigger recalls and lost revenue.
+    """)
+
+    st.markdown("#### Macroeconomic and Market Dependencies")
+    st.markdown("""
+    - **Currency Exposure:** As a global company reporting in USD with material European and emerging-market revenue, FX movements (USD, GBP, EUR, CNY) change reported revenue and margins.
+    - **Interest Rates & Discount Rates:** Higher rates increase borrowing costs and discount applied to pipeline NPV, potentially reducing equity valuations.
+    - **Inflation & Input Costs:** Higher manufacturing, labor, and logistics costs compress margins unless offset by pricing power or higher sales volumes.
+    - **Geopolitical Stability:** Political instability can disrupt supply chains, impact regulatory processes, and affect market access.
+    - **Government Healthcare Policies & Regulations:** Changes in drug pricing regulations and intellectual property laws profoundly impact profitability.
+    - **Global GDP Growth:** Correlates with increased healthcare spending.
+    - **Trade Policies & Tariffs:** Affect the cost of importing raw materials or exporting finished goods.
+    """)
+
+def swot_content():
+    st.subheader("SWOT Summary")
+
+    # Create a DataFrame for SWOT for better presentation
+    swot_data = {
+        'Category': ['Strengths', 'Weaknesses', 'Opportunities', 'Threats'],
+        'Points': [
+            ["Leading oncology portfolio", "Robust pipeline", "Strong emerging market presence", "Strong R&D engine"],
+            ["Dependence on a few blockbuster drugs", "High R&D failure risk", "Pricing pressures", "High fixed R&D and SG&A"],
+            ["Expansion in rare diseases", "Digital health integration", "mRNA platform development", "Growing global healthcare demand"],
+            ["Drug pricing reforms (e.g., U.S. Medicare negotiation)", "Generic/biosimilar competition", "Clinical trial setbacks", "Patent expirations", "FX volatility"]
+        ]
+    }
+    df_swot = pd.DataFrame(swot_data)
+
+    st.table(df_swot.set_index('Category'))
+
+    st.markdown("---")
+    st.info("The SWOT analysis provides a qualitative overview of internal and external factors impacting AstraZeneca.")
+
+
+def metrics_risks_content():
+    st.subheader("Key Financial KPIs & Risks")
+
+    st.markdown("#### Financial KPIs and Metrics to Monitor")
+    st.markdown("""
+    - **% revenue by product** and top-5 product concentration (exposure risk).
+    - **Growth rates** of core franchises (oncology, CVRM, rare disease).
+    - **R&D expense** and R&D/sales ratio (productivity and burn).
+    - **Gross margin** and margin by geography/product (impact of royalties & partnerships).
+    - **Free cash flow** and operating cash conversion (ability to fund dividends, buybacks, or M&A).
+    - **Net debt/EBITDA** and interest coverage (balance sheet flexibility for acquisitions).
+    - **Pipeline milestones calendar:** Expected Phase III readouts, regulatory decision dates, and patent expiry cliffs.
+    - **Litigation and contingent liabilities** disclosures.
+    """)
+
+    st.markdown("#### Key Risks")
+    st.markdown("""
+    - **Clinical trial failures or safety issues** (binary downside events).
+    - **Pricing and reimbursement reforms** reducing realized prices for major drugs.
+    - **Patent expirations** and biosimilar/generic entry eroding revenue.
+    - **Partner disputes or failed collaborations** that reduce expected upside.
+    - **Manufacturing or supply-chain disruptions** that limit product availability.
+    - **FX volatility** and macroeconomic shocks reducing purchasing power and reimbursement generosity in key markets.
+    """)
+
+def investment_considerations_content():
+    st.subheader("Investment Considerations & Catalysts")
+
+    st.markdown("#### Investment Considerations")
+    st.markdown("""
+    - **Growth Catalysts:** Pipeline milestones (e.g., datopotamab deruxtecan in lung cancer), geographic expansion in Asia.
+    - **Risks:** Pipeline delays, adverse regulatory decisions, loss of exclusivity for key drugs post-2030.
+    - **Valuation:** Trades at a premium to some peers due to growth profile and pipeline potential. Metrics to watch: P/E relative to sector, EV/EBITDA, and free cash flow yield.
+    """)
+
+    st.markdown("#### Key Catalysts to Watch (Near-Term)")
+    st.markdown("""
+    - Upcoming **quarterly earnings** and management guidance.
+    - **Pipeline milestone calendar** (FDA/EMA submission/decision dates, Phase III readouts).
+    - Major **competitor trial readouts** (head-to-head or competing mechanisms).
+    - **Regulatory and HTA decisions** in the U.S., UK (NICE), EU and China.
+    - **Currency moves** and macro data affecting revenue recognition and margins.
+    - **M&A announcements** (bolt-on acquisitions to fill pipeline gaps) and strategic partnerships.
+    - **Policy developments** (U.S. drug pricing legislation, EU price referencing decisions).
+    """)
+
+def conclusion_content():
+    st.subheader("Conclusion: Net of Everything")
+    st.markdown("""
+    AstraZeneca’s stock is driven by a combination of:
+    1.  The performance of a **concentrated set of high-value drugs** (oncology and CVRM are primary).
+    2.  The success of a **high-investment R&D engine** and its pipeline readouts.
+    3.  The outcomes of **partnership agreements** and royalty structures.
+    4.  **Regulatory and reimbursement developments** in large markets.
+    5.  **Macro factors** (FX, interest rates, supply chain).
+
+    **Upside** comes from successful trial outcomes, label expansions, and favorable reimbursement.
+    **Downside** can be abrupt from trial failures, patent loss, or policy-driven price reductions.
+
+    Effective analysis requires product-level forecasting, careful tracking of partner economics, and monitoring of regulatory/policy calendars.
+    AZN is a well-diversified biopharma leader with a strong oncology focus and a promising pipeline. Its financial health is robust, but it faces
+    sector-wide challenges like pricing pressures and R&D risks.
+    """)
+
+# --- Main App Structure ---
+st.title("💊 AstraZeneca (AZN) Financial Ecosystem Analysis")
 st.markdown("---")
 
-# --- Economic Factors ---
-st.header("6. Economic Factors")
-st.markdown("""
--   **Macroeconomic Sensitivity:** Subscription services are somewhat recession-resistant but may see churn if consumers cut discretionary spending.
--   **Interest Rates:** High debt makes SATS vulnerable to rising rates, increasing interest expenses and refinancing risks.
--   **Inflation:** Increases costs for equipment, satellite launches, and labor, potentially squeezing margins if not passed to customers.
--   **Global Supply Chains:** Disruptions can delay satellite components or consumer equipment (e.g., set-top boxes, routers).
-""")
-st.markdown("---")
-
-# --- SWOT Analysis ---
-st.header("7. SWOT Analysis")
-
-st.markdown("""
-<style>
-.swot-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
+# Sidebar for navigation
+st.sidebar.header("Navigation")
+sections = {
+    "Introduction": intro_content,
+    "Company Overview": company_overview_content,
+    "Financial Drivers & Relationships": financial_drivers_content,
+    "Key Therapeutic Assets": therapeutic_assets_content,
+    "Market, Partner & Sector Connections": relationships_content,
+    "Competitor Landscape": competitor_landscape_content,
+    "Regulatory, Economic & Macro Factors": external_factors_content,
+    "SWOT Summary": swot_content,
+    "Key Financial KPIs & Risks": metrics_risks_content,
+    "Investment Considerations & Catalysts": investment_considerations_content,
+    "Conclusion": conclusion_content,
 }
-.swot-table th, .swot-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    vertical-align: top;
-}
-.swot-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-.swot-strength { background-color: #d4edda; } /* Greenish */
-.swot-weakness { background-color: #f8d7da; } /* Reddish */
-.swot-opportunity { background-color: #cfe2ff; } /* Bluish */
-.swot-threat { background-color: #fff3cd; } /* Yellowish */
-</style>
 
-<table class="swot-table">
-    <thead>
-        <tr>
-            <th>Category</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr class="swot-strength">
-            <td><strong>Strengths</strong></td>
-            <td>
-                <ul>
-                    <li>Extensive satellite fleet and spectrum portfolio.</li>
-                    <li>Nationwide 5G network potential.</li>
-                    <li>Strong brand recognition in satellite TV.</li>
-                </ul>
-            </td>
-        </tr>
-        <tr class="swot-weakness">
-            <td><strong>Weaknesses</strong></td>
-            <td>
-                <ul>
-                    <li>Declining satellite TV subscribers.</li>
-                    <li>High debt and negative earnings.</li>
-                    <li>Execution risks in 5G rollout.</li>
-                </ul>
-            </td>
-        </tr>
-        <tr class="swot-opportunity">
-            <td><strong>Opportunities</strong></td>
-            <td>
-                <ul>
-                    <li>Rural broadband expansion with government subsidies.</li>
-                    <li>5G network leasing to other carriers (e.g., Amazon, AT&T).</li>
-                    <li>IoT and enterprise satellite services.</li>
-                </ul>
-            </td>
-        </tr>
-        <tr class="swot-threat">
-            <td><strong>Threats</strong></td>
-            <td>
-                <ul>
-                    <li>Intense competition from Starlink and fiber broadband.</li>
-                    <li>Regulatory hurdles for 5G/satellite integration.</li>
-                    <li>Technological obsolescence of geostationary satellites.</li>
-                </ul>
-            </td>
-        </tr>
-    </tbody>
-</table>
-""", unsafe_allow_html=True)
+# Display sidebar navigation links
+for section_title, _ in sections.items():
+    # Use st.markdown with an anchor tag to create clickable links for scrolling
+    st.sidebar.markdown(f"[{section_title}](#{section_title.lower().replace(' ', '-')})")
+
+st.write("Scroll down or use the sidebar for detailed sections.")
 st.markdown("---")
 
-# --- Investment Considerations ---
-st.header("8. Investment Considerations")
-st.markdown("""
--   **Bull Case:** Successful 5G monetization, rural broadband growth, and debt reduction could drive upside.
--   **Bear Case:** Prolonged satellite declines, 5G delays, or liquidity issues may lead to further stock volatility or restructuring.
--   **Valuation:** Currently trades at low revenue multiples due to uncertainties; key metrics to watch include subscriber trends, 5G coverage milestones, and EBITDA margins.
-""")
+# Main content display
+st.container()
+with st.container():
+    st.markdown("<a name='introduction'></a>", unsafe_allow_html=True)
+    intro_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='company-overview'></a>", unsafe_allow_html=True)
+    company_overview_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='financial-drivers-&-relationships'></a>", unsafe_allow_html=True)
+    financial_drivers_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='key-therapeutic-assets'></a>", unsafe_allow_html=True)
+    therapeutic_assets_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='market,-partner-&-sector-connections'></a>", unsafe_allow_html=True)
+    relationships_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='competitor-landscape'></a>", unsafe_allow_html=True)
+    competitor_landscape_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='regulatory,-economic-&-macro-factors'></a>", unsafe_allow_html=True)
+    external_factors_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='swot-summary'></a>", unsafe_allow_html=True)
+    swot_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='key-financial-kpis-&-risks'></a>", unsafe_allow_html=True)
+    metrics_risks_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='investment-considerations-&-catalysts'></a>", unsafe_allow_html=True)
+    investment_considerations_content()
+    st.markdown("---")
+
+st.container()
+with st.container():
+    st.markdown("<a name='conclusion'></a>", unsafe_allow_html=True)
+    conclusion_content()
+    st.markdown("---")
+
+
+# Footer
 st.markdown("---")
-
-# --- Conclusion ---
-st.header("Conclusion")
-st.markdown("""
-EchoStar (SATS) operates in a rapidly evolving ecosystem where its legacy satellite business is challenged, but its 5G and broadband initiatives offer potential transformation. Investors must monitor execution on 5G, competitive threats from Starlink, and debt management. The stock is speculative, suited for those with high risk tolerance and a long-term view on telecom convergence.
-
-*Note: This analysis is based on public information as of early 2024. Always conduct updated due diligence before investment decisions.*
-""")
+st.markdown("##### *Disclaimer: This analysis is based on provided text and uses illustrative dummy data for charts. It is not financial advice.*")
