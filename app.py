@@ -40,8 +40,8 @@ if generate:
                 st.error(f"Could not start analysis: {e}")
                 st.stop()
 
-            # Wait up to 120 seconds for latest.md to change
-            max_wait_seconds = 120
+            # Wait up to 300 seconds for latest.md to change
+            max_wait_seconds = 300
             interval_seconds = 2
             steps = max_wait_seconds // interval_seconds
 
