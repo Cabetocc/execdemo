@@ -66,295 +66,257 @@ if generate:
 
 
 import pandas as pd
-import plotly.express as px
+import altair as alt
 
-# Set Streamlit page configuration
-st.set_page_config(
-    page_title="MSFT Financial Ecosystem Analysis",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# --- Configuration ---
+st.set_page_config(layout="wide", page_title="EchoStar (SATS) Financial Analysis")
 
-# --- Data for Visualizations (Hardcoded based on the analysis text) ---
+# --- Data Extraction (Simulated/Qualitative for Charts) ---
+# Since the analysis is descriptive, we create qualitative data points
+# to illustrate the relative importance or impact mentioned in the text.
 
-# 1. Cloud Market Share (estimated for MSFT based on common knowledge/reports)
-# AWS (31%), Google Cloud (11%) from text. MSFT Azure is commonly estimated around 20-25%. Let's use 23%.
-# Others: 100 - 31 - 23 - 11 = 35%
-cloud_market_data = {
-    'Provider': ['AWS', 'Microsoft Azure', 'Google Cloud', 'Others'],
-    'Share (%)': [31, 23, 11, 35]
-}
-df_cloud_market = pd.DataFrame(cloud_market_data)
+# Qualitative data for Revenue Streams
+revenue_data = pd.DataFrame({
+    'Stream': ['Subscription Services (TV & Broadband)', 'Equipment Sales', 'Satellite Leasing'],
+    'Contribution': [70, 15, 15] # Arbitrary percentages based on text description
+})
 
-# 2. Revenue Segment Breakdown (FY23, based on Intelligent Cloud 42% and estimates for others)
-# Intelligent Cloud (42%) from text. PBP and MPC are estimated to sum to 58%.
-# Based on typical MSFT reporting, PBP is usually larger than MPC.
-# PBP ~32%, MPC ~26% (these sum to 58%)
-revenue_segments_data = {
-    'Segment': ['Intelligent Cloud', 'Productivity & Business Processes', 'More Personal Computing'],
-    'Revenue Share (%)': [42, 32, 26]
-}
-df_revenue_segments = pd.DataFrame(revenue_segments_data)
+# Qualitative data for Profitability Challenges
+profitability_data = pd.DataFrame({
+    'Challenge': ['High Capital Expenditures', 'Debt Burden', 'Operational Costs'],
+    'Impact': [50, 40, 10] # Arbitrary percentages for impact severity
+})
 
-# 3. Profitability Margins (from text)
-margins_data = {
-    'Metric': ['Operating Margin', 'Net Margin'],
-    'Value (%)': [44, 36]
-}
-df_margins = pd.DataFrame(margins_data)
-
-# 4. Capital Allocation (from text, 'Billion USD')
-capital_allocation_data = {
-    'Item': ['Annual Share Repurchases', 'Annual Data Center CapEx', 'OpenAI Investment'],
-    'Value (Billion USD)': [60, 50, 13] # Share repurchases $60B+, CapEx $50B+, OpenAI $13B
-}
-df_capital_allocation = pd.DataFrame(capital_allocation_data)
-
-# --- Helper function for section headers ---
-def section_header(title, level=2):
-    if level == 1:
-        st.header(title)
-    elif level == 2:
-        st.subheader(title)
-    elif level == 3:
-        st.markdown(f"#### {title}")
-    else:
-        st.markdown(f"##### {title}")
+# Qualitative data for Competitive Pressures
+competitive_data = pd.DataFrame({
+    'Pressure': ['Price Wars (Streaming)', 'Technology Disruption (Starlink)', 'Scale Disadvantages (Larger Telecoms)'],
+    'Severity': [45, 40, 15] # Arbitrary percentages for severity
+})
 
 # --- Streamlit App ---
 
-st.title("📊 Microsoft Corporation (MSFT) Financial Ecosystem Analysis")
+st.title("📡 EchoStar Corporation (SATS) Financial Ecosystem Analysis")
+st.markdown("---")
 
-st.markdown("""
-This application provides an interactive analysis and visualization of Microsoft Corporation's (MSFT) financial ecosystem,
-drawing insights from a comprehensive financial overview.
+st.info("""
+This interactive analysis is based on a comprehensive financial assessment of EchoStar Corporation (SATS), 
+which completed its merger with Dish Network in December 2023. 
+It covers key financial relationships, market dependencies, competitive landscape, and economic factors.
 """)
 
-st.sidebar.header("Navigation & Quick Overview")
+# --- Company Overview ---
+st.header("1. Company Overview")
+st.markdown("""
+- **Full Name:** EchoStar Corporation (post-merger with Dish Network, completed in December 2023).
+- **Business Model:** Provides satellite communication, broadband, and streaming services globally. Operates through segments like Hughes (satellite broadband), EchoStar Satellite Services (satellite capacity), and Dish Wireless (5G network).
+- **Key Products/Services:** Satellite TV (Dish Network), satellite broadband (HughesNet), satellite capacity leasing, and a nascent 5G wireless network (Dish Wireless).
+- **Market Position:** A major player in satellite communications but faces intense competition from cable, fiber, and streaming services.
+""")
 
-# --- Key Metrics in Sidebar ---
-st.sidebar.markdown("---")
-st.sidebar.markdown("**Quick Metrics (from Analysis):**")
-st.sidebar.metric("Azure Cloud Growth", "≈30% YoY")
-st.sidebar.metric("Intelligent Cloud Rev Share", "42%")
-st.sidebar.metric("Operating Margin", "44%")
-st.sidebar.metric("Net Margin", "36%")
-st.sidebar.metric("Cash & Equivalents", "$111 Billion")
-st.sidebar.metric("Annual Share Buybacks", "$60 Billion+")
-st.sidebar.metric("P/E Valuation", "~35x")
-st.sidebar.markdown("---")
+st.markdown("---")
 
+# --- Key Financial Relationships ---
+st.header("2. Key Financial Relationships")
 
-# --- Main Content Area ---
-
-# 1. Key Financial Overview & Metrics Dashboard
-section_header("1. Key Financial Overview & Metrics Dashboard", level=2)
-
-col1, col2, col3 = st.columns(3)
+st.subheader("Revenue Streams")
+st.write("EchoStar's primary revenue sources and their estimated contribution:")
+col1, col2 = st.columns([0.6, 0.4])
 with col1:
-    st.metric("Azure Cloud Growth", "≈30% YoY", "Dominant growth driver")
-    st.metric("Operating Margin", "44%", "Industry-leading profitability")
-    st.metric("Windows OS Market Share", "75%", "PC market dominance")
-
+    st.dataframe(revenue_data.set_index('Stream'))
 with col2:
-    st.metric("Intelligent Cloud Rev Share", "42% of FY23 Revenue", "Largest segment")
-    st.metric("Net Margin", "36%", "Strong bottom-line performance")
-    st.metric("Total Cloud Market Size", "$270 Billion", "Significant opportunity")
+    chart_revenue = alt.Chart(revenue_data).mark_arc(outerRadius=120).encode(
+        theta=alt.Theta(field="Contribution", type="quantitative"),
+        color=alt.Color(field="Stream", type="nominal", title="Revenue Stream"),
+        order=alt.Order(field="Contribution", sort="descending"),
+        tooltip=["Stream", alt.Tooltip("Contribution", format=".1f", title="Contribution (%)")]
+    ).properties(
+        title="Estimated Revenue Contribution"
+    )
+    st.altair_chart(chart_revenue, use_container_width=True)
+st.write("") # Add some space
 
-with col3:
-    st.metric("Cash & Equivalents", "$111 Billion", "Robust balance sheet")
-    st.metric("Annual Share Buybacks", "$60 Billion+", "Significant capital return")
-    st.metric("Gaming Market Size", "$200 Billion", "Key growth area")
-
-st.markdown("---")
-
-# 2. Key Financial Relationships (Internal to MSFT)
-section_header("2. Key Financial Relationships (Internal to MSFT)", level=2)
-st.markdown("""
-Microsoft's financial health and performance are driven by the interplay of its various business segments.
-""")
-
-with st.expander("Cloud Services (Azure & Microsoft 365) as the Growth Engine"):
-    st.write("""
-    Azure's growth directly fuels Microsoft 365 adoption, and vice-versa, creating a powerful sticky ecosystem.
-    Significant portions of revenue are reinvested into R&D. While cloud infrastructure (Azure) has significant capital expenditure,
-    the subscription-based model of Microsoft 365 offers strong and predictable recurring revenue with high gross margins.
-    """)
-    fig_revenue_segments = px.pie(df_revenue_segments, values='Revenue Share (%)', names='Segment',
-                                  title='FY23 Revenue Segment Breakdown',
-                                  color_discrete_sequence=px.colors.qualitative.Pastel)
-    st.plotly_chart(fig_revenue_segments, use_container_width=True)
-
-with st.expander("Gaming (Xbox) and its Ecosystem"):
-    st.write("""
-    Xbox console sales are a driver, but the true financial strength lies in recurring revenue from Game Pass subscriptions,
-    game sales (digital and physical), and in-game purchases. Microsoft's significant investments in acquiring gaming studios
-    (e.g., Activision Blizzard) aim to bolster exclusive content for Game Pass, thereby increasing subscriber retention.
-    """)
-
-with st.expander("LinkedIn and its Monetization"):
-    st.write("""
-    LinkedIn generates revenue through premium subscriptions for professionals and recruiters, as well as advertising.
-    The vast professional data provides valuable insights that can be leveraged across other Microsoft products and services.
-    """)
-
-with st.expander("Windows & Devices (Surface)"):
-    st.write("""
-    While Windows licensing remains a significant revenue source, the revenue from Surface devices offers a more direct hardware play.
-    The success of Surface devices is tied to seamless integration with Windows and Microsoft 365, reinforcing the company's ecosystem.
-    """)
-
-with st.expander("Search & Advertising (Bing)"):
-    st.write("""
-    Primarily driven by search advertising, competing with Google. The integration of advanced AI models (like those powering Copilot)
-    into Bing is a strategic move to enhance its search capabilities and attract more users, thereby increasing advertising inventory.
-    """)
-
-with st.expander("Inter-segment Synergies and Cost Efficiencies"):
-    st.write("""
-    Microsoft leverages its massive infrastructure and R&D across segments. For example, AI advancements benefit Azure, Bing,
-    Microsoft 365, and even gaming. Shared sales teams and marketing efforts can lead to cost efficiencies.
-    """)
-
-st.markdown("---")
-
-# 3. Market Dependencies
-section_header("3. Market Dependencies", level=2)
-st.write("""
-MSFT's stock performance is influenced by a variety of market forces:
-- **Digital Transformation Spending:** As businesses globally continue to invest in digital transformation, cloud adoption,
-  and AI integration, MSFT is a primary beneficiary.
-- **Enterprise IT Budgets:** A significant portion of MSFT's revenue comes from enterprise clients. Fluctuations in enterprise
-  IT spending, driven by economic conditions, directly affect MSFT.
-- **Consumer Spending (Gaming & Devices):** For the Xbox and Surface segments, consumer discretionary spending plays a role.
-- **Advertising Market:** The performance of Bing and LinkedIn's advertising businesses is tied to the overall health of the digital advertising market.
-- **Talent Market:** The availability and cost of skilled tech talent are crucial for MSFT's innovation and growth.
-- **Geopolitical Factors:** As a global company, MSFT is exposed to trade wars, sanctions, and regional conflicts.
-""")
-st.markdown("---")
-
-# 4. Sector Connections
-section_header("4. Sector Connections", level=2)
-st.write("""
-Microsoft operates at the intersection of several critical technology sectors:
-- **Cloud Computing:** Azure is a direct competitor in the IaaS, PaaS, and SaaS markets.
-- **Software & Productivity Suites:** Microsoft 365 is a leader in the productivity software market.
-- **Hardware & Devices:** The Surface line connects MSFT to the PC and tablet hardware market.
-- **Gaming:** Xbox places MSFT in the video game industry.
-- **Artificial Intelligence (AI):** This is a foundational technology for MSFT, impacting all segments.
-- **Business Networking & Professional Services:** LinkedIn connects MSFT to the professional networking and talent management space.
-""")
-
-st.subheader("Cloud Computing Market Landscape")
-fig_cloud_market = px.bar(df_cloud_market, x='Provider', y='Share (%)',
-                          title='Estimated Global Cloud Infrastructure Market Share',
-                          color='Provider',
-                          color_discrete_map={'AWS': 'orange', 'Microsoft Azure': 'blue', 'Google Cloud': 'green', 'Others': 'lightgrey'})
-fig_cloud_market.update_layout(xaxis_title="Cloud Provider", yaxis_title="Market Share (%)")
-st.plotly_chart(fig_cloud_market, use_container_width=True)
-
-st.markdown("---")
-
-# 5. Competitor Relationships
-section_header("5. Competitor Relationships", level=2)
-st.write("""
-MSFT faces intense competition across its diverse product lines:
-- **Direct Cloud Competitors:** Amazon (AWS) and Google (GCP) are its fiercest rivals in the public cloud market.
-- **Productivity & Collaboration:** Google Workspace is the primary competitor to Microsoft 365.
-- **Gaming:** Sony (PlayStation) is the main competitor in the console gaming market.
-- **Operating Systems:** While Windows dominates the PC market, Apple (macOS) is a significant competitor in the premium segment.
-- **Search & Advertising:** Google Search is the dominant player, making Bing's battle for market share a constant challenge.
-- **CRM & Enterprise Software:** Salesforce is a major competitor in the customer relationship management.
-- **Hardware:** Apple is a direct competitor with its Surface line, especially in premium laptops and tablets.
-""")
-st.markdown("---")
-
-# 6. Economic Factors Impacting MSFT
-section_header("6. Economic Factors Impacting MSFT", level=2)
-st.write("""
-Numerous macroeconomic factors influence Microsoft's financial performance:
-- **Interest Rates:** Higher interest rates can increase the cost of capital for MSFT's investments and impact tech stock valuations.
-- **Inflation:** Can impact the cost of components and operating costs. MSFT's subscription-based models often have mechanisms to adjust.
-- **GDP Growth:** Global economic growth is a strong indicator of enterprise IT spending and demand for MSFT's services.
-- **Currency Fluctuations:** As a global company, MSFT's reported earnings are affected by exchange rates.
-- **Technological Disruption & Innovation Pace:** Rapid advancements from competitors or new paradigms can disrupt markets.
-- **Regulatory Environment:** Increased scrutiny on Big Tech can lead to compliance costs, fines, or business restrictions.
-- **Supply Chain Stability:** Disruptions can affect production and availability of Surface devices and hardware components.
-""")
-st.markdown("---")
-
-# 7. Capital Allocation & Investment Profile
-section_header("7. Capital Allocation & Investment Profile", level=2)
-
-col_alloc1, col_alloc2 = st.columns(2)
-
-with col_alloc1:
-    st.markdown("#### Profitability Highlights")
-    fig_margins = px.bar(df_margins, x='Metric', y='Value (%)',
-                         title='Key Profitability Margins',
-                         color='Metric',
-                         color_discrete_sequence=['darkblue', 'teal'])
-    fig_margins.update_yaxes(range=[0, 50])
-    st.plotly_chart(fig_margins, use_container_width=True)
-
-with col_alloc2:
-    st.markdown("#### Strategic Investments & Returns")
-    # New chart for Capital Allocation
-    fig_capital_alloc = px.bar(df_capital_allocation, x='Item', y='Value (Billion USD)',
-                               title='Key Capital Allocations (Billion USD)',
-                               color='Item',
-                               color_discrete_sequence=px.colors.qualitative.Dark24)
-    fig_capital_alloc.update_yaxes(title="Value (Billion USD)")
-    st.plotly_chart(fig_capital_alloc, use_container_width=True)
-
-st.markdown("---")
-
-# 8. Summary of MSFT's Financial Ecosystem
-section_header("8. Summary of MSFT's Financial Ecosystem", level=2)
-st.markdown("""
-Microsoft's financial ecosystem is characterized by:
-*   **Dominant Cloud and Productivity Pillars:** Azure and Microsoft 365 form the bedrock of its recurring revenue and future growth, creating a strong "sticky" ecosystem.
-*   **Diversification as a Strength:** Its presence in gaming, business networking, search, and hardware provides multiple avenues for revenue and market penetration.
-*   **Interconnected Segments:** The company strategically leverages its technologies (especially AI) and customer bases across different business units, creating synergies.
-*   **Intense Competitive Landscape:** MSFT operates in highly competitive markets, constantly needing to innovate and adapt to rivals like Amazon, Google, and Apple.
-*   **Sensitivity to Digital Transformation Trends:** Its fortunes are closely tied to the ongoing digital transformation of businesses worldwide.
-*   **Exposure to Global Economic and Regulatory Forces:** Like any multinational corporation, MSFT is subject to macroeconomic shifts and evolving regulatory frameworks.
-
-In conclusion, MSFT's financial health is robust, driven by its dominant position in cloud computing and productivity software,
-a strong recurring revenue model, and strategic investments in future growth areas like AI and gaming.
-However, its continued success hinges on its ability to navigate intense competition, adapt to technological shifts,
-and manage the complexities of the global economic and regulatory environment.
-""")
-
-st.markdown("---")
-
-# 9. Future Catalysts & Risks
-section_header("9. Future Catalysts & Risks", level=2)
-
-col_cat, col_risk = st.columns(2)
-
-with col_cat:
-    st.markdown("### Future Catalysts")
+st.subheader("Profitability Challenges")
+st.write("The company faces significant pressures on its profitability due to:")
+col_p1, col_p2 = st.columns(2)
+with col_p1:
     st.markdown("""
-    - **Continued strong Azure and cloud services growth** (accelerates top-line and increases enterprise stickiness).
-    - **Successful monetization of AI products** (Copilot, Azure AI services) raising ARPU and margins.
-    - **Xbox/Game Pass growth** and integration of Activision content driving recurring gaming revenue.
-    - **Expansion into new vertical cloud offerings** and industry-specific solutions (healthcare, financial services).
-    - **Continued share buybacks and steady dividend increases** boosting EPS.
+    - **High Capital Expenditures:** Extensive investments in satellite launches and 5G network rollout.
+    - **Debt Burden:** Over **$20 billion** in long-term debt post-merger, leading to substantial interest expenses.
+    - **Operational Costs:** Managing a vast satellite and ground infrastructure.
     """)
+with col_p2:
+    st.metric(label="Long-term Debt Burden", value="$20+ Billion", delta="High Impact on Profitability", delta_color="inverse")
+    chart_profitability = alt.Chart(profitability_data).mark_bar(color='#B76E79').encode(
+        x=alt.X('Impact', type='quantitative', title='Estimated Impact (%)'),
+        y=alt.Y('Challenge', type='nominal', sort='-x', title='Challenge'),
+        tooltip=['Challenge', 'Impact']
+    ).properties(
+        title="Major Profitability Challenges"
+    )
+    st.altair_chart(chart_profitability, use_container_width=True)
 
-with col_risk:
-    st.markdown("### Key Risks")
+st.subheader("Cash Flow & Balance Sheet")
+st.markdown("""
+- **Cash Flow:** Operations generate cash, but heavy investments in spectrum and 5G infrastructure lead to negative free cash flow.
+- **Balance Sheet:** Highly leveraged with significant intangible assets (spectrum licenses) from past acquisitions. Liquidity is managed through revolving credit facilities and potential asset sales.
+""")
+st.markdown("---")
+
+# --- Market Dependencies ---
+st.header("3. Market Dependencies")
+st.markdown("""
+EchoStar's performance is heavily influenced by:
+-   **Consumer Demand:** Relies on subscription growth for TV and broadband, facing secular declines due to cord-cutting and competition.
+-   **Regulatory Environment:** Heavily influenced by FCC policies on spectrum allocation, satellite licensing, and broadband subsidies (e.g., Rural Digital Opportunity Fund).
+-   **Technology Shifts:** Dependent on successful deployment of its 5G network to offset satellite declines.
+-   **Capital Markets:** Access to financing is critical given high debt levels; stock performance is sensitive to interest rate changes and investor sentiment.
+""")
+st.markdown("---")
+
+# --- Sector Connections ---
+st.header("4. Sector Connections")
+st.markdown("""
+EchoStar operates at the intersection of several key sectors:
+-   **Satellite Communications:** Part of the broader telecom sector, facing trends like consolidation and demand for rural broadband/IoT services.
+-   **Media & Entertainment:** Satellite TV competes with streaming (Netflix, Disney+) and traditional cable; content partnerships affect costs.
+-   **Wireless Telecommunications:** Dish Wireless aims to be a fourth U.S. 5G carrier, competing with Verizon, AT&T, and T-Mobile.
+-   **Technology:** Relies on advancements in satellite technology (e.g., LEO satellites) and 5G infrastructure.
+""")
+st.markdown("---")
+
+# --- Competitor Relationships ---
+st.header("5. Competitor Relationships")
+
+st.subheader("Direct Competitors")
+st.markdown("""
+-   **Satellite TV/Broadband:** DirecTV (owned by AT&T), Viasat, Starlink (SpaceX).
+-   **Wireless:** Verizon, AT&T, T-Mobile (for 5G ambitions).
+-   **Streaming/Content:** Netflix, Hulu, YouTube TV, Disney+.
+""")
+
+st.subheader("Competitive Pressures")
+st.write("The company faces intense competitive pressures:")
+col_c1, col_c2 = st.columns([0.4, 0.6])
+with col_c1:
     st.markdown("""
-    - **Intense price competition in cloud** leading to margin compression (AWS and GCP competitive dynamics).
-    - **Dependence on NVIDIA and other chip suppliers** for AI workloads — supply constraint or price spikes could increase costs.
-    - **Regulatory/legal outcomes** (antitrust challenges, privacy fines, acquisition approvals/blocks) could limit strategic moves or create remediation costs.
-    - **Slowing enterprise IT spend** or macro recession curbing cloud adoption.
-    - **Integration risk from large acquisitions** (execution and culture risks) and the high cost of content for gaming.
+    -   **Price Wars:** Streaming services undercut satellite TV pricing significantly.
+    -   **Technology Disruption:** Starlink’s LEO satellites threaten HughesNet’s geostationary broadband advantage with lower latency and higher speeds.
+    -   **Scale Disadvantages:** Larger telecoms have more resources for 5G deployment and market penetration.
     """)
+with col_c2:
+    chart_competitive = alt.Chart(competitive_data).mark_bar(color='#E58C4B').encode(
+        x=alt.X('Severity', type='quantitative', title='Estimated Severity (%)'),
+        y=alt.Y('Pressure', type='nominal', sort='-x', title='Competitive Pressure'),
+        tooltip=['Pressure', 'Severity']
+    ).properties(
+        title="Key Competitive Pressures"
+    )
+    st.altair_chart(chart_competitive, use_container_width=True)
 
 st.markdown("---")
 
-# Final Note
-st.info("This analysis is based on the provided text and publicly available general knowledge about Microsoft. Specific financial figures and estimations are illustrative based on the document's content and general market understanding.")
+# --- Economic Factors ---
+st.header("6. Economic Factors")
+st.markdown("""
+-   **Macroeconomic Sensitivity:** Subscription services are somewhat recession-resistant but may see churn if consumers cut discretionary spending.
+-   **Interest Rates:** High debt makes SATS vulnerable to rising rates, increasing interest expenses and refinancing risks.
+-   **Inflation:** Increases costs for equipment, satellite launches, and labor, potentially squeezing margins if not passed to customers.
+-   **Global Supply Chains:** Disruptions can delay satellite components or consumer equipment (e.g., set-top boxes, routers).
+""")
+st.markdown("---")
+
+# --- SWOT Analysis ---
+st.header("7. SWOT Analysis")
+
+st.markdown("""
+<style>
+.swot-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+.swot-table th, .swot-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;
+}
+.swot-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.swot-strength { background-color: #d4edda; } /* Greenish */
+.swot-weakness { background-color: #f8d7da; } /* Reddish */
+.swot-opportunity { background-color: #cfe2ff; } /* Bluish */
+.swot-threat { background-color: #fff3cd; } /* Yellowish */
+</style>
+
+<table class="swot-table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="swot-strength">
+            <td><strong>Strengths</strong></td>
+            <td>
+                <ul>
+                    <li>Extensive satellite fleet and spectrum portfolio.</li>
+                    <li>Nationwide 5G network potential.</li>
+                    <li>Strong brand recognition in satellite TV.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr class="swot-weakness">
+            <td><strong>Weaknesses</strong></td>
+            <td>
+                <ul>
+                    <li>Declining satellite TV subscribers.</li>
+                    <li>High debt and negative earnings.</li>
+                    <li>Execution risks in 5G rollout.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr class="swot-opportunity">
+            <td><strong>Opportunities</strong></td>
+            <td>
+                <ul>
+                    <li>Rural broadband expansion with government subsidies.</li>
+                    <li>5G network leasing to other carriers (e.g., Amazon, AT&T).</li>
+                    <li>IoT and enterprise satellite services.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr class="swot-threat">
+            <td><strong>Threats</strong></td>
+            <td>
+                <ul>
+                    <li>Intense competition from Starlink and fiber broadband.</li>
+                    <li>Regulatory hurdles for 5G/satellite integration.</li>
+                    <li>Technological obsolescence of geostationary satellites.</li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
+</table>
+""", unsafe_allow_html=True)
+st.markdown("---")
+
+# --- Investment Considerations ---
+st.header("8. Investment Considerations")
+st.markdown("""
+-   **Bull Case:** Successful 5G monetization, rural broadband growth, and debt reduction could drive upside.
+-   **Bear Case:** Prolonged satellite declines, 5G delays, or liquidity issues may lead to further stock volatility or restructuring.
+-   **Valuation:** Currently trades at low revenue multiples due to uncertainties; key metrics to watch include subscriber trends, 5G coverage milestones, and EBITDA margins.
+""")
+st.markdown("---")
+
+# --- Conclusion ---
+st.header("Conclusion")
+st.markdown("""
+EchoStar (SATS) operates in a rapidly evolving ecosystem where its legacy satellite business is challenged, but its 5G and broadband initiatives offer potential transformation. Investors must monitor execution on 5G, competitive threats from Starlink, and debt management. The stock is speculative, suited for those with high risk tolerance and a long-term view on telecom convergence.
+
+*Note: This analysis is based on public information as of early 2024. Always conduct updated due diligence before investment decisions.*
+""")
