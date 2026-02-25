@@ -19,421 +19,363 @@ if generate:
 
 
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.graph_objects as go
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Microsoft (MSFT) Financial Ecosystem Analysis",
+    page_title="IBM Financial Ecosystem Analysis",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# --- Data and Text ---
-# This data is illustrative and not real-time. In a real app, this would come from APIs.
-# For demonstration, we'll use placeholder values based on the provided analysis.
+# --- Helper Functions ---
+def format_currency(value):
+    if pd.isna(value):
+        return "N/A"
+    try:
+        return f"${value:,.0f}"
+    except (ValueError, TypeError):
+        return str(value)
 
-# Key Metrics (Illustrative)
-key_metrics_data = {
-    "Metric": [
-        "Intelligent Cloud Revenue (TTM)",
-        "Productivity & Business Processes Revenue (TTM)",
-        "More Personal Computing Revenue (TTM)",
-        "Commercial Cloud ARR Growth",
-        "Gross Margin",
-        "Operating Margin",
-        "Free Cash Flow (TTM)",
-        "R&D Expense (TTM)",
-        "Capital Expenditures (TTM)",
-    ],
-    "Value": [
-        "$85.0B",
-        "$70.0B",
-        "$55.0B",
-        "20%",
-        "68%",
-        "42%",
-        "$75.0B",
-        "$25.0B",
-        "$20.0B",
-    ],
-    "Description": [
-        "Revenue from Azure, server products, and enterprise services.",
-        "Revenue from Office 365, LinkedIn, Dynamics 365.",
-        "Revenue from Windows, Surface, Xbox, Search/advertising.",
-        "Year-over-year growth rate for Annual Recurring Revenue of commercial cloud services.",
-        "Overall company gross profit as a percentage of revenue.",
-        "Overall company operating income as a percentage of revenue.",
-        "Cash generated from operations after capital expenditures.",
-        "Investment in research and development to drive innovation.",
-        "Investment in data centers, equipment, and facilities.",
-    ],
-}
-df_metrics = pd.DataFrame(key_metrics_data)
+def format_percentage(value):
+    if pd.isna(value):
+        return "N/A"
+    try:
+        return f"{value:.1f}%"
+    except (ValueError, TypeError):
+        return str(value)
 
-# Segment Revenue (Illustrative) - Simplified for visualization
-segment_revenue_data = {
-    "Segment": ["Intelligent Cloud", "Productivity & Business Processes", "More Personal Computing"],
-    "Revenue (Illustrative TTM)": [85.0, 70.0, 55.0], # in Billions
-    "Revenue %": [42.0, 33.0, 25.0],
-}
-df_segment_revenue = pd.DataFrame(segment_revenue_data)
+def create_bar_chart(df, x_col, y_col, title, color_col=None, hover_data=None):
+    if hover_data is None:
+        hover_data = [x_col, y_col]
+    fig = px.bar(df,
+                 x=x_col,
+                 y=y_col,
+                 title=title,
+                 color=color_col,
+                 hover_data=hover_data,
+                 labels={y_col: y_col.replace('_', ' ').title(), x_col: x_col.replace('_', ' ').title()},
+                 template="plotly_white")
+    fig.update_layout(
+        title_x=0.5,
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend_title_text=color_col.replace('_', ' ').title() if color_col else None
+    )
+    return fig
 
-# Revenue Trend (Illustrative - simplified)
-revenue_trend_data = {
-    "Year": [2021, 2022, 2023],
-    "Total Revenue (B)": [168.0, 198.0, 211.9],
-    "Intelligent Cloud (B)": [60.0, 73.0, 85.0],
-    "Productivity & Business Processes (B)": [53.0, 60.0, 70.0],
-    "More Personal Computing (B)": [55.0, 65.0, 56.9],
+def create_pie_chart(df, names_col, values_col, title, hover_data=None):
+    if hover_data is None:
+        hover_data = [names_col, values_col]
+    fig = px.pie(df,
+                 names=names_col,
+                 values=values_col,
+                 title=title,
+                 hover_data=hover_data,
+                 hole=0.3,
+                 template="plotly_white")
+    fig.update_layout(
+        title_x=0.5,
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend_title_text=names_col.replace('_', ' ').title()
+    )
+    return fig
+
+def format_metric_card(value, label, color="primary", prefix="$", suffix="%"):
+    st.metric(label=label, value=f"{prefix}{value:,.0f}" if prefix == "$" else f"{value:.1f}{suffix}", delta=None)
+
+# --- Data Simulation ---
+# In a real app, this data would come from APIs (e.g., financial data providers)
+# For demonstration, we use sample data reflecting the analysis.
+data = {
+    "segment": ["Software", "Consulting", "Infrastructure", "Financing"],
+    "revenue_usd_billion": [40.0, 30.0, 22.0, 3.0],
+    "gross_margin_pct": [80.0, 30.0, 45.0, 60.0],
+    "operating_margin_pct": [25.0, 10.0, 15.0, 20.0],
+    "recurring_revenue_pct": [75.0, 20.0, 10.0, 0.0]
 }
-df_revenue_trend = pd.DataFrame(revenue_trend_data)
+df_segments = pd.DataFrame(data)
+df_segments['revenue_usd_billion'] = df_segments['revenue_usd_billion'].astype(float)
+df_segments['gross_margin_pct'] = df_segments['gross_margin_pct'].astype(float)
+df_segments['operating_margin_pct'] = df_segments['operating_margin_pct'].astype(float)
+df_segments['recurring_revenue_pct'] = df_segments['recurring_revenue_pct'].astype(float)
+
+df_segments = df_segments.sort_values("revenue_usd_billion", ascending=False)
+
+total_revenue = df_segments["revenue_usd_billion"].sum()
+df_segments["revenue_share_pct"] = (df_segments["revenue_usd_billion"] / total_revenue) * 100
+
+# Simulate Key Financials
+key_financials_data = {
+    "metric": ["Total Revenue", "Gross Profit", "Operating Income", "Net Income", "Free Cash Flow (FCF)"],
+    "value_usd_billion": [95.0, 40.0, 15.0, 10.0, 18.0],
+    "change_pct_yoy": [2.0, 5.0, 3.0, 4.0, 6.0] # Year-over-year change
+}
+df_financials = pd.DataFrame(key_financials_data)
+df_financials["value_usd_billion"] = df_financials["value_usd_billion"].astype(float)
+df_financials["change_pct_yoy"] = df_financials["change_pct_yoy"].astype(float)
+
+# Simulate Capital Allocation
+capital_allocation_data = {
+    "category": ["Dividends", "Share Buybacks", "Acquisitions", "R&D"],
+    "amount_usd_billion": [6.0, 5.0, 1.0, 8.0]
+}
+df_capital_allocation = pd.DataFrame(capital_allocation_data)
+
+# Simulate Debt
+debt_data = {
+    "metric": ["Total Debt", "Net Debt / EBITDA"],
+    "value": [50.0, 2.5] # Billion USD for Total Debt, ratio for Net Debt/EBITDA
+}
+df_debt = pd.DataFrame(debt_data)
+
+# --- App Structure ---
+st.title("IBM (International Business Machines Corporation) Financial Ecosystem Analysis")
+st.markdown("""
+This application provides an in-depth analysis of IBM's financial ecosystem, exploring its business model, market dependencies, competitive landscape, and key financial relationships.
+The data presented here is illustrative, simulating the insights derived from a comprehensive financial analysis.
+""")
 
 # --- Sidebar ---
-st.sidebar.title("Microsoft (MSFT) Analysis")
-st.sidebar.markdown(
-    "This app analyzes the financial ecosystem of Microsoft Corporation, "
-    "breaking down its business segments, market dependencies, and competitive landscape."
-)
-st.sidebar.markdown("---")
-st.sidebar.header("Navigation")
-st.sidebar.markdown("[Key Metrics](#key-metrics)")
-st.sidebar.markdown("[Business Segments](#business-segments)")
-st.sidebar.markdown("[Revenue Trends](#revenue-trends)")
-st.sidebar.markdown("[Financial Relationships & Dependencies](#financial-relationships--dependencies)")
-st.sidebar.markdown("[Competitive Landscape](#competitive-landscape)")
-st.sidebar.markdown("[Economic & Market Factors](#economic--market-factors)")
-st.sidebar.markdown("[Risks & Catalysts](#risks--catalysts)")
-st.sidebar.markdown("---")
-st.sidebar.header("About")
-st.sidebar.info(
-    "This analysis is based on a qualitative financial ecosystem breakdown. "
-    "Illustrative data is used for demonstration purposes."
-)
+with st.sidebar:
+    st.header("Analysis Sections")
+    st.markdown("- [Key Metrics & Overview](#key-metrics--overview)")
+    st.markdown("- [Revenue Streams & Profitability](#revenue-streams--profitability)")
+    st.markdown("- [Capital Allocation & Balance Sheet](#capital-allocation--balance-sheet)")
+    st.markdown("- [Market Dependencies & Economic Factors](#market-dependencies--economic-factors)")
+    st.markdown("- [Sector Connections & Competitors](#sector-connections--competitors)")
+    st.markdown("- [Strategic Partnerships & Ecosystem](#strategic-partnerships--ecosystem)")
+    st.markdown("- [Key Risks & Catalysts](#key-risks--catalysts)")
+    st.markdown("- [Summary](#summary)")
 
-# --- Main Content ---
+    st.markdown("---")
+    st.header("Data Sources")
+    st.markdown("This analysis is based on a simulated dataset that reflects typical financial reporting and strategic positioning of IBM. In a real-world scenario, this data would be sourced from official financial statements (10-K, 10-Q), investor relations reports, and reputable financial data providers.")
 
-st.title("Microsoft Corporation (MSFT): Financial Ecosystem Analysis 📊")
-st.markdown(
-    "An in-depth look at the intricate network of relationships, dependencies, "
-    "and factors influencing Microsoft's financial performance and market position."
-)
-st.markdown("---")
+# --- Key Metrics & Overview ---
+st.header("Key Metrics & Overview")
+st.markdown("IBM is transforming its business model, focusing on hybrid cloud and AI. This section highlights its current financial health and strategic direction.")
 
-# --- Key Metrics Section ---
-st.header("Key Metrics")
-st.markdown(
-    "A snapshot of Microsoft's financial health and operational performance. "
-    "Note: Values are illustrative and represent a general understanding."
-)
-
-# Display metrics in a more visual way
-col1, col2, col3 = st.columns(3)
-
-for index, row in df_metrics.iterrows():
-    if index < 3:
-        with col1:
-            st.metric(row["Metric"], row["Value"], delta=None, help=row["Description"])
-    elif index < 6:
-        with col2:
-            st.metric(row["Metric"], row["Value"], delta=None, help=row["Description"])
-    else:
-        with col3:
-            st.metric(row["Metric"], row["Value"], delta=None, help=row["Description"])
+# Metric Cards
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    format_metric_card(df_financials.loc[df_financials['metric'] == 'Total Revenue', 'value_usd_billion'].iloc[0], "Total Revenue (USD Bn)", prefix="$")
+with col2:
+    format_metric_card(df_financials.loc[df_financials['metric'] == 'Free Cash Flow (FCF)', 'value_usd_billion'].iloc[0], "Free Cash Flow (USD Bn)", prefix="$")
+with col3:
+    format_metric_card(df_debt.loc[df_debt['metric'] == 'Net Debt / EBITDA', 'value'].iloc[0], "Net Debt / EBITDA", suffix="")
+with col4:
+    # Simulating a dividend yield for illustrative purposes
+    avg_total_revenue = df_financials.loc[df_financials['metric'] == 'Total Revenue', 'value_usd_billion'].iloc[0]
+    avg_dividends = df_capital_allocation.loc[df_capital_allocation['category'] == 'Dividends', 'amount_usd_billion'].iloc[0]
+    dividend_yield = (avg_dividends / avg_total_revenue) * 100 if avg_total_revenue else 0
+    format_metric_card(dividend_yield, "Dividend Yield", suffix="%")
 
 st.markdown("---")
 
+# --- Revenue Streams & Profitability ---
+st.header("Revenue Streams & Profitability")
+st.markdown("IBM's revenue is derived from several key segments, with a strategic emphasis on high-margin software and consulting services.")
 
-# --- Business Segments Section ---
-st.header("Business Segments")
-st.markdown(
-    "Microsoft's diverse operations are categorized into three primary segments, each with unique growth drivers and market dynamics."
-)
+col1, col2 = st.columns(2)
 
-segment_col1, segment_col2 = st.columns([1, 1])
-
-with segment_col1:
+with col1:
     st.subheader("Revenue by Segment")
-    fig_segment_pie = px.pie(
-        df_segment_revenue,
-        values="Revenue %",
-        names="Segment",
-        title="Illustrative Revenue Contribution by Segment",
-        hole=0.3,
+    fig_revenue_bar = create_bar_chart(df_segments, "segment", "revenue_usd_billion", "Revenue by Segment (USD Billion)",
+                                       color_col="segment",
+                                       hover_data=["segment", "revenue_usd_billion", "revenue_share_pct"])
+    st.plotly_chart(fig_revenue_bar, use_container_width=True)
+
+    st.subheader("Recurring Revenue Contribution")
+    fig_recurring_revenue = create_bar_chart(df_segments, "segment", "recurring_revenue_pct", "Recurring Revenue (%) by Segment",
+                                            color_col="segment",
+                                             hover_data=["segment", "recurring_revenue_pct"])
+    st.plotly_chart(fig_recurring_revenue, use_container_width=True)
+
+
+with col2:
+    st.subheader("Revenue Share")
+    fig_revenue_share = create_pie_chart(df_segments, "segment", "revenue_share_pct", "Revenue Share by Segment",
+                                         hover_data=["segment", "revenue_share_pct", "revenue_usd_billion"])
+    st.plotly_chart(fig_revenue_share, use_container_width=True)
+
+    st.subheader("Profitability by Segment")
+    fig_profitability = go.Figure()
+    fig_profitability.add_trace(go.Bar(
+        x=df_segments['segment'],
+        y=df_segments['gross_margin_pct'],
+        name='Gross Margin (%)',
+        marker_color='rgb(55, 83, 109)',
+        hovertemplate='<b>%{x}</b><br>Gross Margin: %{y:.1f}%<extra></extra>'
+    ))
+    fig_profitability.add_trace(go.Bar(
+        x=df_segments['segment'],
+        y=df_segments['operating_margin_pct'],
+        name='Operating Margin (%)',
+        marker_color='rgb(26, 118, 255)',
+        hovertemplate='<b>%{x}</b><br>Operating Margin: %{y:.1f}%<extra></extra>'
+    ))
+    fig_profitability.update_layout(
+        title_text="Segment Profitability (Gross & Operating Margins)",
+        title_x=0.5,
+        yaxis_title="Percentage (%)",
+        xaxis_title="Segment",
+        margin=dict(l=20, r=20, t=50, b=20),
+        template="plotly_white",
+        barmode='group'
     )
-    fig_segment_pie.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(fig_segment_pie, use_container_width=True)
-
-with segment_col2:
-    st.subheader("Segment Summary")
-    st.markdown("1.  **Intelligent Cloud (≈42% of revenue):**")
-    st.markdown(
-        "    *   **Core:** Azure (IaaS/PaaS), server products, enterprise services."
-    )
-    st.markdown(
-        "    *   **Driver:** Digital transformation spend, cloud adoption. Primary growth engine."
-    )
-    st.markdown("2.  **Productivity and Business Processes (≈33% of revenue):**")
-    st.markdown(
-        "    *   **Core:** Office 365, LinkedIn, Dynamics 365."
-    )
-    st.markdown(
-        "    *   **Driver:** Recurring revenue, enterprise stickiness, SaaS adoption."
-    )
-    st.markdown("3.  **More Personal Computing (≈25% of revenue):**")
-    st.markdown(
-        "    *   **Core:** Windows, Surface, Xbox, Search/advertising."
-    )
-    st.markdown(
-        "    *   **Driver:** PC market cycles, consumer spending, gaming content."
-    )
-st.markdown("---")
-
-
-# --- Revenue Trends Section ---
-st.header("Revenue Trends")
-st.markdown(
-    "Visualizing the growth trajectory of Microsoft's total revenue and its key segments over recent years."
-)
-
-fig_revenue_trend = go.Figure()
-
-fig_revenue_trend.add_trace(
-    go.Scatter(
-        x=df_revenue_trend["Year"],
-        y=df_revenue_trend["Total Revenue (B)"],
-        mode="lines+markers",
-        name="Total Revenue",
-        line=dict(color="#1f77b4", width=2),
-        hovertemplate='Year: %{x}<br>Total Revenue: $%{y:.1f}B<extra></extra>',
-    )
-)
-fig_revenue_trend.add_trace(
-    go.Scatter(
-        x=df_revenue_trend["Year"],
-        y=df_revenue_trend["Intelligent Cloud (B)"],
-        mode="lines+markers",
-        name="Intelligent Cloud",
-        line=dict(color="#ff7f0e", width=2),
-        hovertemplate='Year: %{x}<br>Intelligent Cloud: $%{y:.1f}B<extra></extra>',
-    )
-)
-fig_revenue_trend.add_trace(
-    go.Scatter(
-        x=df_revenue_trend["Year"],
-        y=df_revenue_trend["Productivity & Business Processes (B)"],
-        mode="lines+markers",
-        name="Productivity & Business Processes",
-        line=dict(color="#2ca02c", width=2),
-        hovertemplate='Year: %{x}<br>Productivity & Business Processes: $%{y:.1f}B<extra></extra>',
-    )
-)
-fig_revenue_trend.add_trace(
-    go.Scatter(
-        x=df_revenue_trend["Year"],
-        y=df_revenue_trend["More Personal Computing (B)"],
-        mode="lines+markers",
-        name="More Personal Computing",
-        line=dict(color="#d62728", width=2),
-        hovertemplate='Year: %{x}<br>More Personal Computing: $%{y:.1f}B<extra></extra>',
-    )
-)
-
-fig_revenue_trend.update_layout(
-    title="Illustrative Revenue Trend (Billions USD)",
-    xaxis_title="Year",
-    yaxis_title="Revenue (Billion USD)",
-    legend_title="Segments",
-    hovermode="x unified",
-    margin=dict(l=40, r=40, t=40, b=40),
-    height=500,
-)
-
-st.plotly_chart(fig_revenue_trend, use_container_width=True)
-st.markdown(
-    "*Data is illustrative. Intelligent Cloud and Productivity segments show consistent growth, "
-    "while More Personal Computing exhibits more cyclical behavior.*"
-)
-st.markdown("---")
-
-
-# --- Financial Relationships & Dependencies Section ---
-st.header("Financial Relationships & Dependencies")
-st.markdown(
-    "Understanding the intricate web of internal dependencies that create Microsoft's powerful ecosystem."
-)
-
-st.subheader("1. Interdependence of Cloud and Software")
-st.markdown(
-    "**Azure (Cloud) drives Office 365/Microsoft 365 adoption:** As businesses migrate to Azure, they increasingly adopt Microsoft 365, creating a sticky ecosystem. "
-    "Conversely, the widespread use of Microsoft 365 generates data and computational needs, fueling Azure consumption. This creates a virtuous cycle."
-)
-
-st.subheader("2. Gaming (Xbox) and Content Synergy")
-st.markdown(
-    "**Xbox Game Pass** leverages acquired studios (Activision Blizzard) to drive recurring revenue. Azure infrastructure supports these cloud gaming initiatives."
-)
-
-st.subheader("3. LinkedIn's Data and Professional Networking")
-st.markdown(
-    "LinkedIn's revenue (Talent Solutions, Advertising) is enhanced by its vast professional network data. Integration into Microsoft 365 (e.g., Outlook) strengthens both platforms."
-)
-
-st.subheader("4. Segment Interdependencies")
-st.markdown(
-    "-   **Productivity & Business Processes** enhances enterprise stickiness, driving Azure consumption (e.g., Teams meetings on Azure)."
-    "<br>-   **Intelligent Cloud (Azure)** acts as both a revenue generator and a platform that makes other businesses (Office, Dynamics, LinkedIn) more valuable via integrated services and AI."
-    "<br>-   **More Personal Computing (Windows)** controls client endpoints, acting as a distribution channel for Microsoft services (Edge, Office, Store)."
-)
-st.markdown("---")
-
-
-# --- Competitive Landscape Section ---
-st.header("Competitive Landscape")
-st.markdown(
-    "Microsoft operates in highly competitive markets, facing giants across cloud, software, gaming, and AI."
-)
-
-competitor_data = {
-    "Market": [
-        "Public Cloud (IaaS/PaaS)",
-        "Software & Productivity",
-        "Operating Systems",
-        "Gaming",
-        "Artificial Intelligence",
-        "Professional Networking",
-    ],
-    "Primary Competitors": [
-        "AWS, Google Cloud",
-        "Google Workspace, Salesforce",
-        "Apple (macOS), Google (ChromeOS)",
-        "Sony (PlayStation), Nintendo",
-        "Google, Amazon, Meta",
-        "Seek, Indeed, niche platforms",
-    ],
-    "Microsoft's Position & Strategy": [
-        "Strong #2 globally. Competes on hybrid cloud, enterprise trust, stack integration.",
-        "Dominant leader. Leverages M365 ecosystem and sticky subscriptions.",
-        "Near-monopoly in desktop OS. Windows is a cash cow and ecosystem funnel.",
-        "Major player. Focus on content (Activision), Game Pass subscription, cloud gaming.",
-        "Current perceived leader via OpenAI partnership, integrating Copilot across suite.",
-        "Dominant via LinkedIn, unique data for B2B marketing.",
-    ],
-}
-df_competitors = pd.DataFrame(competitor_data)
-
-st.dataframe(df_competitors, use_container_width=True)
-
-st.subheader("Key Dynamics:")
-st.markdown(
-    "-   **Cloud Competition:** Fierce rivalry with AWS and GCP on price, features, and innovation."
-    "<br>-   **AI Race:** Microsoft's strategic partnership with OpenAI is a key differentiator, but competitors are rapidly advancing."
-    "<br>-   **Ecosystem Lock-in:** Microsoft leverages deep integration across its products (e.g., M365 + Azure) to create high switching costs."
-    "<br>-   **Co-opetition:** Microsoft often partners with companies it competes with in other areas (e.g., Oracle running on Azure)."
-)
-st.markdown("---")
-
-
-# --- Economic & Market Factors Section ---
-st.header("Economic & Market Factors")
-st.markdown(
-    "External economic forces and market trends significantly influence Microsoft's performance."
-)
-
-economic_data = {
-    "Factor": [
-        "Enterprise IT Spending",
-        "PC Market Cycles",
-        "Interest Rates",
-        "Foreign Exchange (FX)",
-        "Labor Market",
-        "Digital Transformation Spend",
-        "Cloud Market Growth",
-    ],
-    "Impact on MSFT": [
-        "Directly drives Azure and enterprise software sales. Downturns slow growth.",
-        "Impacts Windows OEM revenue. Less critical but still relevant.",
-        "Affects valuation multiples (higher rates = lower multiples for growth stocks).",
-        "Strong USD reduces reported international revenue and profits.",
-        "Tight markets increase costs but boost demand for LinkedIn and productivity tools.",
-        "A primary demand driver for Azure and Microsoft 365.",
-        "Azure's growth rate is key to market share narrative and valuation.",
-    ],
-}
-df_economic = pd.DataFrame(economic_data)
-
-st.dataframe(df_economic, use_container_width=True)
-st.markdown("---")
-
-
-# --- Risks & Catalysts Section ---
-st.header("Risks & Catalysts")
-st.markdown(
-    "Key factors that could either impede or accelerate Microsoft's growth and profitability."
-)
-
-col_risk_cat1, col_risk_cat2 = st.columns(2)
-
-with col_risk_cat1:
-    st.subheader("Key Risks:")
-    st.markdown("-   **Regulatory Scrutiny:** Antitrust investigations globally (cloud, gaming, AI).")
-    st.markdown("-   **AI Execution Risk:** Failure to monetize AI investments or competitive gains.")
-    st.markdown("-   **Cloud Growth Deceleration:** Market maturity impacting Azure growth rates.")
-    st.markdown("-   **Security Breaches:** Major vulnerabilities damaging enterprise trust.")
-    st.markdown("-   **Geopolitical Tensions:** Impacting market access and supply chains.")
-
-with col_risk_cat2:
-    st.subheader("Key Catalysts:")
-    st.markdown("-   **AI Monetization:** Successful rollout of Copilot across all products.")
-    st.markdown("-   **Margin Re-acceleration:** Leverage from AI investments as capex stabilizes.")
-    st.markdown("-   **Cloud Market Share Gains:** Continued dominance in enterprise cloud.")
-    st.markdown("-   **Gaming Synergies:** Realizing full potential of Activision Blizzard acquisition.")
-    st.markdown("-   **New Product Innovation:** Continued leadership in AI and enterprise solutions.")
+    st.plotly_chart(fig_profitability, use_container_width=True)
 
 st.markdown("---")
 
+# --- Capital Allocation & Balance Sheet ---
+st.header("Capital Allocation & Balance Sheet")
+st.markdown("IBM prioritizes returning value to shareholders through dividends and buybacks, supported by strong free cash flow generation. Its debt management is key to its financial stability.")
 
-# --- Conclusion Section ---
-st.header("Conclusion: The Microsoft Ecosystem Thesis")
-st.markdown(
-    "Microsoft has transformed into a vertically and horizontally integrated technology powerhouse. "
-    "Its strength lies in the **interconnection of its segments**: Azure fuels Office 365, which runs on Windows, secured by Microsoft's tools, and marketed via LinkedIn. This creates significant customer lock-in."
-)
-st.markdown(
-    "The investment narrative has evolved from **'growth of Azure'** to **'monetization of AI'** across its vast installed base. While subject to broader tech spending, competition, and regulation, Microsoft's moats, financial flexibility, and strategic AI positioning make it a core holding, reflecting the health of the technology sector and global enterprise economy."
-)
-st.markdown(
-    "The performance of MSFT serves as a key bellwether for worldwide digital transformation trends."
-)
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Capital Allocation Priorities")
+    fig_capital = px.pie(df_capital_allocation,
+                         names='category',
+                         values='amount_usd_billion',
+                         title='Approximate Annual Capital Allocation (Illustrative)',
+                         hole=0.3,
+                         template="plotly_white")
+    fig_capital.update_layout(
+        title_x=0.5,
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend_title_text='Allocation Category'
+    )
+    st.plotly_chart(fig_capital, use_container_width=True)
+
+with col2:
+    st.subheader("Balance Sheet Health")
+    st.write("IBM's balance sheet is carefully managed, with a focus on deleveraging post-acquisitions and maintaining a strong credit profile.")
+    debt_metric_col, debt_value_col = st.columns(2)
+    with debt_metric_col:
+        st.write("**Metric**")
+        for index, row in df_debt.iterrows():
+            st.write(row['metric'])
+    with debt_value_col:
+        st.write("**Value**")
+        st.write(format_currency(df_debt.loc[df_debt['metric'] == 'Total Debt', 'value'].iloc[0]))
+        st.write(f"{df_debt.loc[df_debt['metric'] == 'Net Debt / EBITDA', 'value'].iloc[0]:.1f}x")
+
+    st.markdown("*Note: Total Debt is an illustrative billion USD figure; Net Debt/EBITDA is a key leverage ratio.*")
+
 
 st.markdown("---")
 
-# --- Additional Details from Analysis ---
-st.header("Deeper Dive Insights")
+# --- Market Dependencies & Economic Factors ---
+st.header("Market Dependencies & Economic Factors")
+st.markdown("IBM's performance is deeply intertwined with the broader economic environment and the technology spending patterns of large enterprises.")
 
-st.subheader("Core Business Model & Revenue Drivers")
-st.markdown(
-    "**Shift to Recurring Revenue:** From one-time licenses to high-margin, predictable Annual Recurring Revenue (ARR) via cloud (Azure) and SaaS (Microsoft 365) has improved revenue visibility and profit stability."
-)
-st.markdown(
-    "**Segments:**<br>"
-    "1.  **Intelligent Cloud (≈42%):** Azure is the primary growth engine.<br>"
-    "2.  **Productivity & Business Processes (≈33%):** High-margin, recurring revenue powerhouse.<br>"
-    "3.  **More Personal Computing (≈25%):** More cyclical, tied to PC and consumer markets."
-)
+st.subheader("Key Market Dependencies")
+dependencies = [
+    "Enterprise IT Spending Cycles",
+    "Cloud Adoption & Hybrid-Cloud Maturity",
+    "Digital Transformation Initiatives",
+    "Artificial Intelligence (AI) Adoption",
+    "Global Economic Growth",
+    "Regulatory & Compliance Demands"
+]
+for dep in dependencies:
+    st.markdown(f"- **{dep}:** IBM's revenue is directly influenced by companies' willingness and ability to invest in technology solutions.")
 
-st.subheader("Financial Health & Capital Allocation")
-st.markdown(
-    "**Balance Sheet Strength:** Pristine AAA-rated balance sheet with massive cash reserves enables strategic M&A and R&D."
-    "<br>**Capital Returns:** Consistent dividend growth and significant share repurchases."
-    "<br>**Profit Margins:** Expanding with cloud shift, though AI investments currently impact near-term margins."
-)
+st.subheader("Economic Sensitivity")
+st.markdown("""
+- **Interest Rates:** IBM, as a dividend-paying stock, competes with fixed income. Higher rates can make its dividend less attractive. Its financing segment is also rate-sensitive.
+- **Inflation:** Can impact operating costs but IBM's long-term contracts and pricing power in certain segments (e.g., software) can mitigate some effects.
+- **Foreign Exchange (FX):** Significant international revenue means currency fluctuations can impact reported results. A strong USD generally reduces reported earnings.
+- **Geopolitical Stability:** Global events can disrupt supply chains, affect market access, and influence corporate investment decisions.
+""")
 
-st.subheader("Key Competitor Dynamics")
-st.markdown(
-    "-   **Cloud:** Intense competition with AWS and GCP.<br>"
-    "-   **AI:** Strategic OpenAI partnership is a key differentiator.<br>"
-    "-   **Ecosystem Lock-in:** Leverages product integration for high switching costs.<br>"
-    "-   **Co-opetition:** Partnerships with competitors in certain areas."
-)
+st.markdown("---")
+
+# --- Sector Connections & Competitors ---
+st.header("Sector Connections & Competitors")
+st.markdown("IBM operates within the broad Technology sector, but its specific activities place it in direct competition and partnership with various industry players.")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Primary Sector Focus")
+    st.markdown("""
+    - **Information Technology**
+    - **Sub-sectors:**
+        - IT Services & Consulting
+        - Systems Software (Hybrid Cloud Platforms, AI, Data)
+        - Enterprise Hardware & Infrastructure
+    """)
+
+with col2:
+    st.subheader("Key Competitors & Ecosystem Players")
+    st.markdown("""
+    - **Hybrid Cloud & AI Platforms:** Microsoft (Azure), Amazon (AWS), Google Cloud (Alphabet). IBM differentiates with its hybrid-by-design approach via Red Hat.
+    - **Enterprise Consulting & IT Services:** Accenture, Deloitte, Infosys, TCS.
+    - **Enterprise Software:** Oracle, SAP, Salesforce (in specific areas).
+    - **Infrastructure:** HPE, Dell (for non-mainframe hardware).
+    - **Emerging:** Specialized AI firms, Quantum computing rivals.
+    """)
+
+st.markdown("---")
+
+# --- Strategic Partnerships & Ecosystem ---
+st.header("Strategic Partnerships & Ecosystem")
+st.markdown("IBM's strategy heavily relies on its ability to integrate and collaborate within a complex technology ecosystem.")
+
+st.subheader("Lynchpins of the Ecosystem")
+st.markdown("""
+- **Red Hat (OpenShift):** The core of IBM's hybrid cloud strategy. OpenShift acts as a common platform across on-premise and multiple public clouds (AWS, Azure, GCP), fostering collaboration with cloud providers.
+- **System Integrators & VARs:** Crucial for reaching and servicing large enterprise clients.
+- **Independent Software Vendors (ISVs):** IBM enables ISVs to deploy their applications on Red Hat OpenShift, expanding its software reach.
+- **Academic & Government Labs:** Partnerships for cutting-edge research (AI, Quantum Computing).
+""")
+
+st.markdown("---")
+
+# --- Key Risks & Catalysts ---
+st.header("Key Risks & Catalysts")
+st.markdown("Understanding the potential upside and downside factors is crucial for assessing IBM's future trajectory.")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Potential Catalysts (Upside)")
+    st.markdown("""
+    - **Accelerated Hybrid Cloud Adoption:** Increased enterprise migration to hybrid cloud models where IBM/Red Hat is chosen as the primary platform.
+    - **Growth in AI (watsonx):** Successful productization and adoption of IBM's AI platform, driving software revenue and high-margin consulting engagements.
+    - **Strong FCF Generation & Capital Returns:** Continued robust free cash flow, enabling sustained dividend growth and share buybacks, appealing to value investors.
+    - **Breakthroughs in Quantum Computing:** Commercial viability and adoption of quantum solutions, though a longer-term prospect.
+    """)
+
+with col2:
+    st.subheader("Major Risks (Downside)")
+    st.markdown("""
+    - **Intense Competition:** Sustained pressure from hyperscale cloud providers (AWS, Azure, GCP) and agile software competitors.
+    - **Execution Risk:** Failure to grow strategic software and consulting segments fast enough to offset declines in legacy businesses.
+    - **Macroeconomic Slowdown:** A significant recession could reduce enterprise IT spending, impacting consulting and new software deals.
+    - **Legacy Liabilities:** Management of pension obligations and other historical liabilities.
+    - **Technological Disruption:** Rapid shifts in cloud architecture or AI paradigms that IBM fails to adapt to.
+    """)
+
+st.markdown("---")
+
+# --- Summary ---
+st.header("Summary of IBM's Financial Ecosystem")
+st.markdown("""
+IBM is a company in transition, leveraging its deep enterprise relationships and technological innovation to pivot towards a hybrid cloud and AI future. Its financial ecosystem is characterized by:
+
+*   **Strategic Shift:** A clear focus on high-margin, recurring revenue from Software (driven by Red Hat) and Consulting, while managing the cyclicality of its Infrastructure segment.
+*   **Cash Flow Powerhouse:** Consistent and strong Free Cash Flow generation is the bedrock of its financial strategy, enabling significant shareholder returns through dividends and buybacks.
+*   **Value-Oriented Investor Profile:** IBM is primarily viewed as a value and income stock, appealing to investors seeking stability and yield, with a speculative growth component tied to its transformation.
+*   **Complex Competitive Landscape:** Navigating intense competition from hyperscalers and established software giants, IBM differentiates through its hybrid-by-design approach and deep integration capabilities.
+*   **Market Dependencies:** Heavily reliant on enterprise IT spending, which makes it sensitive to economic cycles, though less so than many other tech firms due to its mission-critical services.
+
+Understanding these interconnected elements provides a holistic view of the forces shaping IBM's financial present and future.
+""")
+
+st.markdown("---")
+st.markdown("Report generated by the IBM Financial Ecosystem Analyzer.")
