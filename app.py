@@ -67,314 +67,297 @@ if generate:
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
-# --- Streamlit App Configuration ---
+def create_peer_benchmarking_charts():
+    """Generates Plotly charts for peer benchmarking metrics."""
+
+    # Data from the provided text, using mid-points for ranges
+    data = {
+        "Company": ["Nokia (NOK)", "Ericsson (ERIC)", "Cisco Systems (CSCO)", "Ciena (CIEN)"],
+        "P/E Ratio (TTM)": [22.5, 17.5, 13.5, 27.5],  # Mid-points of given ranges
+        "YoY Revenue Growth (%)": [2.5, 2.5, 5.0, 7.5],  # Mid-points of given ranges
+        "Market Share (5G Infrastructure)": ["Significant (3rd/4th)", "Significant (2nd)", "Varies", "Growing (Optical)"]
+    }
+    df_peers = pd.DataFrame(data)
+
+    # P/E Ratio Chart
+    fig_pe = px.bar(
+        df_peers,
+        x="Company",
+        y="P/E Ratio (TTM)",
+        title="Peer Benchmarking: P/E Ratio (TTM)",
+        labels={"P/E Ratio (TTM)": "P/E Ratio"},
+        color="Company",
+        color_discrete_map={
+            "Nokia (NOK)": "#1f77b4",  # A distinct color for Nokia
+            "Ericsson (ERIC)": "#ff7f0e",
+            "Cisco Systems (CSCO)": "#2ca02c",
+            "Ciena (CIEN)": "#d62728"
+        },
+        template="plotly_white"
+    )
+    fig_pe.update_layout(xaxis_title="", yaxis_title="P/E Ratio (TTM)", showlegend=False)
+
+    # YoY Revenue Growth Chart
+    fig_rev = px.bar(
+        df_peers,
+        x="Company",
+        y="YoY Revenue Growth (%)",
+        title="Peer Benchmarking: YoY Revenue Growth (%)",
+        labels={"YoY Revenue Growth (%)": "YoY Revenue Growth (%)"},
+        color="Company",
+        color_discrete_map={
+            "Nokia (NOK)": "#1f77b4",
+            "Ericsson (ERIC)": "#ff7f0e",
+            "Cisco Systems (CSCO)": "#2ca02c",
+            "Ciena (CIEN)": "#d62728"
+        },
+        template="plotly_white"
+    )
+    fig_rev.update_layout(xaxis_title="", yaxis_title="YoY Revenue Growth (%)", showlegend=False)
+
+    return fig_pe, fig_rev, df_peers
+
+# --- Streamlit App Setup ---
 st.set_page_config(
-    page_title="MSFT Financial Analysis Dashboard",
-    page_icon="📈",
+    page_title="Nokia (NOK) Financial Analysis",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# --- Data Extraction and Preparation ---
-# Key metrics from the text
-msft_pe_ratio = 35
-msft_yoy_revenue_growth = 13
-msft_free_cash_flow_billion = 70
-msft_q3_fy24_azure_growth = 31
-msft_q3_fy24_ai_contribution_to_azure = 7
-
-# Peer Benchmarking Data
-peer_data = {
-    "Company": ["Microsoft (MSFT)", "Amazon (AMZN)", "Alphabet (GOOGL)"],
-    "P/E Ratio (TTM)": [35, 45, 25],
-    "YoY Revenue Growth (%)": [13, 12, 8],
-    "Cloud Market Share (%)": [23, 32, 11] # Averaging the given ranges
-}
-df_peers = pd.DataFrame(peer_data)
-
-# Productivity Market Share - Qualitative, hard to chart directly against AWS
-productivity_share_data = {
-    "Company": ["Microsoft (M365)", "Alphabet (Workspace)"],
-    "Market Share (%) (Estimate)": [70, 20] # Representative, based on "Dominant (>70%)" and "Significant challenger"
-}
-df_productivity_share = pd.DataFrame(productivity_share_data)
-
-# Risk/Opportunity assessment for a radar chart (simplified quantification)
-risk_opportunity_data = {
-    'Category': ['AI Monetization', 'Cloud Competition', 'Macro Economy', 'Regulatory', 'GPU Supply'],
-    'Risk Score': [3, 4, 3, 3, 4],  # 1 (low risk) to 5 (high risk)
-    'Opportunity Score': [5, 3, 2, 2, 3] # 1 (low opp) to 5 (high opp)
-}
-df_risk_opp = pd.DataFrame(risk_opportunity_data)
-
-
-# --- Streamlit UI ---
-
-st.title("📈 Microsoft (MSFT) – Forward-Looking Financial Analysis")
-st.markdown("A Senior Equity Research Analyst's comprehensive view on MSFT's next 3-6 months outlook, competitive landscape, and critical findings.")
-
-st.sidebar.header("Analysis Overview")
-st.sidebar.metric("Overall Conviction", "High Conviction Bullish 🚀")
-st.sidebar.markdown(f"""
-    **Key Metrics:**
-    - P/E Ratio (TTM): **~{msft_pe_ratio}x**
-    - YoY Revenue Growth: **~{msft_yoy_revenue_growth}%**
-    - Free Cash Flow: **>${msft_free_cash_flow_billion}B annually**
+st.title("📊 Nokia (NOK): Navigating the Network Infrastructure Landscape")
+st.markdown("""
+This application provides a forward-looking financial analysis and visualization of Nokia (NOK), 
+focusing on key metrics, competitive positioning, and industry dynamics.
 """)
-st.sidebar.info("Disclaimer: This assessment is evidence-based analysis and not investment advice.")
 
-# --- Tabs for organized content ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Company Overview & Fundamentals",
-    "Peer Benchmarking",
-    "Adjacent Industries",
-    "Risks & Opportunities",
-    "Critical Findings Summary"
-])
+st.divider()
 
-with tab1:
-    st.header("1. Company Overview & Fundamental Evaluation")
+# --- 1. Company Overview ---
+st.header("Company Overview")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("Ticker", "NOK")
+with col2:
+    st.metric("Company", "Nokia Corporation")
+with col3:
+    st.metric("Headquarters", "Finland")
 
-    st.subheader("Company Profile")
-    st.write("""
-        Microsoft is a diversified technology giant with a dominant presence in cloud computing (Azure),
-        productivity software (Microsoft 365), gaming (Xbox), and increasingly, artificial intelligence.
-        - **Ticker/Company:** MSFT — Microsoft Corporation
-        - **Primary Industry:** Technology — enterprise software, cloud infrastructure & platform services,
-          productivity applications, AI services, and consumer devices/gaming.
-        - **Core Businesses:** Microsoft Azure (cloud infrastructure and AI services), Microsoft 365
-          (Office productivity and collaboration), Windows and Surface devices, LinkedIn, GitHub,
-          Dynamics business applications, Xbox/Activision gaming, and investments/partnerships
-          in generative AI (notably a strategic partnership with OpenAI).
-    """)
+st.markdown("""
+Nokia is a global supplier of telecommunications equipment, software, and services. 
+Its primary industry involves telecom/network equipment and services (RAN, core, optical/IP, 
+cloud software, managed services) with a growing focus on software/subscription revenues and private networks.
+""")
 
-    st.subheader("Recent Performance & Forward Projection (Next 3-6 Months)")
-    st.markdown("""
-        Microsoft has demonstrated remarkable resilience and strong growth, largely driven by the continued acceleration
-        of its **Intelligent Cloud segment, spearheaded by Azure**. The company has successfully navigated a challenging
-        macroeconomic environment by leveraging its sticky enterprise customer base and the growing demand for AI-powered solutions.
-        
-        **Key Growth Drivers:**
-        *   **Azure Growth:** Continued adoption of cloud services by enterprises, coupled with increasing AI workloads
-            on the platform, will remain the primary growth engine. We anticipate Azure's growth rate to remain strong,
-            potentially even accelerating as more customers integrate AI into their operations.
-        *   **Microsoft 365 & Copilot Integration:** The ongoing digital transformation within businesses fuels demand
-            for Microsoft 365. The widespread rollout and adoption of **Microsoft Copilot** across various M365 applications
-            will be a significant catalyst for upselling and increased customer stickiness, driving both revenue and ARPU.
-        *   **AI Monetization:** Microsoft's deep integration of AI across its product portfolio, particularly through
-            Azure AI services and Copilot, presents a substantial opportunity for new revenue streams and increased
-            value proposition for existing customers.
-    """)
+st.divider()
 
-    st.subheader("Key Catalysts (Next 3-6 Months)")
-    st.markdown("""
-    1.  **Widespread Copilot Adoption & Monetization:** Clear indicators of customer uptake, subscription attach rates,
-        and higher average revenue per user (ARPU) for Microsoft 365 subscriptions due to Copilot.
-    2.  **Continued Azure Cloud Dominance with AI Integration:** Monitoring Azure's growth rate and indications of
-        AI workload migration to the platform.
-    3.  **Productivity Gains & Enterprise Spending Recovery:** Potential stabilization or slight recovery in enterprise IT spending,
-        further boosting M365 and Azure adoption.
-    """)
+# --- 2. Key Metrics & Recent Performance ---
+st.header("Key Metrics & Recent Performance")
 
-    st.subheader("Key Financial Metrics (MSFT)")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(label="P/E Ratio (TTM)", value=f"~{msft_pe_ratio}x", delta="In line with growth peers")
-    with col2:
-        st.metric(label="YoY Revenue Growth", value=f"~{msft_yoy_revenue_growth}%", delta="Robust, double-digit growth")
-    with col3:
-        st.metric(label="Free Cash Flow (Annual)", value=f">${msft_free_cash_flow_billion}B+", delta="Strong financial position")
-    with col4:
-        st.metric(label="Q3 FY24 Azure Growth", value=f"{msft_q3_fy24_azure_growth}%", delta=f"AI contributed {msft_q3_fy24_ai_contribution_to_azure} pts")
+st.markdown("### Fundamental Evaluation: Navigating the Transition")
+st.markdown("""
+Nokia has been in a period of strategic transition, focusing on optimizing its portfolio and improving profitability. 
+While revenue growth has been somewhat muted, efforts to enhance margins through cost efficiencies and a focus on 
+higher-value software and services are evident.
+""")
 
-with tab2:
-    st.header("2. Peer Benchmarking")
-    st.write("Microsoft operates across several segments, making direct one-to-one comparisons challenging. However, for its core cloud and productivity businesses, its primary competitors are Amazon (AWS) and Google (GCP/Workspace).")
-
-    st.subheader("Comparative Financials & Market Share")
-    st.dataframe(df_peers.set_index("Company"), use_container_width=True)
-
-    st.markdown("---")
-    st.subheader("Visualizing Peer Comparison")
-
-    # Chart 1: P/E Ratio
-    fig_pe = px.bar(df_peers, x="Company", y="P/E Ratio (TTM)",
-                    title="P/E Ratio (TTM) Comparison",
-                    labels={"P/E Ratio (TTM)": "P/E Ratio"},
-                    color="Company",
-                    color_discrete_map={
-                        "Microsoft (MSFT)": "teal",
-                        "Amazon (AMZN)": "orange",
-                        "Alphabet (GOOGL)": "red"
-                    })
-    fig_pe.update_layout(yaxis_title="P/E Ratio")
-    st.plotly_chart(fig_pe, use_container_width=True)
-
-    # Chart 2: YoY Revenue Growth
-    fig_rev_growth = px.bar(df_peers, x="Company", y="YoY Revenue Growth (%)",
-                            title="Year-over-Year Revenue Growth Comparison",
-                            labels={"YoY Revenue Growth (%)": "Revenue Growth (%)"},
-                            color="Company",
-                            color_discrete_map={
-                                "Microsoft (MSFT)": "teal",
-                                "Amazon (AMZN)": "orange",
-                                "Alphabet (GOOGL)": "red"
-                            })
-    fig_rev_growth.update_layout(yaxis_title="Revenue Growth (%)")
-    st.plotly_chart(fig_rev_growth, use_container_width=True)
-
-    # Chart 3: Cloud Market Share
-    fig_cloud_share = px.bar(df_peers, x="Company", y="Cloud Market Share (%)",
-                             title="Cloud Infrastructure Market Share (Azure vs. AWS vs. GCP)",
-                             labels={"Cloud Market Share (%)": "Market Share (%)"},
-                             color="Company",
-                             color_discrete_map={
-                                "Microsoft (MSFT)": "teal",
-                                "Amazon (AMZN)": "orange",
-                                "Alphabet (GOOGL)": "red"
-                             })
-    fig_cloud_share.update_layout(yaxis_title="Market Share (%)")
-    st.plotly_chart(fig_cloud_share, use_container_width=True)
-
-    st.subheader("Productivity Software Market Share")
-    st.markdown("""
-        - **Microsoft (M365):** Dominant (>70%)
-        - **Alphabet (Workspace):** Significant challenger
-        
-        Microsoft's dominance in productivity software is a significant moat that Google Workspace competes against.
-        AWS is not a direct competitor in this segment.
-    """)
-
-    st.subheader("Relative Strengths of Microsoft")
-    st.markdown("""
-    *   **Integrated enterprise stack:** Unique bundling of productivity (M365), identity, collaboration (Teams),
-        and cloud infrastructure that creates strong customer retention and multiple upsell pathways for AI features.
-    *   **Large existing enterprise customer base** and long-term contracts, easing monetization of AI add-ons.
-    *   **Financial position:** High cash flow generation and a strong balance sheet to fund capex for data centers and strategic investments.
-    *   **AI positioning:** Early and visible partnership with OpenAI and broad rollouts of Copilot features across enterprise products.
-    """)
-
-    st.subheader("Relative Weaknesses")
-    st.markdown("""
-    *   Heavy capital intensity for AI infrastructure (data centers, GPUs) and potential exposure to GPU supply cycles and pricing.
-    *   Regulatory and antitrust scrutiny because of size and breadth across markets.
-    *   Competition from hyperscalers (AWS, Google) that are also making aggressive AI investments and competing on price and innovation.
-    """)
-
-with tab3:
-    st.header("3. Adjacent Industry Impact")
-    st.write("Several adjacent industries are significantly influencing Microsoft's trajectory, presenting both positive impacts and risks.")
-
-    st.subheader("Positive Impacts (Tailwinds)")
-    st.markdown("""
-    *   **Semiconductor/GPU Industry (NVIDIA, AMD):** Microsoft is one of the largest buyers of high-end AI chips (GPUs). The **scarcity of advanced GPUs** has actually acted as a moat, as Microsoft's early and large orders with NVIDIA give it an infrastructure advantage over smaller cloud rivals.
-    *   **Energy & Utilities:** The boom in AI data center construction is forcing Microsoft to innovate in **next-generation nuclear power (SMRs)** and renewable energy deals to power its facilities and meet sustainability goals. This positions it as a leader in green tech.
-    *   **Cybersecurity Industry:** The increasing complexity of AI-powered cyber threats is driving demand for integrated, AI-native security platforms, playing directly into Microsoft's strength in this adjacent field.
-    """)
-
-    st.subheader("Negative Impacts / Risks (Headwinds)")
-    st.markdown("""
-    *   **Telecom & Networking:** The AI data center boom requires massive new investments in **global networking infrastructure**. Bottlenecks or cost overruns here could delay Microsoft's cloud expansion.
-    *   **Regulatory & Legal Landscape:** Increased global scrutiny on **data privacy, AI ethics, and antitrust** (from adjacent legal/regulatory sectors) poses a constant risk of slower rollout, higher compliance costs, or even forced changes to its business practices (e.g., the OpenAI partnership structure).
-    *   **Content & Media Industry:** In gaming, the Activision acquisition brings it directly into the turbulent media landscape, with challenges in mobile app store policies (Apple, Google) and shifting gamer demographics.
-    """)
-
-with tab4:
-    st.header("4. Risk Assessment: Bear vs. Bull Cases")
-
-    col_bull, col_bear = st.columns(2)
-
-    with col_bull:
-        st.subheader("🐂 Bull Case (Next Quarter)")
-        st.markdown("""
-        *   **Accelerated Copilot Monetization:** Stronger-than-anticipated attach rates and positive customer feedback
-            on Copilot's productivity benefits, leading to increased ARPU and clear revenue contributions.
-        *   **Robust Azure Growth Driven by AI Workloads:** Continued strong growth in Azure, with clear evidence of
-            AI workloads migrating to the platform and higher customer spending on AI services.
-        *   **Resilient Enterprise Spending & Strategic Wins:** Demonstrating resilience in enterprise IT spending
-            despite economic headwinds, coupled with significant large-scale cloud or AI wins.
-        """)
-
-    with col_bear:
-        st.subheader("🐻 Bear Case (Next Quarter)")
-        st.markdown("""
-        *   **Slower than expected Copilot adoption:** If the initial uptake and monetization of Microsoft Copilot
-            fall short of aggressive market expectations.
-        *   **Intensified Cloud Competition:** Increased price competition from AWS and GCP, coupled with aggressive
-            market share grabs by competitors, pressuring Azure's growth rates and margins.
-        *   **Macroeconomic Deterioration:** A sharp downturn in the global economy leading to significant cuts
-            in enterprise IT spending.
-        """)
-
-    st.subheader("Quantitative Risk & Opportunity Outlook")
-    st.write("A simplified view of key categories impacting MSFT.")
-
-    # Radar chart for risks and opportunities
-    fig_radar = go.Figure()
-
-    fig_radar.add_trace(go.Scatterpolar(
-        r=df_risk_opp['Risk Score'],
-        theta=df_risk_opp['Category'],
-        fill='toself',
-        name='Risk Score',
-        line_color='red'
-    ))
-    fig_radar.add_trace(go.Scatterpolar(
-        r=df_risk_opp['Opportunity Score'],
-        theta=df_risk_opp['Category'],
-        fill='toself',
-        name='Opportunity Score',
-        line_color='green'
-    ))
-
-    fig_radar.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 5],
-                tickvals=[1, 2, 3, 4, 5],
-                ticktext=['Low', 'Low-Mid', 'Mid', 'Mid-High', 'High']
-            )),
-        showlegend=True,
-        title="Risk & Opportunity Assessment (1=Low, 5=High)"
+col_metric_1, col_metric_2, col_metric_3 = st.columns(3)
+with col_metric_1:
+    st.metric(
+        "Q1 2024 Gross Margin",
+        "40.7%",
+        delta="Up from 37.8% YoY",
+        help="Improvement seen due to cost efficiencies and portfolio optimization."
     )
-    st.plotly_chart(fig_radar, use_container_width=True)
+with col_metric_2:
+    st.metric(
+        "Q1 2024 Sales Decline",
+        "-19%",
+        delta="YoY at constant currency",
+        delta_color="inverse",
+        help="Driven by significant reduction in CapEx by major telecom operators."
+    )
+with col_metric_3:
+    st.metric(
+        "Cost Savings Target (by 2026)",
+        "€800M to €1.2B",
+        help="Part of Nokia's restructuring program to enhance profitability."
+    )
 
-with tab5:
-    st.header("5. Critical Findings Summary")
-    st.write("A distillation of the most important takeaways from this analysis.")
+st.divider()
 
+# --- 3. 3-6 Month Outlook ---
+st.header("3-6 Month Outlook: Cautiously Optimistic")
+
+st.markdown("""
+The near-term outlook for Nokia is cautiously optimistic, with a focus on execution and market share gains. 
+Continued revenue growth is anticipated from ongoing 5G deployments, especially in emerging markets, 
+and an increased focus on cloudification of networks and enterprise solutions.
+""")
+
+with st.expander("Drivers & Rationale", expanded=False):
+    st.subheader("Drivers & Rationale")
     st.markdown("""
-    *   **🚀 Major Opportunity:** Microsoft is the best-positioned mega-cap to monetize enterprise AI through its ubiquitous
-        software stack. **Copilot adoption is the single most important metric to watch.**
-    *   **⚠️ Major Risk:** The stock's **premium valuation leaves little room for error**. A stumble in AI monetization
-        or a broader tech sell-off would disproportionately impact MSFT.
-    *   **⚔️ Key Battle:** The cloud AI war with **AWS and Google Cloud** will define the next decade. Microsoft's
-        current lead is strong but not unassailable.
-    *   **🔗 External Dependency:** Its strategy is heavily reliant on the **continued innovation and stability of OpenAI**,
-        making that relationship a critical, non-financial asset.
+    *   **Financial Trends & Fundamentals:** Expect sensitivity to gross margin recovery, services revenue mix, and working capital swings. Steady free cash flow is crucial.
+    *   **Macroeconomic Conditions:** Telco CapEx correlates with GDP growth, operator balance-sheet strength, and interest rates. Stable global growth means steady CapEx; weakening macro could delay discretionary projects.
+    *   **Industry Dynamics:** 5G rollout is maturing, with incremental spending on capacity densification, software features (O-RAN, Cloud RAN), and enterprise/private 5G. Optical/IP spending is a parallel growth engine.
+    *   **Company-specific Catalysts/Risks:** Catalysts include multi-country 5G deals, large optical/IP contracts, acceleration in software subscription revenue, and visible margin improvement. Risks involve execution delays, margin pressure, and missed order expectations.
     """)
 
-    st.subheader("Overall Conviction")
+st.subheader("Key Catalysts for the Next 3-6 Months")
+col_cat_1, col_cat_2, col_cat_3 = st.columns(3)
+with col_cat_1:
+    st.info("**Increased 5G Capex in Key Markets**\n\nResurgence in capital expenditure from certain operators, especially in emerging markets and specific use-case deployments (e.g., industrial 5G, private networks).")
+with col_cat_2:
+    st.info("**Enterprise Digitalization & Private Networks Growth**\n\nSignificant demand for private wireless networks for enterprises (manufacturing, logistics, utilities). Nokia is well-positioned with its end-to-end solutions.")
+with col_cat_3:
+    st.info("**AI-Driven Network Operations & Automation**\n\nOperators seek to optimize network performance and reduce operational costs using AI and automation for network management. Nokia's investments in these areas can drive adoption.")
+
+st.divider()
+
+# --- 4. Peer Benchmarking ---
+st.header("Peer Benchmarking: A Competitive Landscape")
+st.markdown("Nokia operates in a highly competitive environment. Here's how it compares to key peers:")
+
+fig_pe, fig_rev, df_peers = create_peer_benchmarking_charts()
+
+col_chart_1, col_chart_2 = st.columns(2)
+with col_chart_1:
+    st.plotly_chart(fig_pe, use_container_width=True)
+with col_chart_2:
+    st.plotly_chart(fig_rev, use_container_width=True)
+
+st.subheader("Market Share (5G Infrastructure) & Analysis")
+st.dataframe(df_peers[['Company', 'Market Share (5G Infrastructure)']], hide_index=True, use_container_width=True)
+st.markdown("""
+*Note: These are indicative ranges and can fluctuate. Market share figures are complex and often debated.*
+
+**Analysis:** Nokia often trades at a slightly higher P/E than some of its larger, more diversified competitors like Cisco, 
+reflecting investor expectations for its turnaround and potential in emerging technologies. Ericsson, its most direct 
+competitor in mobile network infrastructure, often sees similar revenue growth patterns but can be subject to different 
+market sensitivities. Ciena operates in a more specialized segment (optical networking) and has shown robust growth. 
+Nokia's challenge is to consistently demonstrate margin expansion and accelerate revenue growth in a competitive and 
+capital-intensive industry.
+""")
+
+st.divider()
+
+# --- 5. Competitive Positioning (vs. Key Peers: Ericsson, Huawei) ---
+st.header("Competitive Positioning")
+
+st.markdown("A deep dive into Nokia's strengths, weaknesses, opportunities, and threats against key rivals.")
+
+st.subheader("Strengths")
+st.success("""
+*   **Diversified Portfolio:** Strong position in fixed networks (optical, broadband), IP routing, and submarine cables, providing insulation from mobile downturns.
+*   **Strong IP & Licensing Business:** Patent portfolio generates reliable, high-margin income (e.g., Honor renewal).
+*   **Private Wireless & Enterprise Focus:** Leader in private 4G/5G networks for industrial and enterprise customers.
+""")
+
+st.subheader("Weaknesses")
+st.warning("""
+*   **Profitability in Networks:** Operating margin has historically lagged Ericsson's; closing this gap is a key focus.
+*   **Perception of Innovation Pace:** Perception of Ericsson being more agile in technology development in RAN market.
+""")
+
+st.subheader("Opportunities")
+st.info("""
+*   **Open RAN (Open Radio Access Network):** Investments in Open RAN could capture market share in new deployments.
+*   **Network Infrastructure Upgrade Cycle:** Eventual rebound in operator spending (5G-Advanced, fiber expansion, cloudification) represents significant future opportunity.
+""")
+
+st.subheader("Threats")
+st.error("""
+*   **Prolonged Operator CapEx Weakness:** If the current downturn extends beyond 2024, revenues will remain pressured.
+*   **Geopolitical Fragmentation:** Bifurcation of global markets creates complexity and limits growth.
+*   **Aggressive Pricing from Competitors:** Intense competition, especially from Huawei, can pressure margins.
+""")
+
+st.divider()
+
+# --- 6. Adjacent Industry Analysis ---
+st.header("Adjacent Industry Analysis: Upstream & Downstream Indicators")
+
+st.markdown("""
+Nokia's performance is influenced by various adjacent industries, both upstream (suppliers) and downstream (customers).
+""")
+
+st.subheader("1. Semiconductor & Component Manufacturers (Upstream)")
+st.info("""
+*   **Influence:** Negative (Historically), Positive (Current Stability)
+*   **Details:** Normalization after intense demand and supply chain constraints. Stable pricing and better component availability are positive for Nokia. Renewed shortages or price hikes would be a headwind; stability is a tailwind.
+""")
+
+st.subheader("2. Telecommunication Operators (Downstream)")
+st.info("""
+*   **Influence:** Negative (Current CapEx Pressure), Positive (Long-term 5G/6G Imperative)
+*   **Details:** Operator health and spending appetite directly impact Nokia. Interest rate hikes make CapEx expensive, but the imperative to upgrade to 5G/6G remains strong. Positive CapEx guidance from major operators is a strong tailwind.
+""")
+
+st.subheader("3. Cloud & Hyperscalers Industry")
+st.info("""
+*   **Influence:** Mixed (Positive Partnership, Negative Disruption)
+*   **Details:** Partners for core network software and private wireless. Growth of cloud-native network functions is a strength. However, hyperscalers also compete in telecom service layers, potentially disintermediating traditional vendors.
+""")
+
+st.subheader("4. Industrial & Manufacturing Sector")
+st.info("""
+*   **Influence:** Positive (Direct Tailwaind)
+*   **Details:** Digital transformation (Industry 4.0) drives demand for private wireless and industrial automation solutions, a high-margin segment for Nokia.
+""")
+
+st.subheader("5. Government Policy & Regulation")
+st.info("""
+*   **Influence:** Mixed (Positive for "Trusted" Vendors, Negative for Trade Restrictions)
+*   **Details:** "Buy local" and security-focused policies (US, Europe, India) benefit Nokia. Export controls and trade restrictions can complicate supply chains and market access.
+""")
+
+st.divider()
+
+# --- 7. Risk Assessment ---
+st.header("Risk Assessment")
+
+st.markdown("""
+Understanding potential scenarios for Nokia's near-term performance.
+""")
+
+col_bear, col_bull = st.columns(2)
+with col_bear:
+    st.subheader("🐻 Bear Case (Upcoming Quarter)")
+    st.error("""
+    *   **Delayed 5G Rollouts & Fierce Competition:** Slower CapEx from operators combined with intensified pricing pressure could lead to flat or declining revenues and compressed margins.
+    *   **Execution Challenges in New Growth Areas:** Nokia struggles to gain traction or achieve profitability in emerging areas (private networks, cloud-native) due to complexities or slow adoption.
+    *   **Macroeconomic Headwinds:** Persistent inflation or global economic slowdown dampens overall telecom spending and profitability.
+    """)
+with col_bull:
+    st.subheader("🐂 Bull Case (Upcoming Quarter)")
     st.success("""
-    We maintain a **high conviction bullish stance** on Microsoft. The company's strategic positioning at the
-    intersection of cloud and AI, coupled with its strong execution and diversified revenue streams, provides a
-    powerful platform for continued growth and innovation. The ongoing integration and monetization of AI,
-    particularly through Copilot, represent a significant, underappreciated growth driver. While risks exist,
-    we believe the company is well-equipped to navigate them.
+    *   **Accelerated 5G Deployments & Market Share Gains:** Stronger-than-expected surge in 5G CapEx allows Nokia to capture market share, especially in less dominant regions.
+    *   **Strong Performance in Enterprise & Software:** Significant wins and early revenue traction in enterprise (private networks, managed services), plus successful upsells of software/AI solutions, boost revenue and margins.
+    *   **Positive Progress on Margin Improvement Initiatives:** Tangible progress in cost optimization and economies of scale lead to better-than-expected gross and operating margins, signaling a successful turnaround.
     """)
 
-    st.subheader("Key Indicators to Watch (Next 3-6 Months)")
-    st.markdown("""
-    Investors and stakeholders should watch:
-    - Quarterly guidance on Azure/AI revenue.
-    - Metrics on Copilot and M365 AI adoption.
-    - Large-enterprise contract wins.
-    - GPU-capacity disclosures.
-    """)
+st.divider()
 
-    st.caption("Sources: Recent analyst reports from Morgan Stanley, Goldman Sachs; Q3 FY24 Earnings Call Transcript; Reuters/Bloomberg coverage on AI investments; CNBC interviews with CEO Satya Nadella; industry commentary from Stratechery and Ben Thompson; regulatory news from The Wall Street Journal.")
+# --- 8. Summary Judgement & What to Watch ---
+st.header("Summary Judgment")
+st.info("""
+Nokia is viewed as a company with solid underlying assets (strong patents, diversified portfolio) navigating a 
+difficult cyclical downturn in its core market. The critical near-term factor is the timing and strength of 
+the rebound in telecom operator spending. Success will be measured by its ability to continue improving margins 
+through its restructuring while positioning its technology (especially in Open RAN and enterprise solutions) to 
+capture the next wave of network investment. The stock's performance is likely to remain volatile until clear 
+signs of revenue growth re-emerge.
+""")
 
-# --- End of Streamlit App ---
+st.subheader("What to Watch (High Signal Items)")
+st.markdown("""
+*   Upcoming quarterly results (order intake, backlog, services/software revenue mix).
+*   Any announced large contracts (RAN/optical/private networks).
+*   Guidance changes from management.
+*   Free cash flow and net debt trajectory.
+*   Public policy moves affecting vendor access in key markets.
+""")
+
+st.markdown("---")
+st.caption("Note: This is an evidence-based, forward-looking assessment based on industry dynamics and typical financial drivers. It is not investment advice.")
