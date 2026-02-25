@@ -66,309 +66,295 @@ if generate:
 
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+import altair as alt
 
-# --- Streamlit Page Configuration ---
-st.set_page_config(layout="wide", page_title="AAPL Equity Research Analysis", initial_sidebar_state="expanded")
+# --- Helper function for creating bar charts for peer comparison ---
+def create_metrics_bar_chart(df, value_col, title, y_axis_label, highlight_company="AstraZeneca (AZN)"):
+    """
+    Creates a bar chart for peer metrics, highlighting a specific company.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing company metrics.
+        value_col (str): The column name representing the metric value.
+        title (str): The title of the chart.
+        y_axis_label (str): The label for the y-axis.
+        highlight_company (str, optional): The name of the company to highlight.
+                                           Defaults to "AstraZeneca (AZN)".
+    Returns:
+        alt.Chart: An Altair bar chart object.
+    """
+    # Ensure 'Company' column is nominal for correct sorting/labeling
+    df['Company'] = df['Company'].astype(str)
+    
+    chart = alt.Chart(df).mark_bar().encode(
+        x=alt.X('Company:N', 
+                sort=alt.EncodingSortField(field=value_col, op="average", order='descending'), 
+                title='Company'),
+        y=alt.Y(value_col, title=y_axis_label),
+        color=alt.condition(
+            alt.datum['Company'] == highlight_company,
+            alt.value('orange'), # Color for AstraZeneca
+            alt.value('steelblue') # Color for others
+        ),
+        tooltip=['Company', alt.Tooltip(value_col, format='.1f')]
+    ).properties(
+        title=title
+    ).interactive()
+    return chart
 
-# --- Title and Introduction ---
-st.title("🍎 Apple Inc. (AAPL) Equity Research Analysis")
-st.subheader("Senior Equity Research Analyst Perspective")
-st.markdown(
-    "This application visualizes and summarizes a comprehensive equity research analysis of "
-    "Apple Inc. (AAPL), providing a high-conviction forward-looking view."
-)
-st.write(f"**Date of Analysis:** March 2025 (Based on information from Q4 2024 to Q1 2025)")
+# --- Streamlit App Configuration ---
+st.set_page_config(layout="wide", page_title="AstraZeneca (AZN) Financial Analysis", icon="🔬")
+
+st.title("🔬 AstraZeneca (AZN) - Forward-Looking Financial Analysis")
 st.markdown("---")
 
+st.subheader("Senior Equity Research Analyst View")
 
-# --- Data Extraction and Preparation ---
+# --- Key Metrics Extraction & Display ---
+st.header("📊 Key Metrics & Snapshot")
+st.markdown("A quick overview of AstraZeneca's essential financial and operational indicators.")
 
-# Key Metrics
-key_metrics_data = {
-    "Metric": ["P/E Ratio (TTM)", "YoY Revenue Growth", "Smartphone Market Share", "Wearables Market Share", "Services Revenue % of Total"],
-    "Apple (AAPL)": ["~27x", "~3%", "~20%", "~30%+", "~20%"],
-    "Samsung (SSNLF)": ["~10x", "~10% (Electronics)", "~20%", "~10%", "Lower"],
-    "Google (GOOGL)": ["~25x", "~5%", "<1%", "N/A", "Higher (Ads/Cloud)"],
-    "Microsoft (MSFT)": ["~35x", "~15%", "<1%", "<1%", "Higher (Cloud/Software)"]
-}
-df_metrics = pd.DataFrame(key_metrics_data)
+col1, col2, col3, col4 = st.columns(4)
 
-# Convert numerical columns for charting
-df_chart_metrics = df_metrics.copy()
-df_chart_metrics["Apple (AAPL) Numeric"] = df_chart_metrics["Apple (AAPL)"].str.replace('x', '').str.replace('%', '').str.replace('+', '').astype(float, errors='ignore')
-df_chart_metrics["Samsung (SSNLF) Numeric"] = df_chart_metrics["Samsung (SSNLF)"].str.replace('x', '').str.replace('%', '').str.replace(' (Electronics)', '').astype(float, errors='ignore')
-df_chart_metrics["Google (GOOGL) Numeric"] = df_chart_metrics["Google (GOOGL)"].str.replace('x', '').str.replace('%', '').str.replace('<', '').astype(float, errors='ignore')
-df_chart_metrics["Microsoft (MSFT) Numeric"] = df_chart_metrics["Microsoft (MSFT)"].str.replace('x', '').str.replace('%', '').str.replace('<', '').astype(float, errors='ignore')
+with col1:
+    st.metric(label="Ticker", value="AZN")
+with col2:
+    st.metric(label="Sector", value="Pharmaceuticals & Biotechnology")
+with col3:
+    # Extracted directly from text, approximate value
+    st.metric(label="Market Cap", value="~$200 Billion") 
+with col4:
+    # Extracted directly from text
+    st.metric(label="Q1 2024 Revenue Growth (ex-COVID)", value="19%", delta="Positive momentum")
 
-
-# Company Overview
-company_overview_text = """
-- **Ticker/Company:** AAPL — Apple Inc.
-- **Primary Industry:** Consumer electronics and services (smartphones, personal computing, wearables, software/App Store and digital services).
-- **Business Model:** Premium hardware (iPhone, Mac, iPad, Apple Watch, AirPods, accessories) tightly integrated with recurring, higher-margin services (App Store, Apple Music/TV/Cloud, iCloud, AppleCare, advertising/payments). Vertical integration (in-house silicon design, close supplier relationships) and a large installed base drive recurring revenue and high gross/operating margins relative to most consumer electronics peers.
-"""
-
-# Bullish and Bearish Perspectives
-bullish_perspectives = [
-    "**AI Integration:** Strong anticipation for 'Apple Intelligence' to drive a significant iPhone upgrade cycle.",
-    "**Services Growth:** High-margin, recurring revenue from App Store, Apple Music, iCloud, Apple TV+ providing stability.",
-    "**Capital Return:** Massive shareholder returns through dividends and share buybacks supporting the stock."
-]
-bearish_perspectives = [
-    "**China Headwinds:** Sustained competitive pressure and declining market share from rivals like Huawei; government restrictions on iPhone use.",
-    "**Hardware Sales Slump:** iPhone sales weakness, particularly in China, and inconsistent iPad/Mac sales.",
-    "**Regulatory Scrutiny:** Ongoing antitrust challenges (EU's DMA, U.S. DOJ lawsuit) threatening the 'walled garden' model."
-]
-
-# SWOT Analysis Data (from the second analysis block)
-swot_data = {
-    "Strengths": [
-        "**Ecosystem Lock-in:** Unmatched integration of hardware, software, and services creates high switching costs and customer loyalty.",
-        "**Brand Power & Premium Positioning:** Commands the highest profit margins in the smartphone industry.",
-        "**Financial Fortress:** Massive cash reserves provide unparalleled R&D and strategic flexibility."
-    ],
-    "Weaknesses": [
-        "**AI Perception Lag:** Seen as behind Microsoft/Google in the public AI race; needs clear consumer messaging for its 'on-device' approach.",
-        "**Dependence on iPhone:** Over-reliance on a single product category for a majority of revenue makes it vulnerable to market saturation.",
-        "**Limited Flexibility:** Integrated model can be slower to respond to market trends compared to Google's open Android ecosystem."
-    ],
-    "Opportunities": [
-        "**Apple Intelligence:** A chance to redefine its products and spark a multi-year upgrade cycle.",
-        "**Emerging Markets:** Growth potential in India and Southeast Asia, though at lower price points.",
-        "**New Product Categories:** Long-term speculation around AR/VR glasses and automotive technology."
-    ],
-    "Threats": [
-        "**Competition in China:** Huawei's resurgence is a direct and potent threat.",
-        "**Regulatory Erosion:** Regulations (DMA, U.S. actions) could systematically weaken the competitive moat.",
-        "**Market Saturation:** The global high-end smartphone market is largely mature."
-    ]
-}
-
-# --- Layout and Visualization ---
-
-# Section 1: Company Overview & Key Metrics
-st.header("1. Company Overview & Key Financial Metrics")
-st.markdown(company_overview_text)
-
-st.subheader("Key Performance Indicators (Current / Projected)")
-col1_m, col2_m, col3_m = st.columns(3)
-with col1_m:
-    st.metric(label="P/E Ratio (TTM) - AAPL", value=df_chart_metrics.loc[0, "Apple (AAPL)"])
-with col2_m:
-    st.metric(label="YoY Revenue Growth - AAPL", value=df_chart_metrics.loc[1, "Apple (AAPL)"])
-with col3_m:
-    st.metric(label="Services Revenue % of Total - AAPL", value=df_chart_metrics.loc[4, "Apple (AAPL)"])
+st.markdown("### Growth & Financials (Estimates)")
+col_a, col_b, col_c = st.columns(3)
+with col_a:
+    # Extracted from text
+    st.metric(label="Expected Near-Term Revenue Growth", value="Mid-to-High Single Digits")
+with col_b:
+    # Extracted from text
+    st.metric(label="Q1 2024 Core EPS Guidance", value="Raised", delta="Strong management confidence")
+with col_c:
+    # Extracted from text
+    st.metric(label="Operating Margins", value="Healthy & Stable", delta="Potential for slight improvement")
 
 st.markdown("---")
 
-# Section 2: Market Sentiment & Near-Term Outlook
-st.header("2. Market Sentiment & Near-Term Outlook (Next 3-6 Months)")
+# --- Sections and Summaries: Fundamental Evaluation ---
+st.header("📜 Fundamental Evaluation & Outlook")
+st.markdown("AstraZeneca's robust performance is driven by its strong oncology portfolio, rapidly growing respiratory, and cardiovascular franchises.")
 
-st.write("Overall, sentiment toward Apple remains cautiously optimistic but is tempered by significant near-term concerns. The consensus is that the company is navigating a transition period, with a recurring theme of **short-term pain** (China, hardware sales) and **long-term potential** (AI-driven supercycle).")
+with st.expander("Next 3-6 Months Outlook"):
+    st.markdown("""
+    We anticipate continued strong performance for AZN in the near term. The company is well-positioned to benefit from ongoing demand for its established products and the incremental contributions from recent launches and pipeline advancements. We expect revenue growth to remain in the mid-to-high single digits, driven by a combination of volume increases and favorable pricing, particularly in the US and emerging markets. Margins should remain stable, with potential for slight improvement as the company continues to optimize its operational efficiency.
+    """)
+
+with st.expander("Key Catalysts (Next 3-6 Months)"):
+    st.markdown("""
+    1.  **Continued Momentum in Oncology:** Sustained strong sales of blockbuster cancer drugs like Tagrisso and Imfinzi. Positive data readouts from ongoing clinical trials for these drugs, potentially expanding their indications, could provide significant upward revisions to our forecasts.
+    2.  **Growth in Cardiovascular, Renal & Metabolism (CVRM) and Respiratory & Immunology (R&I):** Increasing adoption of Farxiga (for diabetes, heart failure, and chronic kidney disease) and Lynparza (in oncology). We will be closely monitoring sales figures and market penetration for these drugs, as well as any new approvals or label expansions.
+    3.  **Pipeline Advancements & Strategic Partnerships:** Any positive updates from Phase III trial readouts or regulatory submissions for its novel pipeline candidates (e.g., in Alzheimer's, rare diseases) could be a significant catalyst. Furthermore, strategic partnerships or acquisitions that bolster its R&D capabilities or market access will be closely watched.
+    """)
+
+st.markdown("---")
+
+# --- Peer Benchmarking and Visualizations ---
+st.header("⚖️ Peer Benchmarking")
+st.markdown("A comparison of AstraZeneca against its key competitors across various financial metrics.")
+
+# Data for Peer Benchmarking Table (Midpoints of ranges from text for simplicity)
+peer_data = {
+    "Metric": ["AstraZeneca (AZN)", "Eli Lilly and Company (LLY)", "Roche Holding AG (RHHBY)", "Novartis AG (NVS)"],
+    "P/E Ratio (TTM)": [22.5, 75.0, 20.0, 17.5],
+    "YoY Revenue Growth (%)": [6.5, 22.5, 4.0, 3.0], 
+    "Market Share (Global Pharma %)": [3.5, 2.5, 4.5, 3.5], 
+    "Gross Margin (%)": [77.5, 72.5, 82.5, 77.5], 
+    "R&D as % of Sales (%)": [19.0, 27.5, 16.5, 13.5] 
+}
+peer_df = pd.DataFrame(peer_data).set_index("Metric")
+st.dataframe(peer_df, use_container_width=True)
+
+st.markdown("### Visualizing Peer Metrics")
+st.info("AstraZeneca (AZN) is highlighted in **orange** for easy comparison across the charts below.")
+
+# Reshape DataFrame for Altair charting
+chart_data = peer_df.reset_index().rename(columns={"Metric": "Company"})
+
+# Create individual charts for each metric
+metrics_to_chart = [
+    {"col": "P/E Ratio (TTM)", "label": "P/E Ratio"},
+    {"col": "YoY Revenue Growth (%)", "label": "YoY Revenue Growth (%)"},
+    {"col": "Market Share (Global Pharma %)", "label": "Global Pharma Market Share (%)"},
+    {"col": "Gross Margin (%)", "label": "Gross Margin (%)"},
+    {"col": "R&D as % of Sales (%)", "label": "R&D as % of Sales (%)"}
+]
+
+for metric_info in metrics_to_chart:
+    st.subheader(f"{metric_info['label']} Comparison")
+    chart = create_metrics_bar_chart(chart_data, metric_info['col'], 
+                                     f'{metric_info["label"]} Across Key Peers', metric_info['label'])
+    st.altair_chart(chart, use_container_width=True)
+    st.markdown("---")
+
+
+# --- Adjacent Industry Analysis ---
+st.header("🌍 Adjacent Industry Analysis")
+st.markdown("Understanding how upstream and downstream industries influence AstraZeneca's performance.")
+
+with st.expander("Upstream: Biotechnology & Contract Research/Manufacturing Organizations (CROs/CDMOs)"):
+    st.subheader("Current Tailwinds (Positive Influences):")
+    st.info("""
+    *   **Biotech Innovation:** Improved funding environment and advances in gene editing, AI-driven drug discovery, and novel therapeutic modalities provide a rich pipeline for collaborations and acquisitions.
+    *   **CRO/CDMO Demand:** Strong demand indicates a healthy overall drug development pipeline, which benefits companies like AZN that utilize these partners for clinical trials and manufacturing.
+    """)
+    st.subheader("Potential Headwinds (Negative Influences):")
+    st.warning("""
+    *   **Supply Chain Disruptions:** Potential for disruptions for specialized reagents or raw materials could impact development timelines.
+    *   **Cost & Competition:** Increased competition for top-tier CRO/CDMO talent and capacity could lead to higher costs.
+    """)
+
+with st.expander("Downstream: Healthcare Providers (Hospitals, Clinics) & Payers (Insurance Companies)"):
+    st.subheader("Current Tailwinds (Positive Influences):")
+    st.info("""
+    *   **Global Healthcare Expenditure:** Increasing global healthcare expenditure and an aging population continue to drive demand for pharmaceuticals.
+    *   **Value-Based Care:** Payers increasingly focus on value-based care, favoring well-established drugs with strong clinical outcomes and cost-effectiveness (e.g., Farxiga).
+    *   **Normalization of Healthcare Access:** Post-pandemic normalization means patients are more readily accessing healthcare, leading to higher utilization of prescription drugs.
+    """)
+    st.subheader("Potential Headwinds (Negative Influences):")
+    st.warning("""
+    *   **Drug Pricing Pressure:** Pressure from governments and private payers remains a constant challenge.
+    *   **Reimbursement Policies:** Stricter reimbursement policies, formulary restrictions, and the rise of value-based contracting could impact pricing power and market access.
+    *   **Healthcare System Constraints:** Physician burnout and hospital capacity constraints could indirectly affect prescription volumes.
+    """)
+
+st.markdown("---")
+
+# --- Risk Assessment ---
+st.header("⚠️ Risk Assessment")
+st.markdown("A balanced view of potential near-term scenarios for AstraZeneca.")
 
 col_bull, col_bear = st.columns(2)
+
 with col_bull:
-    st.subheader("📈 Bullish Perspectives")
-    for item in bullish_perspectives:
-        st.markdown(f"- {item}")
+    st.subheader("🐂 Bull Case (Upcoming Quarter)")
+    st.success("""
+    *   **Strong Beat on Earnings & Positive Guidance:** AZN delivers EPS and revenue figures significantly above consensus, driven by exceptional performance of key growth drivers (Tagrisso, Imfinzi, Farxiga).
+    *   **Positive Pipeline Updates & Regulatory Approvals:** Positive interim data from crucial Phase 3 trials, or a surprise early approval for a significant pipeline candidate, validating long-term growth strategy.
+    *   **Favorable Regulatory Environment & Payer Relations:** Signs of a more stable pricing environment in key markets or favorable formulary decisions for new indications of existing drugs.
+    """)
+
 with col_bear:
-    st.subheader("📉 Bearish Perspectives & Concerns")
-    for item in bearish_perspectives:
-        st.markdown(f"- {item}")
+    st.subheader("🐻 Bear Case (Upcoming Quarter)")
+    st.error("""
+    *   **Disappointing Clinical Trial Data:** A significant setback in a late-stage clinical trial for a key pipeline asset could lead to substantial negative revision of growth prospects.
+    *   **Intensified Competition & Pricing Pressure:** Unexpectedly strong competitive launches or aggressive pricing actions by payers (e.g., US Medicare drug price negotiations) could erode market share and margins.
+    *   **Supply Chain or Manufacturing Issues:** Unforeseen production problems or critical raw material shortages for a blockbuster drug, impacting sales and investor confidence.
+    """)
 
 st.markdown("---")
 
-# Section 3: Fundamental Evaluation & Catalysts
-st.header("3. Fundamental Evaluation & Key Catalysts")
+# --- Detailed Company Overview and Competitive Comparison ---
+st.header("📋 Detailed Company Overview & Competitive Analysis")
 
+with st.expander("Company Overview"):
+    st.markdown("""
+    **Ticker/company:** AZN — AstraZeneca PLC.
+    **Primary industry:** Global biopharmaceuticals (prescription pharmaceuticals and biologics, with major franchises in oncology, cardiovascular/renal/metabolism (CVRM), respiratory, and rare diseases). AstraZeneca is a research-led, large-cap pharma with a portfolio that blends marketed growth drugs (notably oncology and SGLT2 agents) and a broad late-stage pipeline.
+    """)
+
+with st.expander("3–6 Month Outlook (Detailed)"):
+    st.markdown("""
+    **Expected topline and earnings trajectory:** Over the next 3–6 months, performance is likely to be driven primarily by (i) the trajectory of sales for its core growth medicines (oncology portfolio, SGLT2 agents such as Farxiga/dapagliflozin), (ii) quarterly reported results and updated management guidance, and (iii) FX translation effects. Absent an unexpected major regulatory setback, the company is positioned to deliver continued revenue growth at a mid-to-high single-digit to low double-digit percentage pace versus mature-pharma peers, supported by oncology and CVRM product momentum. Margin performance should remain relatively resilient because of high-margin biologic/oncology mix, but earnings per share will remain sensitive to R&D spend, business development activity, and currency moves.
+    **Key macro influences:** Global macro conditions — growth in major markets, payer budget pressures, and inflation/interest-rate impacts — will matter. Moderate economic growth and continued pressure on healthcare budgets in some countries could intensify reimbursement scrutiny and slow volume/price growth in select markets. Conversely, secular demand for cancer and cardio-renal medicines is structurally inelastic, supporting resilience.
+    **Industry dynamics:** The oncology market remains a high-growth, competitive arena with frequent label expansions and combination regimens. SGLT2s and other cardio-renal agents continue to see guideline adoption, which supports durable demand. However, increasing competition from other pharma players and biosimilars/generics for older molecules is a continuing constraint.
+    """)
+    st.subheader("Company-Specific Catalysts & Risks (Detailed):")
+    col_cat_det, col_risks_det = st.columns(2)
+    with col_cat_det:
+        st.success("""
+        **Catalysts:** Upcoming quarterly results and any announced label expansions or regulatory approvals for late-stage assets (e.g., additional indications for approved oncology or cardio-renal agents), positive Phase III readouts or accelerated approvals, and strategic partnerships or targeted M&A could all provide upside over the next few months.
+        """)
+    with col_risks_det:
+        st.error("""
+        **Risks:** Adverse clinical data or regulatory setbacks for key pipeline programs, intensified price/regulatory actions in major markets, manufacturing or supply disruptions, material legal/settlement outcomes, and unfavorable FX moves represent the principal near-term downside risks.
+        """)
+
+st.subheader("Competitive Comparison (Detailed Analysis vs. Select Peers)")
+
+# Specific competitive comparison details from the text
+competitors_detailed = {
+    "Pfizer (PFE)": {
+        "Strengths vs AZN": "Extremely large commercial scale, strong cash flow generation, and highly diversified portfolio including vaccines, established primary care/oncology assets, and broad manufacturing capacity. Faster capacity to absorb late-stage setbacks and pursue bolt-on M&A. Typically more exposed to vaccine/covid-era revenue fluctuations (depending on the cycle).",
+        "Weaknesses vs AZN": "Pfizer’s growth profile has been more episodic (vaccine-driven waves) while AstraZeneca has more sustained organic growth in oncology and SGLT2s. Pfizer faces large near-term patent cliffs and more cyclical revenue sources.",
+        "Relative Assessment": "Pfizer offers scale and balance-sheet optionality; AstraZeneca offers steadier growth driven by therapeutic-area momentum."
+    },
+    "Roche (RHHBY / ROG.SW)": {
+        "Strengths vs AZN": "Leading diagnostics-therapeutics integration and a deep, profitable oncology franchise with strong margins and an established personalized medicine position. Roche’s diagnostics business provides valuable demand-signal lead indicators for therapeutic uptake.",
+        "Weaknesses vs AZN": "Roche’s growth has in some periods been more modest than AZN’s higher-growth oncology + CVRM mix; Roche may be slightly less aggressive commercially in select geographies.",
+        "Relative Assessment": "Roche is a diagnostic-enabled oncology leader with superior margin profile; AstraZeneca is faster-growing from new indications and a broader commercial push in cardio-renal."
+    },
+    "Novartis (NVS)": {
+        "Strengths vs AZN": "Diversified exposure including innovative medicines and generics (Sandoz), and a strong presence in cell- and gene-therapy areas. Novartis has meaningful scale in established therapeutic areas and targeted innovation.",
+        "Weaknesses vs AZN": "Novartis’ diversified business dilutes the high-margin growth mix that AstraZeneca currently benefits from in oncology and SGLT2s.",
+        "Relative Assessment": "Novartis combines diversification and innovation; AstraZeneca offers a clearer growth story concentrated around a few high-growth franchises."
+    }
+}
+
+for comp, details in competitors_detailed.items():
+    with st.expander(f"vs. {comp}"):
+        st.markdown(f"**Strengths vs AZN:** {details['Strengths vs AZN']}")
+        st.markdown(f"**Weaknesses vs AZN:** {details['Weaknesses vs AZN']}")
+        st.markdown(f"**Relative Assessment:** {details['Relative Assessment']}")
+
+st.markdown("---")
+
+# --- Market Sentiment & Expectations (Next 6-12 Months) ---
+st.header("📈 Market Sentiment & Expectations (Next 6-12 Months)")
+st.markdown("The prevailing market sentiment for AstraZeneca is **cautiously optimistic to bullish**, driven by its strong oncology and biopharmaceutical pipeline, though tempered by competitive pressures.")
+
+col_bull_drivers, col_bear_concerns = st.columns(2)
+
+with col_bull_drivers:
+    st.subheader("Bullish Drivers:")
+    st.success("""
+    *   **Pipeline Strength & Launches:** Analysts consistently highlight an "industry-leading pipeline" with successful launches like Tagrisso, Enhertu, and Farxiga delivering sustained double-digit revenue growth.
+    *   **Beyond COVID-19:** Growth story successfully decoupled from its COVID-19 vaccine/Vaxzevria and antibody therapy (Q1 2024 total revenue up 19% excluding COVID-19 medicines).
+    *   **Upgraded Guidance:** In its Q1 2024 report, AZN raised its full-year 2024 core EPS guidance, signaling strong management confidence.
+    """)
+
+with col_bear_concerns:
+    st.subheader("Bearish Concerns & Risks:")
+    st.warning("""
+    *   **China Pricing Pressure:** Recurring theme of exposure to ongoing price cuts in China's volume-based procurement schemes, acting as a headwind for some mature products.
+    *   **Intense Competition:** Fierce competitive landscape in key areas like oncology (e.g., Tagrisso faces emerging competition) and diabetes. Requires continuous high R&D spending.
+    *   **Acquisition Integration:** Recent strategic acquisitions (Fusion Pharmaceuticals, Amolyt Pharma) carry execution and integration risks.
+    """)
+
+st.markdown("### Recent Key Acquisitions")
+acquisitions_df = pd.DataFrame({
+    'Acquisition': ['Fusion Pharmaceuticals', 'Amolyt Pharma'],
+    'Value (Billion USD)': [1.2, 2.0] # Values extracted from text
+})
+
+acquisition_chart = alt.Chart(acquisitions_df).mark_bar().encode(
+    x=alt.X('Acquisition:N', sort=None, title='Acquisition Target'),
+    y=alt.Y('Value (Billion USD):Q', title='Value (Billion USD)'),
+    tooltip=['Acquisition', 'Value (Billion USD)']
+).properties(
+    title='Recent Key Acquisitions by AstraZeneca (Value)'
+).interactive()
+st.altair_chart(acquisition_chart, use_container_width=True)
+
+
+st.markdown("---")
+
+# --- Overall Conclusion ---
+st.header("🎯 Summary Judgment & Conclusion")
 st.markdown("""
-**Recent Performance:** Apple's recent performance has been characterized by resilience, particularly within its Services segment, which continues to be a significant growth driver and margin enhancer. While iPhone sales have shown some cyclicality, the installed base and increasing customer loyalty support consistent demand. Gross margins have remained robust, a testament to pricing power and efficient supply chain management.
+AstraZeneca is positioned as a high-growth pharmaceutical leader with a de-risked post-COVID profile. Its success hinges on executing its robust oncology and biopharma pipeline, navigating pricing pressures, and leveraging innovations from adjacent biotech and tech sectors. The primary investment thesis revolves around its industry-leading R&D productivity translating into sustained revenue growth.
 """)
 
-st.subheader("Projected Performance (Next 3-6 Months)")
-st.markdown("""
-We anticipate continued steady performance for AAPL over the next 3-6 months, driven by a combination of seasonal factors and ongoing product cycles.
-*   **iPhone:** Upcoming launch of the next iPhone generation (fall) will be a key focus; strong demand expected from loyal user base.
-*   **Services:** Poised for continued double-digit growth, fueled by Apple Music, iCloud, Apple TV+, App Store, and expanding ecosystem. Offers higher margins and greater predictability.
-*   **Wearables, Home, and Accessories:** Expected continued growth (Apple Watch, AirPods).
-*   **Mac and iPad:** Performance sensitive to broader economic conditions and refresh cycles, but innovation should support demand.
+st.info("""
+**Disclaimer:** This assessment is evidence-based and forward-looking, not investment advice.
 """)
-
-st.subheader("Key Catalysts (Next 3-6 Months)")
-st.markdown("""
-1.  **Next-Generation iPhone Launch & Initial Demand:** Positive reception to new features, camera improvements, and potential AI integrations could drive significant upgrade cycles.
-2.  **Continued Strength in Services Growth:** Any acceleration (new bundles, expanded content, increased App Store revenue) would be a significant positive due to high margins.
-3.  **Potential for AI Integration Announcements:** Concrete announcements or demonstrations of Apple's AI strategy (integrated into iOS/hardware) could create significant investor excitement.
-""")
-
-st.markdown("---")
-
-# Section 4: Peer Benchmarking
-st.header("4. Peer Benchmarking & Competitive Analysis")
-st.markdown("Comparing Apple (AAPL) against key competitors across various financial and market share metrics.")
-
-st.subheader("Peer Comparison Table")
-st.dataframe(df_metrics.style.set_properties(**{'background-color': '#f0f2f6', 'color': 'black'}), hide_index=True, use_container_width=True)
-
-st.markdown("""
-**Analysis:** AAPL trades at a premium valuation compared to Samsung, reflecting its stronger brand loyalty, higher-margin Services business, and more integrated ecosystem. While Google and Microsoft have impressive growth, their primary revenue drivers (advertising and cloud, respectively) are different. Apple's strength lies in its hardware-centric ecosystem, complemented by a rapidly growing and profitable Services segment. Samsung, while a formidable competitor in hardware, lacks the same level of ecosystem lock-in and services profitability.
-""")
-
-st.subheader("Visualizing Key Peer Metrics")
-
-col1_chart, col2_chart = st.columns(2)
-
-# P/E Ratio Chart
-with col1_chart:
-    df_pe = df_chart_metrics[df_chart_metrics["Metric"] == "P/E Ratio (TTM)"].melt(id_vars=["Metric"], value_vars=["Apple (AAPL) Numeric", "Samsung (SSNLF) Numeric", "Google (GOOGL) Numeric", "Microsoft (MSFT) Numeric"], var_name="Company", value_name="P/E Ratio")
-    df_pe["Company"] = df_pe["Company"].str.replace(' Numeric', '').str.replace(' (AAPL)', '').str.replace(' (SSNLF)', '').str.replace(' (GOOGL)', '').str.replace(' (MSFT)', '')
-    fig_pe = px.bar(df_pe, x="Company", y="P/E Ratio", title="P/E Ratio (TTM) Comparison",
-                    labels={"P/E Ratio": "P/E Ratio (x)"},
-                    color="Company",
-                    color_discrete_map={
-                        "Apple": "#76A96E",
-                        "Samsung": "#66C2A5",
-                        "Google": "#FC8D62",
-                        "Microsoft": "#8DA0CB"
-                    })
-    fig_pe.update_layout(showlegend=False)
-    st.plotly_chart(fig_pe, use_container_width=True)
-
-# YoY Revenue Growth Chart
-with col2_chart:
-    df_rev = df_chart_metrics[df_chart_metrics["Metric"] == "YoY Revenue Growth"].melt(id_vars=["Metric"], value_vars=["Apple (AAPL) Numeric", "Samsung (SSNLF) Numeric", "Google (GOOGL) Numeric", "Microsoft (MSFT) Numeric"], var_name="Company", value_name="Revenue Growth")
-    df_rev["Company"] = df_rev["Company"].str.replace(' Numeric', '').str.replace(' (AAPL)', '').str.replace(' (SSNLF)', '').str.replace(' (GOOGL)', '').str.replace(' (MSFT)', '')
-    fig_rev = px.bar(df_rev, x="Company", y="Revenue Growth", title="YoY Revenue Growth Comparison",
-                     labels={"Revenue Growth": "Growth (%)"},
-                     color="Company",
-                     color_discrete_map={
-                        "Apple": "#76A96E",
-                        "Samsung": "#66C2A5",
-                        "Google": "#FC8D62",
-                        "Microsoft": "#8DA0CB"
-                    })
-    fig_rev.update_layout(showlegend=False)
-    st.plotly_chart(fig_rev, use_container_width=True)
-
-col3_chart, col4_chart = st.columns(2)
-
-# Smartphone Market Share Chart
-with col3_chart:
-    df_sm_share = df_chart_metrics[df_chart_metrics["Metric"] == "Smartphone Market Share"].melt(id_vars=["Metric"], value_vars=["Apple (AAPL) Numeric", "Samsung (SSNLF) Numeric", "Google (GOOGL) Numeric", "Microsoft (MSFT) Numeric"], var_name="Company", value_name="Market Share")
-    df_sm_share["Company"] = df_sm_share["Company"].str.replace(' Numeric', '').str.replace(' (AAPL)', '').str.replace(' (SSNLF)', '').str.replace(' (GOOGL)', '').str.replace(' (MSFT)', '')
-    # Filter out companies with negligible market share for better visualization
-    df_sm_share = df_sm_share[df_sm_share["Market Share"] > 1]
-    fig_sm_share = px.pie(df_sm_share, values="Market Share", names="Company", title="Smartphone Market Share (Top Competitors)",
-                          color_discrete_map={
-                              "Apple": "#76A96E",
-                              "Samsung": "#66C2A5"
-                          })
-    fig_sm_share.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(fig_sm_share, use_container_width=True)
-
-# Wearables Market Share Chart
-with col4_chart:
-    df_wear_share = df_chart_metrics[df_chart_metrics["Metric"] == "Wearables Market Share"].melt(id_vars=["Metric"], value_vars=["Apple (AAPL) Numeric", "Samsung (SSNLF) Numeric"], var_name="Company", value_name="Market Share")
-    df_wear_share["Company"] = df_wear_share["Company"].str.replace(' Numeric', '').str.replace(' (AAPL)', '').str.replace(' (SSNLF)', '')
-    fig_wear_share = px.pie(df_wear_share, values="Market Share", names="Company", title="Wearables Market Share (Top Competitors)",
-                            color_discrete_map={
-                                "Apple": "#76A96E",
-                                "Samsung": "#66C2A5"
-                            })
-    fig_wear_share.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(fig_wear_share, use_container_width=True)
-
-# SWOT Analysis
-st.subheader("SWOT Analysis vs. Key Peers")
-col_s, col_w, col_o, col_t = st.columns(4)
-with col_s:
-    st.success("### 💪 Strengths")
-    for item in swot_data["Strengths"]:
-        st.markdown(f"- {item}")
-with col_w:
-    st.warning("### 🧐 Weaknesses")
-    for item in swot_data["Weaknesses"]:
-        st.markdown(f"- {item}")
-with col_o:
-    st.info("### ✨ Opportunities")
-    for item in swot_data["Opportunities"]:
-        st.markdown(f"- {item}")
-with col_t:
-    st.error("### ⚠️ Threats")
-    for item in swot_data["Threats"]:
-        st.markdown(f"- {item}")
-
-st.markdown("---")
-
-# Section 5: Adjacent Industry Impact
-st.header("5. Adjacent Industry Impact")
-st.write("Several external industries are significantly influencing Apple's outlook:")
-
-# Using expanders for a cleaner look
-with st.expander("Semiconductor & AI Hardware: Critical Dependency"):
-    st.markdown("""
-    Apple's AI ambitions depend on advanced chips. Its relationship with **TSMC** for cutting-edge 3nm and future 2nm production is vital. Any disruption in the semiconductor supply chain or failure to secure leading-edge nodes would cripple its product roadmap. Conversely, success in designing its own silicon (M-series, A-series) is a major competitive advantage.
-    """)
-
-with st.expander("Entertainment & Media: Mixed Impact"):
-    st.markdown("""
-    The streaming video industry (adjacent to Apple TV+) remains fiercely competitive and unprofitable for most players. This pressures Apple to continue investing heavily in content without a clear path to dominance. However, bundling services like Apple TV+ with Apple One is a key retention tool for the ecosystem.
-    """)
-
-with st.expander("Financial Technology (FinTech): Opportunity & Risk"):
-    st.markdown("""
-    Apple Pay and the nascent Apple Card/Buy Now, Pay Later services position Apple in the payments industry. Growth here boosts Services revenue. However, this also attracts scrutiny from financial regulators and competes with banks and dedicated fintech firms.
-    """)
-
-with st.expander("Global Trade & Geopolitics: Major Headwind"):
-    st.markdown("""
-    U.S.-China tensions directly impact Apple. It faces the dual challenge of navigating export controls on technology while managing its immense supply chain and market presence within China. Decoupling or "de-risking" is a costly, multi-year operational challenge.
-    """)
-
-with st.expander("Healthcare & Wearables: Growth Niche"):
-    st.markdown("""
-    The Apple Watch and health-focused features (ECG, temperature sensing) tie the company to the digital health monitoring trend. This strengthens ecosystem loyalty but requires navigating stringent medical device regulations.
-    """)
-
-st.markdown("---")
-
-# Section 6: Risk Assessment
-st.header("6. Risk Assessment (Upcoming Quarter)")
-
-col_bear_case, col_bull_case = st.columns(2)
-
-with col_bear_case:
-    st.subheader("📉 Bear Case")
-    st.markdown("""
-    *   **Weaker-than-expected iPhone sales:** Less compelling new iPhone, increased competition, or significant economic downturn.
-    *   **Stagnation or deceleration in Services growth:** Failure to introduce new high-margin services or slowdown in app store spending.
-    *   **Supply chain disruptions or component cost increases:** Unforeseen issues in semiconductor supply or significant increases in key component costs.
-    """)
-
-with col_bull_case:
-    st.subheader("📈 Bull Case")
-    st.markdown("""
-    *   **"Super Cycle" iPhone launch:** Next iPhone introduces highly sought-after features (e.g., significant AI capabilities, groundbreaking camera tech) triggering a stronger-than-anticipated upgrade cycle.
-    *   **Accelerated Services growth:** Launch of new subscription bundles, a significant content hit on Apple TV+, or surge in App Store activity.
-    *   **Positive AI integration announcements:** Clear and impactful demonstrations of generative AI integration enhancing user experience across devices and services.
-    """)
-
-st.markdown("---")
-
-# Section 7: Overall Conclusion & Disclaimer
-st.header("7. Overall Conclusion")
-st.write(
-    "Apple is at an inflection point. Its near-term performance is pressured by cyclical hardware weakness and structural challenges in China. "
-    "However, the company's financial health and ecosystem strength provide a robust foundation. **The critical factor for its stock performance "
-    "over the next 12-18 months will be the market's verdict on 'Apple Intelligence.'** If perceived as a compelling, must-have innovation, "
-    "it could catalyze the next major growth phase. If it falls flat or is seen as merely catching up, the bear case of a stagnating hardware "
-    "giant under regulatory siege will gain credence. Investors are advised to monitor China sales data, regulatory developments, and, most "
-    "importantly, the early adoption metrics and reviews of its AI features in late 2025."
-)
-
-st.success("**Outlook: Positive**")
-
-st.markdown("---")
-st.caption("Disclaimer: This analysis is for informational and academic purposes and is not investment advice.")
