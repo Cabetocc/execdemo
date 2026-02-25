@@ -61,369 +61,311 @@ if generate:
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
-st.set_page_config(layout="wide")
+# --- App Configuration ---
+st.set_page_config(
+    page_title="AstraZeneca (AZN) Financial Ecosystem Analysis",
+    page_icon="🔬",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 # --- Helper Functions ---
-def format_currency(value):
-    if pd.isna(value):
-        return "N/A"
-    return f"${value:,.0f}"
+def display_section_title(title):
+    st.markdown(f"## {title}")
+    st.markdown("---")
 
-def format_percentage(value):
-    if pd.isna(value):
-        return "N/A"
-    return f"{value:.1%}"
+def display_metric(label, value, is_percentage=False):
+    if is_percentage and value is not None:
+        formatted_value = f"{value:.1%}"
+    elif value is not None:
+        formatted_value = f"{value:,.2f}"
+    else:
+        formatted_value = "N/A"
+    st.metric(label, formatted_value)
 
-def format_number(value):
-    if pd.isna(value):
-        return "N/A"
-    return f"{value:,.2f}"
+def create_bar_chart(data, x_col, y_col, title, color_col=None, hover_data=None):
+    if data is None or data.empty:
+        st.warning("No data available for chart.")
+        return
+    fig = px.bar(data, x=x_col, y=y_col, title=title, color=color_col,
+                 labels={x_col: x_col.replace("_", " ").title(), y_col: y_col.replace("_", " ").title()},
+                 hover_data=hover_data)
+    fig.update_layout(title_x=0.5)
+    st.plotly_chart(fig, use_container_width=True)
 
-# --- Data Simulation ---
-# In a real app, you would fetch this data from APIs (e.g., financial data providers)
-# For this example, we'll simulate the data based on the provided analysis.
+def create_pie_chart(data, names_col, values_col, title):
+    if data is None or data.empty:
+        st.warning("No data available for chart.")
+        return
+    fig = px.pie(data, names=names_col, values=values_col, title=title)
+    fig.update_layout(title_x=0.5)
+    st.plotly_chart(fig, use_container_width=True)
 
-def get_financial_data():
-    data = {
-        "Metric": [
-            "Total Revenue",
-            "Revenue Growth (YoY)",
-            "R&D Spend",
-            "R&D as % of Revenue",
-            "Gross Profit Margin",
-            "Operating Profit Margin",
-            "Net Profit Margin",
-            "Earnings Per Share (EPS)",
-            "Operating Cash Flow (OCF)",
-            "Free Cash Flow (FCF)",
-            "Debt-to-Equity Ratio",
-            "Interest Coverage Ratio",
-            "Dividend Yield",
-            "Dividend Payout Ratio",
-            "Price-to-Earnings (P/E) Ratio",
-            "Price-to-Sales (P/S) Ratio",
-            "Enterprise Value (EV) / EBITDA"
-        ],
-        "Value": [
-            35_410_000_000,  # Simulated based on recent reports (e.g., 2023)
-            0.03,            # Simulated growth rate
-            7_082_000_000,   # Simulated R&D spend
-            0.20,            # Simulated R&D as % of revenue
-            0.79,            # Simulated Gross Profit Margin (from analysis)
-            0.22,            # Simulated Operating Profit Margin (derived)
-            0.15,            # Simulated Net Profit Margin (derived)
-            5.00,            # Simulated EPS
-            9_000_000_000,   # Simulated OCF
-            7_000_000_000,   # Simulated FCF
-            0.50,            # Simulated Debt-to-Equity
-            10.0,            # Simulated Interest Coverage
-            0.02,            # Simulated Dividend Yield
-            0.55,            # Simulated Dividend Payout Ratio
-            25.0,            # Simulated P/E Ratio
-            6.0,             # Simulated P/S Ratio
-            15.0             # Simulated EV/EBITDA
-        ],
-        "Source": [
-            "Annual Report", "Annual Report", "Annual Report", "Annual Report",
-            "Annual Report", "Annual Report", "Annual Report", "Annual Report",
-            "Annual Report", "Annual Report", "Annual Report", "Annual Report",
-            "Market Data", "Annual Report", "Market Data", "Market Data", "Market Data"
-        ]
-    }
-    df = pd.DataFrame(data)
-    df["Formatted_Value"] = df["Value"].apply(lambda x: format_currency(x) if "Revenue" in df.loc[df["Value"] == x].index[0] or "R&D Spend" in df.loc[df["Value"] == x].index[0] or "OCF" in df.loc[df["Value"] == x].index[0] or "FCF" in df.loc[df["Value"] == x].index[0] else format_percentage(x) if "%" in df.loc[df["Value"] == x].index[0] else format_number(x))
-    return df
+# --- Load Data (Simulated) ---
+# In a real application, this would come from APIs, databases, or files.
+# For demonstration, we'll create sample dataframes.
 
-def get_revenue_breakdown():
-    data = {
-        "Segment": [
-            "Oncology",
-            "Cardiovascular, Renal & Metabolism (CVRM)",
-            "Respiratory & Immunology",
-            "Rare Diseases (Alexion)",
-            "Other"
-        ],
-        "Revenue": [
-            12_390_500_000, # ~35%
-            8_852_500_000,  # ~25%
-            5_311_500_000,  # ~15%
-            6_401_500_000,  # ~18% (post-Alexion)
-            2_454_000_000   # ~7%
-        ],
-        "Growth (YoY)": [0.08, 0.12, 0.02, 0.05, -0.01]
-    }
-    df = pd.DataFrame(data)
-    df["Revenue_Formatted"] = df["Revenue"].apply(format_currency)
-    df["Growth_Formatted"] = df["Growth (YoY)"].apply(format_percentage)
-    return df
+# --- Key Metrics (Extracted/Simulated) ---
+key_metrics_data = {
+    "Metric": [
+        "Revenue (USD)", "Gross Profit Margin", "Operating Profit Margin",
+        "Net Profit Margin", "R&D as % of Revenue", "Debt-to-Equity Ratio",
+        "Dividend Yield"
+    ],
+    "Value": [
+        79.0e9, 0.75, 0.22, 0.15, 0.20, 0.8, 0.025
+    ],
+    "Is_Percentage": [
+        False, True, True, True, True, False, True
+    ]
+}
+df_key_metrics = pd.DataFrame(key_metrics_data)
 
-def get_competitor_data():
-    data = {
-        "Competitor": [
-            "Merck & Co. (MRK)", "Bristol Myers Squibb (BMY)", "Roche (RHHBY)", "Pfizer (PFE)",
-            "Sanofi (SNY)", "Novo Nordisk (NVO)", "Eli Lilly and Company (LLY)", "GSK (GSK)",
-            "AbbVie (ABBV)", "Novartis (NVS)"
-        ],
-        "Therapeutic Area Focus": [
-            "Oncology, Vaccines", "Oncology, Immunology", "Oncology, Pharma", "Oncology, Vaccines, Pharma",
-            "Diabetes, CV, Immunology", "Diabetes, Obesity", "Diabetes, Obesity, Alzheimer's", "Respiratory, Vaccines, Immunology",
-            "Immunology, Oncology", "Cardiovascular, Immunology, Neuroscience"
-        ],
-        "Market Position": [
-            "Major Competitor", "Major Competitor", "Major Competitor", "Major Competitor",
-            "Significant Competitor", "Dominant in Diabetes/Obesity", "Dominant in Diabetes/Obesity", "Major Competitor",
-            "Major Competitor", "Major Competitor"
-        ]
-    }
-    df = pd.DataFrame(data)
-    return df
+# --- Revenue Breakdown (Simulated) ---
+revenue_breakdown_data = {
+    "Source": [
+        "Product Sales", "Partnerships & Licensing", "Acquisitions"
+    ],
+    "Revenue": [
+        75.0e9, 3.0e9, 1.0e9
+    ]
+}
+df_revenue_breakdown = pd.DataFrame(revenue_breakdown_data)
 
-def get_market_dependencies():
-    data = {
-        "Dependency": [
-            "Global Healthcare Demand",
-            "Drug Pricing & Reimbursement Policies",
-            "Patent Expirations & Generic Competition",
-            "Regulatory Approvals (FDA, EMA)",
-            "Clinical Trial Success Rates",
-            "Foreign Exchange Rates"
-        ],
-        "Impact Level": [
-            "High", "Very High", "High", "Very High", "High", "Medium"
-        ],
-        "Description": [
-            "Directly drives sales volume.",
-            "Significantly impacts realized prices and margins.",
-            "Threatens revenue of established drugs.",
-            "Crucial for new drug launches and market access.",
-            "Key to pipeline value and future growth.",
-            "Affects reported financial results."
-        ]
-    }
-    df = pd.DataFrame(data)
-    return df
+# --- Cost Structure Breakdown (Simulated) ---
+cost_structure_data = {
+    "Cost_Category": [
+        "R&D", "COGS", "SG&A", "Amortization"
+    ],
+    "Cost": [
+        15.8e9, 19.75e9, 17.38e9, 3.95e9
+    ]
+}
+df_cost_structure = pd.DataFrame(cost_structure_data)
 
-def get_economic_factors():
-    data = {
-        "Factor": [
-            "Global Economic Growth",
-            "Inflation",
-            "Interest Rates",
-            "Government Healthcare Spending",
-            "Geopolitical Stability"
-        ],
-        "Impact": [
-            "Positive (higher spending)",
-            "Negative (cost pressure)",
-            "Negative (valuation, borrowing costs)",
-            "High (budget impact)",
-            "Medium (supply chain, market access)"
-        ],
-        "Details": [
-            "Stronger economies generally lead to higher healthcare spending.",
-            "Increases costs for R&D, manufacturing, and distribution.",
-            "Can increase cost of capital and pressure valuation multiples.",
-            "Government budgets are a significant determinant of drug sales.",
-            "Can disrupt supply chains and create market uncertainty."
-        ]
-    }
-    df = pd.DataFrame(data)
-    return df
+# --- Therapeutic Area Revenue (Simulated) ---
+therapeutic_area_revenue_data = {
+    "Therapeutic_Area": [
+        "Oncology", "CVRM", "Respiratory/Immunology", "Rare Disease", "Other"
+    ],
+    "Revenue": [
+        31.6e9, 19.75e9, 15.8e9, 7.9e9, 4.0e9
+    ]
+}
+df_therapeutic_area = pd.DataFrame(therapeutic_area_area_revenue_data)
 
+# --- Geographic Revenue (Simulated) ---
+geographic_revenue_data = {
+    "Region": [
+        "United States", "Europe", "China", "Emerging Markets", "Rest of World"
+    ],
+    "Revenue": [
+        28.0e9, 19.0e9, 12.0e9, 14.0e9, 6.0e9
+    ]
+}
+df_geographic_revenue = pd.DataFrame(geographic_revenue_data)
 
-# --- App Structure ---
-st.title("AstraZeneca (AZN) Financial Ecosystem Analysis")
+# --- Competitor Revenue (Simulated - relative scale) ---
+competitor_revenue_data = {
+    "Competitor": [
+        "Pfizer", "Novartis", "Roche", "Merck & Co.", "Bristol Myers Squibb", "AstraZeneca (AZN)"
+    ],
+    "Revenue_Billion_USD": [
+        100.0, 65.0, 60.0, 59.0, 46.0, 79.0
+    ]
+}
+df_competitors = pd.DataFrame(competitor_revenue_data)
 
-# --- Overview Section ---
-st.header("Company Overview")
+# --- Market Dependencies (Qualitative Summary) ---
+market_dependencies_summary = """
+- **Drug Pricing & Reimbursement**: Highly sensitive to government policies (e.g., US Inflation Reduction Act), payer negotiations (PBMs, national health systems), and overall healthcare spending trends.
+- **Patent Expirations & Generic Competition**: Critical for maintaining revenue streams. Loss of exclusivity (LOE) for key drugs significantly impacts top-line. Pipeline is crucial to offset these losses.
+- **Clinical Trial Success Rates**: Positive Phase I, II, and III trial results and subsequent regulatory approvals (FDA, EMA, etc.) are major value drivers. Failures lead to R&D write-offs.
+- **Disease Prevalence & Demographics**: Aging populations and rising chronic disease rates drive demand. Emerging diseases can create new opportunities (e.g., COVID-19 vaccine).
+- **Geopolitical Factors**: Trade relations, political stability, and regional regulatory environments (e.g., China's market dynamics) can affect market access and costs.
+"""
+
+# --- Sector Connections (Qualitative Summary) ---
+sector_connections_summary = """
+- **Pharmaceutical & Biotechnology Sector**: Characterized by high R&D intensity, strict regulation, long product lifecycles, capital intensity, and innovation-driven growth.
+- **Healthcare Services**: AZN's products are integrated into the healthcare delivery system, relying on prescribers, pharmacies, and distributors.
+- **Life Sciences**: Fundamental research in biology, chemistry, and medicine underpins drug discovery and development.
+- **Biotechnology Advancements**: Leverages progress in areas like genomics, gene editing, and AI for drug discovery.
+"""
+
+# --- Economic Factors (Qualitative Summary) ---
+economic_factors_summary = """
+- **Global Economic Growth**: Strong economies tend to boost healthcare spending. Recessions can lead to budget constraints and price sensitivity.
+- **Interest Rates**: Higher rates increase borrowing costs for R&D and M&A, and affect discount rates used in valuation models.
+- **Inflation**: Can increase the cost of raw materials, manufacturing, and labor, potentially requiring price adjustments which face payer resistance.
+- **Currency Exchange Rates**: As a global company, fluctuations in USD, EUR, GBP, CNY, etc., impact reported earnings.
+- **Government Healthcare Policy & Reforms**: Changes in healthcare access, drug pricing regulations, and R&D incentives (e.g., ACA, IRA) are highly impactful.
+- **Technological Advancements**: AI, genomics, and personalized medicine create both opportunities and potential disruptions.
+- **Supply Chain Stability**: Global supply chain disruptions can affect manufacturing, costs, and availability of essential materials.
+- **Demographic Shifts**: Aging populations and changing disease patterns directly influence demand for specific treatments.
+"""
+
+# --- Sidebar ---
+st.sidebar.title("AstraZeneca (AZN) Analysis")
+st.sidebar.markdown("Financial Ecosystem Analysis")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### Sections")
+st.sidebar.markdown("- [Company Overview & Snapshot](#company-overview--snapshot)")
+st.sidebar.markdown("- [Key Metrics](#key-metrics)")
+st.sidebar.markdown("- [Revenue Generation](#revenue-generation)")
+st.sidebar.markdown("- [Cost Structure](#cost-structure)")
+st.sidebar.markdown("- [Profitability & Margins](#profitability--margins)")
+st.sidebar.markdown("- [Capital Allocation](#capital-allocation)")
+st.sidebar.markdown("- [Debt & Liquidity](#debt--liquidity)")
+st.sidebar.markdown("- [Market Dependencies](#market-dependencies)")
+st.sidebar.markdown("- [Sector Connections](#sector-connections)")
+st.sidebar.markdown("- [Competitor Relationships](#competitor-relationships)")
+st.sidebar.markdown("- [Economic Factors](#economic-factors)")
+st.sidebar.markdown("- [Conclusion](#conclusion)")
+
+# --- Main Content ---
+
+st.title("AstraZeneca (AZN) - Financial Ecosystem Analysis")
 st.markdown("""
-AstraZeneca PLC (AZN) is a global biopharmaceutical company headquartered in Cambridge, UK. It focuses on **oncology**, **cardiovascular, renal & metabolism (CVRM)**, **respiratory & immunology**, and **rare diseases**. Listed on the London Stock Exchange (LSE: AZN) and NASDAQ (AZN), it's a major player in the global healthcare sector.
+AstraZeneca (AZN) is a global, research-driven biopharmaceutical company operating within a complex and dynamic financial ecosystem. This analysis breaks down its key financial relationships, market dependencies, sector connections, competitor landscape, and relevant economic factors.
 """)
 
-# --- Key Financial Metrics Section ---
-st.header("Key Financial Metrics & Performance Drivers")
-st.markdown("This section highlights crucial financial indicators and the drivers behind AstraZeneca's performance.")
+# --- Company Overview & Snapshot ---
+display_section_title("Company Overview & Snapshot")
+st.markdown("""
+AstraZeneca plc is a global pharmaceutical and biotechnology company focused on the discovery, development, and commercialization of prescription medicines. It operates primarily in oncology, cardiovascular, renal & metabolism (CVRM), respiratory & immunology, and rare diseases. Key products include Tagrisso (oncology), Farxiga (CVRM), and Imfinzi (oncology). The company has dual primary listings on the London Stock Exchange and NASDAQ (as an ADR).
+""")
 
-financial_df = get_financial_data()
-metrics_cols = st.columns(3)
+# --- Key Metrics ---
+display_section_title("Key Metrics")
+st.markdown("Key financial indicators that reflect AstraZeneca's performance and financial health.")
 
-for index, row in financial_df.iterrows():
-    col_index = index % 3
-    with metrics_cols[col_index]:
-        st.metric(
-            label=row["Metric"],
-            value=row["Formatted_Value"],
-            help=f"Source: {row['Source']}"
-        )
+col1, col2, col3 = st.columns(3)
+for i, row in df_key_metrics.iterrows():
+    if i < 3:
+        with col1:
+            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
+    elif i < 6:
+        with col2:
+            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
+    else:
+        with col3:
+            display_metric(row["Metric"], row["Value"], row["Is_Percentage"])
 
-st.markdown("---")
-
-# --- Revenue Breakdown Section ---
-st.header("Revenue Breakdown by Segment")
-st.markdown("AstraZeneca's revenue is driven by its diverse therapeutic areas.")
-
-revenue_df = get_revenue_breakdown()
-
-# Create charts
-fig_revenue_pie = px.pie(revenue_df, values='Revenue', names='Segment', title='Revenue Share by Segment')
-fig_revenue_pie.update_traces(textposition='inside', textinfo='percent+label')
-
-fig_revenue_bar = px.bar(
-    revenue_df,
-    x='Segment',
-    y='Revenue',
-    color='Segment',
-    title='Revenue by Segment',
-    labels={'Revenue': 'Revenue (USD)'}
-)
-fig_revenue_bar.update_layout(yaxis_title='Revenue (USD)')
-
-fig_growth_bar = px.bar(
-    revenue_df,
-    x='Segment',
-    y='Growth (YoY)',
-    color='Segment',
-    title='Year-over-Year Revenue Growth by Segment',
-    labels={'Growth (YoY)': 'Growth Rate'}
-)
-fig_growth_bar.update_layout(yaxis_title='Growth Rate')
-fig_growth_bar.update_traces(hovertemplate='%{y:.1%}')
-
+# --- Revenue Generation ---
+display_section_title("Revenue Generation")
+st.markdown("AstraZeneca's revenue streams are diversified across product sales and strategic collaborations.")
 
 col1, col2 = st.columns(2)
 with col1:
-    st.plotly_chart(fig_revenue_pie, use_container_width=True)
+    st.markdown("**Primary Revenue Sources:**")
+    st.markdown("""
+    *   **Product Sales**: The core driver, generated from its diverse portfolio of prescription medicines across various therapeutic areas.
+    *   **Partnerships & Licensing**: Agreements for co-development, licensing, and co-commercialization generate upfront payments, milestones, and royalties.
+    *   **Acquisitions**: Strategic M&A activity can significantly boost revenue and expand market share (e.g., Alexion acquisition).
+    """)
 with col2:
-    st.plotly_chart(fig_revenue_bar, use_container_width=True)
+    create_pie_chart(df_revenue_breakdown, "Source", "Revenue", "Revenue Breakdown by Source")
 
-st.plotly_chart(fig_growth_bar, use_container_width=True)
-
-st.markdown("""
-**Key Revenue Drivers:**
-- **Oncology Portfolio:** Primarily driven by Tagrisso (lung cancer), Imfinzi (immuno-oncology), and Lynparza (ovarian/breast cancer). It's the largest and fastest-growing segment.
-- **CVRM:** Led by Farxiga (diabetes, heart failure, CKD), showing robust growth from expanded indications.
-- **Rare Diseases (Alexion):** Stable cash flows from complement inhibitors like Soliris and Ultomiris.
-- **Emerging Markets:** China is a significant contributor but faces pricing pressures.
-""")
-
-st.markdown("---")
-
-# --- Market Dependencies Section ---
-st.header("Market Dependencies & Sector Connections")
-st.markdown("AstraZeneca's performance is influenced by various external factors within the healthcare landscape.")
-
-dependencies_df = get_market_dependencies()
-
-# Display as a table with styled columns
-st.dataframe(
-    dependencies_df.style.format({
-        "Impact Level": lambda x: f'<span style="color:{"red" if x in ["Very High", "High"] else "orange" if x == "Medium" else "green"}; font-weight:bold;">{x}</span>',
-    }).set_properties(**{'text-align': 'left'}),
-    use_container_width=True,
-    hide_index=True
-)
-
-st.markdown("""
-**Sector Connections:**
-- **Regulatory Environment:** FDA and EMA approvals are critical. Pricing and reimbursement policies (e.g., US Medicare negotiation) significantly impact revenue.
-- **Healthcare Trends:** Focus on biologics, specialty drugs, and personalized medicine aligns with AZN's strategy.
-- **Supply Chain:** Global manufacturing network is a strength but exposed to geopolitical risks.
-""")
-
-st.markdown("---")
-
-# --- Competitor Landscape Section ---
-st.header("Competitor Landscape")
-st.markdown("AstraZeneca operates in a highly competitive pharmaceutical market.")
-
-competitor_df = get_competitor_data()
-
-st.dataframe(
-    competitor_df.style.set_properties(**{'text-align': 'left'}),
-    use_container_width=True,
-    hide_index=True
-)
-
-st.markdown("""
-**Key Competitive Areas:**
-- **Oncology:** Faces intense competition from Merck & Co. (Keytruda), Bristol-Myers Squibb (Opdivo), Roche, and Pfizer.
-- **CVRM:** Competes with Novo Nordisk and Eli Lilly in diabetes and obesity, and others in cardiovascular and renal disease.
-- **Rare Diseases:** After the Alexion acquisition, it competes with established players like Takeda and Pfizer.
-""")
-
-st.markdown("---")
-
-# --- Economic & Macroeconomic Factors Section ---
-st.header("Economic & Macroeconomic Factors")
-st.markdown("Broader economic conditions play a significant role in AstraZeneca's financial ecosystem.")
-
-economic_df = get_economic_factors()
-
-# Display as a table with styled columns
-st.dataframe(
-    economic_df.style.format({
-        "Impact": lambda x: f'<span style="color:{"red" if x == "Negative" else "green" if x == "Positive" else "orange"}; font-weight:bold;">{x}</span>',
-    }).set_properties(**{'text-align': 'left'}),
-    use_container_width=True,
-    hide_index=True
-)
-
-st.markdown("""
-**Key Economic Influences:**
-- **Currency Fluctuations:** As a UK-domiciled company with significant USD revenue, GBP/USD movements are important.
-- **Inflation:** Puts pressure on costs but can be partially offset by pricing power for innovative drugs.
-- **Interest Rates:** Can affect valuation multiples and the cost of capital.
-- **Geopolitical Risks:** U.S.-China relations and broader global stability impact supply chains and market access.
-""")
-
-st.markdown("---")
-
-# --- Investor Considerations & Risks ---
-st.header("Investment Considerations & Key Risks")
+# --- Cost Structure ---
+display_section_title("Cost Structure")
+st.markdown("Understanding the significant expenses incurred by AstraZeneca.")
 
 col1, col2 = st.columns(2)
-
 with col1:
-    st.subheader("Bull Case")
+    st.markdown("**Key Cost Components:**")
     st.markdown("""
-    - **Oncology Pipeline:** Strong potential for blockbuster drugs in various cancer types.
-    - **CVRM Growth:** Sustained momentum from Farxiga's expanded indications.
-    - **Alexion Synergy:** Successful integration and growth in rare diseases.
-    - **Emerging Markets:** Untapped potential beyond established markets.
+    *   **Research & Development (R&D)**: A substantial investment essential for pipeline advancement and future growth.
+    *   **Cost of Goods Sold (COGS)**: Manufacturing, production, and distribution expenses.
+    *   **Sales, General & Administrative (SG&A)**: Costs associated with marketing, sales force, and operations.
+    *   **Amortization of Intangible Assets**: Primarily related to acquired patents and intellectual property.
     """)
-
 with col2:
-    st.subheader("Bear Case")
-    st.markdown("""
-    - **Pricing Pressures:** Intensifying competition and regulatory action on drug prices.
-    - **Pipeline Setbacks:** Clinical trial failures or delays in key drug candidates.
-    - **Generic Erosion:** Impact of patent expirations on older blockbusters.
-    - **Geopolitical/Regulatory Uncertainty:** Trade wars, policy changes affecting market access.
-    """)
+    create_bar_chart(df_cost_structure, "Cost_Category", "Cost", "Cost Structure Breakdown", hover_data=["Cost_Category", "Cost"])
 
-st.markdown("---")
+# --- Profitability & Margins ---
+display_section_title("Profitability & Margins")
+st.markdown("Indicators of AstraZeneca's profitability across its operations.")
+# Metrics are already displayed in Key Metrics section, but we can emphasize them here
+st.markdown("Key profitability metrics (Gross Profit Margin, Operating Profit Margin, Net Profit Margin) are detailed in the 'Key Metrics' section above. High gross margins from specialty drugs fund extensive R&D investments.")
 
-# --- Monitoring Points ---
-st.header("Practical Monitoring Checklist")
-st.markdown("Key areas for investors to track closely:")
-
-monitoring_points = [
-    "Pipeline Catalysts: Key Phase III trial readouts & regulatory submissions.",
-    "Regulatory Decisions: FDA/EMA approvals for new indications.",
-    "Quarterly Sales Trends: Oncology growth rates, Farxiga performance.",
-    "Guidance Updates: Revenue/EPS forecasts and operational outlook.",
-    "M&A Activity: Strategic deals to bolster pipeline or technology.",
-    "Macro Factors: FX rates, inflation, interest rate outlook."
-]
-
-for point in monitoring_points:
-    st.markdown(f"- {point}")
-
-st.markdown("---")
-
-st.header("Conclusion")
+# --- Capital Allocation ---
+display_section_title("Capital Allocation")
+st.markdown("How AstraZeneca reinvests its capital for growth and shareholder returns.")
 st.markdown("""
-AstraZeneca's financial ecosystem is a complex interplay of scientific innovation, market dynamics, regulatory hurdles, and macroeconomic forces. Its success hinges on the continuous replenishment of its drug pipeline, particularly in high-growth oncology and CVRM segments, while navigating significant pricing pressures and global competition. Investors must closely monitor clinical trial outcomes, regulatory approvals, and sales performance of key drugs, alongside broader economic and geopolitical trends, to assess the company's ongoing value creation.
+AstraZeneca strategically allocates its capital through:
+*   **R&D Investment**: Significant reinvestment to maintain a robust pipeline and drive future innovation.
+*   **Capital Expenditures (CapEx)**: Investments in manufacturing facilities, research labs, and infrastructure.
+*   **Share Buybacks**: Returning capital to shareholders by repurchasing its own stock.
+*   **Dividends**: Distributing a portion of profits to shareholders, with a history of consistent payouts.
+*   **Mergers & Acquisitions (M&A)**: Strategic investments to acquire new technologies, drugs, or market access.
+""")
+
+# --- Debt & Liquidity ---
+display_section_title("Debt & Liquidity")
+st.markdown("Assessment of AstraZeneca's financial leverage and ability to meet obligations.")
+st.markdown("""
+AstraZeneca maintains a **moderate level of debt**, typically around a **Debt-to-Equity ratio of ~0.8**. This financing supports its R&D programs and strategic acquisitions. The company generates **strong operating cash flow**, ensuring sufficient liquidity to meet short-term obligations and fund ongoing operations without excessive reliance on external financing. Analysts monitor its interest coverage ratios closely.
+""")
+
+# --- Market Dependencies ---
+display_section_title("Market Dependencies")
+st.markdown("External forces that significantly influence AstraZeneca's success and market performance.")
+st.markdown(f"```{market_dependencies_summary}```")
+
+# --- Sector Connections ---
+display_section_title("Sector Connections")
+st.markdown("AstraZeneca's position within the broader pharmaceutical and healthcare landscape.")
+st.markdown(f"```{sector_connections_summary}```")
+
+# --- Competitor Relationships ---
+display_section_title("Competitor Relationships")
+st.markdown("AstraZeneca operates in a highly competitive environment across its key therapeutic areas.")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("**Key Competitors:**")
+    st.markdown("""
+    *   **Major Pharmaceutical Giants**: Pfizer, Novartis, Roche, Merck & Co., Bristol Myers Squibb, Johnson & Johnson.
+    *   **Biotechnology Companies**: Amgen, Gilead Sciences, and numerous smaller, innovative biotech firms.
+    *   **Generic & Biosimilar Manufacturers**: Compete once patent exclusivity expires.
+    """)
+    st.markdown("**Competitive Dynamics:**")
+    st.markdown("""
+    *   Focus on developing best-in-class therapies (efficacy, safety).
+    *   Aggressive market share capture and sales strategies.
+    *   Continuous pipeline advancement to replace aging products.
+    *   Navigating complex global pricing environments.
+    *   Strategic M&A to bolster portfolios.
+    """)
+with col2:
+    create_bar_chart(df_competitors.sort_values("Revenue_Billion_USD", ascending=False),
+                     "Competitor", "Revenue_Billion_USD", "Estimated Revenue of Key Competitors (USD Billion)",
+                     color_col="Competitor", hover_data=["Competitor", "Revenue_Billion_USD"])
+
+# --- Economic Factors ---
+display_section_title("Economic Factors")
+st.markdown("Macroeconomic trends and conditions impacting AstraZeneca's operations and financial outlook.")
+st.markdown(f"```{economic_factors_summary}```")
+
+# --- Additional Visualizations ---
+display_section_title("Revenue Breakdown by Therapeutic Area")
+st.markdown("AstraZeneca's revenue is significantly driven by its oncology and CVRM segments.")
+create_pie_chart(df_therapeutic_area, "Therapeutic_Area", "Revenue", "Revenue by Therapeutic Area (USD)")
+
+display_section_title("Geographic Revenue Distribution")
+st.markdown("The United States and Europe are AstraZeneca's largest markets.")
+create_bar_chart(df_geographic_revenue.sort_values("Revenue", ascending=False),
+                 "Region", "Revenue", "Revenue by Geographic Region (USD)",
+                 color_col="Region", hover_data=["Region", "Revenue"])
+
+
+# --- Conclusion ---
+display_section_title("Conclusion")
+st.markdown("""
+AstraZeneca (AZN) is a formidable player in the global pharmaceutical industry, deeply integrated into a complex financial ecosystem. Its financial performance is a testament to the intricate balance between successful research and development, effective commercialization strategies, navigating stringent regulatory and pricing environments, and managing intense competition.
+
+Key drivers of AZN's success include the strength and longevity of its patent protections, the positive outcomes of its clinical trials, evolving global healthcare spending patterns, and its agility in adapting to scientific advancements and economic shifts. Understanding the interplay of these factors—from product sales and R&D investment to market access challenges and macroeconomic influences—is crucial for assessing the long-term prospects and valuation of AstraZeneca.
 """)
