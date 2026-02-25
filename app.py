@@ -2,16 +2,15 @@ import streamlit as st
 
 import requests
 import time
+from pathlib import Path
 
 WEBHOOK_URL = "https://cabetocc.app.n8n.cloud/webhook-test/stock-analysis"
-LATEST_MD_RAW_URL = "https://raw.githubusercontent.com/Cabetocc/execdemo/main/data/latest.md"
+LATEST_FILE = Path("data/latest.md")
 
-def fetch_latest_md():
-    # cache-bust so you don't get a cached raw file
-    url = f"{LATEST_MD_RAW_URL}?cb={int(time.time())}"
-    r = requests.get(url, timeout=20)
-    r.raise_for_status()
-    return r.text
+def read_latest():
+    if not LATEST_FILE.exists():
+        return ""
+    return LATEST_FILE.read_text(encoding="utf-8")
 
 ticker = st.text_input("Enter stock ticker", value="NVDA").upper().strip()
 generate = st.button("Generate")
@@ -19,55 +18,45 @@ generate = st.button("Generate")
 if generate:
     if not ticker:
         st.warning("Please enter a ticker.")
-        st.stop()
+    else:
+        before = read_latest()
 
-    # Read current content BEFORE triggering n8n
-    try:
-        before = fetch_latest_md()
-    except Exception:
-        before = ""
+        status = st.empty()
+        progress = st.progress(0)
 
-    status = st.empty()
-    progress = st.progress(0)
-
-    with st.spinner(f"Generating analysis for {ticker}..."):
-        # Trigger n8n
-        try:
-            resp = requests.post(WEBHOOK_URL, json={"ticker": ticker}, timeout=30)
-            resp.raise_for_status()
-        except Exception as e:
-            st.error(f"Could not start analysis: {e}")
-            st.stop()
-
-        # Wait up to 180s for latest.md to change
-        max_wait_seconds = 180
-        interval_seconds = 3
-        steps = max_wait_seconds // interval_seconds
-
-        updated = before
-        for i in range(int(steps)):
-            time.sleep(interval_seconds)
-
+        with st.spinner(f"Generating analysis for {ticker}..."):
+            # Trigger n8n
             try:
-                updated = fetch_latest_md()
-            except Exception:
-                updated = before  # keep old if fetch fails
+                requests.post(WEBHOOK_URL, json={"ticker": ticker}, timeout=30)
+            except Exception as e:
+                st.error(f"Could not start analysis: {e}")
+                st.stop()
 
-            pct = int(((i + 1) / steps) * 100)
-            progress.progress(pct)
-            status.write(f"Still working… {pct}%")
+            # Wait up to 120 seconds for latest.md to change
+            max_wait_seconds = 120
+            interval_seconds = 2
+            steps = max_wait_seconds // interval_seconds
 
-            # If file changed and contains the ticker somewhere, we consider it ready
-            if updated and updated.strip() and updated != before and ticker in updated:
-                status.success("New analysis is ready!")
-                progress.progress(100)
-                break
+            updated = before
+            for i in range(int(steps)):
+                time.sleep(interval_seconds)
+                updated = read_latest()
 
-        if updated == before:
-            status.warning("Still processing. Please wait a bit longer and press Generate again (or refresh).")
+                pct = int(((i + 1) / steps) * 100)
+                progress.progress(pct)
+                status.write(f"Still working… {pct}%")
 
-    # Re-run so the rest of the app reads the latest data
-    st.rerun()
+                if updated and updated.strip() and updated != before:
+                    status.success("New analysis is ready!")
+                    progress.progress(100)
+                    break
+
+            # If it didn't update in time, tell the user what to do
+            if updated == before:
+                status.warning("Still processing. Please wait a bit longer and press Generate again (or refresh).")
+
+        # Refresh the page so the rest of the app renders with the new file
+        st.rerun()
 
 
 import pandas as pd
@@ -154,7 +143,7 @@ def create_app():
             color='Segment',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        fig_margin.update_yaxes(range=[0, 100], tick, tickformat=".0f", ticksuffix="%", tickformat=".0f")
+        fig_margin.update_yaxes(range=[0, 100], suffix="%")
         st.plotly_chart(fig_margin, use_container_width=True)
 
     st.subheader("Cash Flow Generation (Illustrative)")
