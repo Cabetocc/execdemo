@@ -1,5 +1,10 @@
 import streamlit as st
 
+
+
+def _safe_strip(x):
+    return str(x or '').strip()
+
 import requests
 import time
 from pathlib import Path
@@ -395,7 +400,7 @@ def parse_analysis_text_into_sections(text):
                re.match(r'^###\s*\d+\.\s.*?$', part):
                 
                 if current_subsection_title:
-                    sections[current_title_prefix + current_subsection_title.strip()] = sub_sections[i+1].strip() # Content is next part
+                    sections[current_title_prefix + _safe_strip(current_subsection_title)] = _safe_strip(sub_sections[i+1]) # Content is next part
                 
                 # Clean header text for dictionary key
                 clean_header = re.sub(r'^\*\*?[IVX]+\.\s|\d+\)\s|^\#+\s|\*\*?:|\*\*$', '', part).strip()
@@ -408,7 +413,7 @@ def parse_analysis_text_into_sections(text):
         if current_subsection_title:
              # Find the content for the last header
             last_content_start = block_content.find(sub_sections[-2]) + len(sub_sections[-2]) if len(sub_sections) > 1 else 0
-            sections[current_title_prefix + current_subsection_title.strip()] = block_content[last_content_start:].strip()
+            sections[current_title_prefix + _safe_strip(current_subsection_title)] = block_content[last_content_start:].strip()
 
 
     # Final cleanup of headers and sections, removing any empty or redundant
