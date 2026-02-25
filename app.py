@@ -1,5 +1,4 @@
 import streamlit as st
-
 import requests
 import time
 from pathlib import Path
@@ -14,6 +13,21 @@ def read_latest():
 
 ticker = st.text_input("Enter stock ticker", value="?").upper().strip()
 generate = st.button("Generate")
+
+if st.button("Generate"):
+    payload = {"ticker": ticker}
+    try:
+        r = requests.post(
+            WEBHOOK_URL,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+        st.write("Status:", r.status_code)
+        st.code(r.text[:1000])
+        r.raise_for_status()
+    except Exception as e:
+        st.error(f"Webhook call failed: {e}")
 
 if generate:
     if not ticker:
