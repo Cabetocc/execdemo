@@ -32,8 +32,8 @@ if generate:
                 st.error(f"Could not start analysis: {e}")
                 st.stop()
 
-            # Wait up to 180 seconds for latest.md to change
-            max_wait_seconds = 180
+            # Wait up to 120 seconds for latest.md to change
+            max_wait_seconds = 120
             interval_seconds = 2
             steps = max_wait_seconds // interval_seconds
 
@@ -59,484 +59,425 @@ if generate:
         st.rerun()
 
 
+import yfinance as yf
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.express as px
-import textwrap
+from datetime import datetime, timedelta
 
-st.set_page_config(layout="wide", page_title="Financial Analysis Dashboard")
+# --- Configuration ---
+st.set_page_config(layout="wide", page_title="Financial Ecosystem Analyzer", page_icon="📈")
 
-# --- Helper Functions ---
-def clean_text(text):
-    """Cleans and wraps text for better display."""
-    if text is None:
+# --- Helper Functions for Data Fetching and Calculations ---
+
+@st.cache_data(ttl=3600) # Cache data for 1 hour
+def get_stock_data(ticker_symbol):
+    """Fetches comprehensive stock data using yfinance."""
+    try:
+        ticker = yf.Ticker(ticker_symbol)
+        info = ticker.info
+        history = ticker.history(period="5y") # 5 years historical data
+        balance_sheet = ticker.quarterly_balance_sheet
+        income_stmt = ticker.quarterly_financials
+        cash_flow = ticker.quarterly_cashflow
+        recommendations = ticker.recommendations
+        dividends = ticker.dividends
+        
+        # Check if dataframes are empty and transpose if not
+        if not balance_sheet.empty:
+            balance_sheet = balance_sheet.T
+            balance_sheet.index = pd.to_datetime(balance_sheet.index)
+        if not income_stmt.empty:
+            income_stmt = income_stmt.T
+            income_stmt.index = pd.to_datetime(income_stmt.index)
+        if not cash_flow.empty:
+            cash_flow = cash_flow.T
+            cash_flow.index = pd.to_datetime(cash_flow.index)
+            
+        return ticker, info, history, balance_sheet, income_stmt, cash_flow, recommendations, dividends
+    except Exception as e:
+        st.error(f"Error fetching data for {ticker_symbol}: {e}")
+        return None, None, None, None, None, None, None, None
+
+def calculate_financial_ratios(balance_sheet, income_stmt, cash_flow, current_price, info):
+    """Calculates key financial ratios from fetched data."""
+    ratios = pd.DataFrame(index=balance_sheet.index) # Use balance sheet dates as index
+    
+    if income_stmt.empty or balance_sheet.empty or cash_flow.empty:
+        return ratios # Return empty if no data
+
+    # Align dates for income_stmt and cash_flow to balance_sheet
+    income_stmt = income_stmt.reindex(balance_sheet.index, method='nearest')
+    cash_flow = cash_flow.reindex(balance_sheet.index, method='nearest')
+    
+    # Profitability Ratios
+    # Ensure columns exist before accessing
+    for idx in balance_sheet.index:
+        gross_profit = income_stmt.loc[idx, 'Gross Profit'] if 'Gross Profit' in income_stmt.columns else None
+        revenue = income_stmt.loc[idx, 'Total Revenue'] if 'Total Revenue' in income_stmt.columns else None
+        operating_income = income_stmt.loc[idx, 'Operating Income'] if 'Operating Income' in income_stmt.columns else None
+        net_income = income_stmt.loc[idx, 'Net Income'] if 'Net Income' in income_stmt.columns else None
+        total_assets = balance_sheet.loc[idx, 'Total Assets'] if 'Total Assets' in balance_sheet.columns else None
+        total_equity = balance_sheet.loc[idx, 'Stockholders Equity'] if 'Stockholders Equity' in balance_sheet.columns else None
+        
+        ratios.loc[idx, 'Gross Profit Margin'] = (gross_profit / revenue) * 100 if revenue and revenue != 0 else pd.NA
+        ratios.loc[idx, 'Operating Profit Margin'] = (operating_income / revenue) * 100 if revenue and revenue != 0 else pd.NA
+        ratios.loc[idx, 'Net Profit Margin'] = (net_income / revenue) * 100 if revenue and revenue != 0 else pd.NA
+        ratios.loc[idx, 'Return on Equity (ROE)'] = (net_income / total_equity) * 100 if total_equity and total_equity != 0 else pd.NA
+        ratios.loc[idx, 'Return on Assets (ROA)'] = (net_income / total_assets) * 100 if total_assets and total_assets != 0 else pd.NA
+
+        # Liquidity Ratios
+        current_assets = balance_sheet.loc[idx, 'Total Current Assets'] if 'Total Current Assets' in balance_sheet.columns else None
+        current_liabilities = balance_sheet.loc[idx, 'Total Current Liabilities'] if 'Total Current Liabilities' in balance_sheet.columns else None
+        inventory = balance_sheet.loc[idx, 'Inventory'] if 'Inventory' in balance_sheet.columns else None
+        
+        ratios.loc[idx, 'Current Ratio'] = current_assets / current_liabilities if current_liabilities and current_liabilities != 0 else pd.NA
+        ratios.loc[idx, 'Quick Ratio'] = (current_assets - inventory) / current_liabilities if current_liabilities and current_liabilities != 0 else pd.NA
+        
+        # Solvency/Leverage Ratios
+        total_debt = balance_sheet.loc[idx, 'Total Debt'] if 'Total Debt' in balance_sheet.columns else (balance_sheet.loc[idx, 'Long Term Debt'] + balance_sheet.loc[idx, 'Short Term Debt']) if 'Long Term Debt' in balance_sheet.columns and 'Short Term Debt' in balance_sheet.columns else None
+        interest_expense = income_stmt.loc[idx, 'Interest Expense'] if 'Interest Expense' in income_stmt.columns else None
+        ebit = income_stmt.loc[idx, 'EBIT'] if 'EBIT' in income_stmt.columns else None
+        
+        ratios.loc[idx, 'Debt-to-Equity Ratio'] = total_debt / total_equity if total_equity and total_equity != 0 else pd.NA
+        ratios.loc[idx, 'Interest Coverage Ratio'] = ebit / interest_expense if interest_expense and interest_expense != 0 else pd.NA
+        
+        # Efficiency Ratios
+        cost_of_revenue = income_stmt.loc[idx, 'Cost Of Revenue'] if 'Cost Of Revenue' in income_stmt.columns else None
+        avg_inventory = (balance_sheet.loc[idx, 'Inventory'] + balance_sheet.shift(1).loc[idx, 'Inventory']) / 2 if 'Inventory' in balance_sheet.columns and not balance_sheet.shift(1).empty and 'Inventory' in balance_sheet.shift(1).columns else None
+        accounts_receivable = balance_sheet.loc[idx, 'Accounts Receivable'] if 'Accounts Receivable' in balance_sheet.columns else None
+        avg_accounts_receivable = (accounts_receivable + balance_sheet.shift(1).loc[idx, 'Accounts Receivable']) / 2 if 'Accounts Receivable' in balance_sheet.columns and not balance_sheet.shift(1).empty and 'Accounts Receivable' in balance_sheet.shift(1).columns else None
+        
+        ratios.loc[idx, 'Inventory Turnover'] = cost_of_revenue / avg_inventory if avg_inventory and avg_inventory != 0 else pd.NA
+        ratios.loc[idx, 'Accounts Receivable Turnover'] = revenue / avg_accounts_receivable if avg_accounts_receivable and avg_accounts_receivable != 0 else pd.NA
+        
+        # Growth Ratios (Year-over-year where possible)
+        # Revenue Growth
+        prev_revenue = income_stmt.shift(-1).loc[idx, 'Total Revenue'] if not income_stmt.shift(-1).empty and 'Total Revenue' in income_stmt.shift(-1).columns else None
+        ratios.loc[idx, 'Revenue Growth'] = ((revenue - prev_revenue) / prev_revenue) * 100 if revenue and prev_revenue and prev_revenue != 0 else pd.NA
+        
+        # EPS Growth
+        eps = income_stmt.loc[idx, 'Basic EPS'] if 'Basic EPS' in income_stmt.columns else None
+        prev_eps = income_stmt.shift(-1).loc[idx, 'Basic EPS'] if not income_stmt.shift(-1).empty and 'Basic EPS' in income_stmt.shift(-1).columns else None
+        ratios.loc[idx, 'EPS Growth'] = ((eps - prev_eps) / prev_eps) * 100 if eps and prev_eps and prev_eps != 0 else pd.NA
+
+    # Valuation Ratios (most are current or TTM)
+    # Using 'info' for the most up-to-date
+    if current_price and info:
+        if 'trailingPE' in info and info['trailingPE']:
+            ratios.loc[ratios.index[0], 'Price-to-Earnings (P/E) Ratio'] = info['trailingPE']
+        elif 'regularMarketPrice' in info and 'trailingEps' in info and info['trailingEps'] != 0:
+            ratios.loc[ratios.index[0], 'Price-to-Earnings (P/E) Ratio'] = info['regularMarketPrice'] / info['trailingEps']
+
+        if 'marketCap' in info and 'totalRevenue' in info and info['totalRevenue'] != 0:
+            ratios.loc[ratios.index[0], 'Price-to-Sales (P/S) Ratio'] = info['marketCap'] / info['totalRevenue']
+        elif 'currentPrice' in info and info['currentPrice'] and revenue and info['sharesOutstanding']:
+            ratios.loc[ratios.index[0], 'Price-to-Sales (P/S) Ratio'] = (info['currentPrice'] * info['sharesOutstanding']) / revenue # approximated with last known revenue
+
+        if 'enterpriseValue' in info and 'ebitda' in info and info['ebitda'] != 0:
+            ratios.loc[ratios.index[0], 'Enterprise Value to EBITDA (EV/EBITDA)'] = info['enterpriseValue'] / info['ebitda']
+    
+    return ratios.sort_index(ascending=False).round(2) # Sort by most recent first
+
+def plot_historical_data(df, title, y_axis_label, type='line', fill=False):
+    """Generates a Plotly chart for historical data."""
+    if df.empty:
+        st.warning(f"No data to plot for {title}.")
+        return go.Figure()
+
+    fig = go.Figure()
+    if type == 'line':
+        for col in df.columns:
+            fig.add_trace(go.Scatter(x=df.index, y=df[col], mode='lines+markers', name=col))
+    elif type == 'bar':
+        for col in df.columns:
+            fig.add_trace(go.Bar(x=df.index, y=df[col], name=col))
+
+    fig.update_layout(
+        title_text=title,
+        xaxis_rangeslider_visible=False,
+        xaxis_title="Date",
+        yaxis_title=y_axis_label,
+        hovermode="x unified",
+        height=400
+    )
+    return fig
+
+def format_large_number(num):
+    """Formats large numbers into a readable string (e.g., 1.23M, 4.56B)."""
+    if pd.isna(num):
         return "N/A"
-    return text.strip()
-
-def extract_key_metrics(analysis_text):
-    """
-    A simple placeholder to extract potential key metrics.
-    In a real application, this would involve more sophisticated NLP.
-    """
-    metrics = {}
-    # Example: Looking for patterns like "ratio of X to Y is Z" or "growth of X by Y%"
-    # This is highly simplified and would need to be robust for real-world data.
-    lines = analysis_text.split('\n')
-    for line in lines:
-        line = line.lower()
-        if "ratio" in line and (" of " in line or " and " in line):
-            parts = line.split("is")
-            if len(parts) > 1:
-                metric_name = parts[0].replace("ratio", "").strip()
-                try:
-                    metric_value = float(parts[1].strip())
-                    metrics[f"Ratio: {metric_name.title()}"] = metric_value
-                except ValueError:
-                    pass
-        elif "growth" in line and "%" in line:
-            parts = line.split("growth")
-            if len(parts) > 1:
-                try:
-                    growth_value = float(parts[1].split("%")[0].strip())
-                    metrics[f"Growth: {parts[0].strip().title()}"] = growth_value
-                except ValueError:
-                    pass
-        elif "level" in line and "debt" in line:
-            parts = line.split("is")
-            if len(parts) > 1:
-                try:
-                    debt_level = float(parts[1].strip())
-                    metrics[f"Debt Level: {parts[0].strip().title()}"] = debt_level
-                except ValueError:
-                    pass
-        elif "margins" in line and ":" in line:
-            parts = line.split(":")
-            if len(parts) > 1:
-                try:
-                    margin_value = float(parts[1].strip().replace('%', ''))
-                    metrics[f"Margin: {parts[0].strip().title()}"] = margin_value
-                except ValueError:
-                    pass
-        elif "valuation" in line and "multiple" in line:
-            parts = line.split(":")
-            if len(parts) > 1:
-                try:
-                    valuation_value = float(parts[1].strip())
-                    metrics[f"Valuation Multiple: {parts[0].strip().title()}"] = valuation_value
-                except ValueError:
-                    pass
-    return metrics
-
-def format_section_title(title):
-    """Formats section titles for better readability."""
-    return f"**{title}**"
-
-def format_summary_point(point):
-    """Formats individual summary points."""
-    return f"- {point}"
-
-# --- Sample Data (to simulate analysis output) ---
-# In a real app, this would come from an API call or a more complex parser.
-sample_analysis = {
-    "AAPL": {
-        "overview": "Apple Inc. is a multinational technology company headquartered in Cupertino, California. It designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories, and sells related services. Apple's key revenue drivers are its iPhone, Mac, iPad, and Wearables, Home and Accessories segments, alongside its growing Services business (App Store, Apple Music, iCloud, AppleCare, etc.).",
-        "key_financial_relationships": {
-            "Gross Profit Margin": "67.1%",
-            "Operating Profit Margin": "29.7%",
-            "Net Profit Margin": "25.3%",
-            "Return on Equity (ROE)": "155.0%",
-            "Debt to Equity Ratio": "1.8",
-            "Current Ratio": "1.0",
-            "Revenue Growth (YoY)": "2.0%",
-            "EPS Growth (YoY)": "5.0%"
-        },
-        "market_dependencies": {
-            "market_sentiment": "Generally positive, influenced by consumer spending trends and product innovation cycles.",
-            "beta_vs_sp500": 1.1,
-            "volatility": "Moderate, typically tracks broader tech market movements.",
-            "key_drivers": ["consumer confidence", "disposable income", "new product launches", "global supply chain stability"]
-        },
-        "sector_connections": {
-            "sector": "Technology (Consumer Electronics, Software & Services)",
-            "industry_trends": "Growth in cloud computing, AI integration, subscription services, and demand for premium devices.",
-            "sector_performance": "Historically strong, but subject to cyclical consumer spending and regulatory scrutiny.",
-            "regulatory_impact": "Antitrust concerns, privacy regulations, and App Store policies can influence operations."
-        },
-        "competitor_relationships": {
-            "major_competitors": ["Samsung", "Google (Alphabet)", "Microsoft", "Amazon"],
-            "competitive_landscape": "Highly competitive, especially in smartphones and PCs. Apple maintains strong brand loyalty and ecosystem integration.",
-            "market_share_dynamics": "Dominant in premium smartphone segment, significant player in tablets and PCs. Services continue to gain share.",
-            "pricing_power": "Strong pricing power for its hardware due to brand and ecosystem."
-        },
-        "economic_factors": {
-            "macro_influence": "Sensitive to global economic growth, inflation affecting consumer spending, and currency fluctuations (due to international sales).",
-            "interest_rates": "Higher interest rates can impact consumer borrowing for expensive devices and increase the cost of debt for the company.",
-            "gdp_growth": "Direct correlation with global GDP growth, especially in developed markets.",
-            "fx_impact": "Significant impact from USD strength/weakness on international revenues and profits."
-        },
-        "revenue_drivers": [
-            "iPhone Sales",
-            "Mac and iPad Sales",
-            "Wearables, Home and Accessories",
-            "Apple Services (App Store, iCloud, Apple Music, Apple TV+)",
-            "Advertising"
-        ],
-        "financial_highlights": {
-            "income_statement": {
-                "revenue": "$383.3 Billion (FY23)",
-                "gross_profit": "$257.0 Billion (FY23)",
-                "net_income": "$97.0 Billion (FY23)"
-            },
-            "balance_sheet": {
-                "total_assets": "$352.6 Billion (FY23)",
-                "total_liabilities": "$290.4 Billion (FY23)",
-                "total_equity": "$62.2 Billion (FY23)"
-            },
-            "cash_flow": {
-                "operating_cash_flow": "$110.5 Billion (FY23)",
-                "free_cash_flow": "$99.6 Billion (FY23)"
-            }
-        },
-        "valuation_context": {
-            "pe_ratio": 28.5,
-            "ps_ratio": 7.2,
-            "ev_ebitda": 19.0,
-            "peer_comparison": "Trades at a premium compared to many tech hardware peers, reflecting its strong brand, profitability, and ecosystem."
-        },
-        "risks_scenarios": {
-            "key_risks": [
-                "Intensifying competition",
-                "Regulatory pressures (antitrust, privacy)",
-                "Supply chain disruptions",
-                "Dependence on iPhone sales",
-                "Geopolitical tensions impacting manufacturing and sales",
-                "Macroeconomic slowdown impacting consumer spending"
-            ],
-            "upside_scenarios": [
-                "Successful new product categories (e.g., AR/VR)",
-                "Accelerated growth in Services",
-                "Stronger than expected consumer adoption of new iPhone models",
-                "Favorable regulatory outcomes"
-            ],
-            "sensitivity": "Sensitive to consumer discretionary spending, global economic health, and technological innovation pace."
-        },
-        "catalyst_calendar": {
-            "upcoming_events": [
-                "Q4 2023 Earnings (expected Nov 2023)",
-                "WWDC (Worldwide Developers Conference) - typically June",
-                "Annual iPhone/Mac Product Launches - typically September/October"
-            ]
-        },
-        "suggested_next_steps": [
-            "Review latest 10-K and 10-Q filings for detailed financial data.",
-            "Read recent analyst reports and earnings call transcripts.",
-            "Compare detailed valuation multiples against a curated list of peers.",
-            "Analyze geographic revenue breakdown in filings."
-        ]
-    },
-    "TSLA": {
-        "overview": "Tesla, Inc. designs, develops, manufactures, sells, leases, and arranges for the charging of electric vehicles, and generates and sells solar energy and energy storage systems. Its primary revenue streams come from electric vehicle sales and regulatory credits.",
-        "key_financial_relationships": {
-            "Gross Profit Margin": "18.0%",
-            "Operating Profit Margin": "10.0%",
-            "Net Profit Margin": "9.0%",
-            "Return on Equity (ROE)": "28.0%",
-            "Debt to Equity Ratio": "0.2",
-            "Current Ratio": "1.5",
-            "Revenue Growth (YoY)": "25.0%",
-            "EPS Growth (YoY)": "30.0%"
-        },
-        "market_dependencies": {
-            "market_sentiment": "Highly volatile, driven by Elon Musk's statements, production news, and broader market sentiment towards growth stocks and EVs.",
-            "beta_vs_sp500": 1.8,
-            "volatility": "Very high, subject to significant daily price swings.",
-            "key_drivers": ["production numbers", "delivery targets", "Elon Musk's public statements", "competitor EV launches", "government EV incentives", "interest rates"]
-        },
-        "sector_connections": {
-            "sector": "Automotive (Electric Vehicles), Energy Storage",
-            "industry_trends": "Rapid growth in EV adoption, increasing competition, focus on autonomous driving technology, battery technology advancements.",
-            "sector_performance": "High growth potential but subject to capital intensity, regulatory changes, and technological disruption.",
-            "regulatory_impact": "Emissions standards, safety regulations, and EV subsidies play a crucial role."
-        },
-        "competitor_relationships": {
-            "major_competitors": ["BYD", "Volkswagen", "Ford", "General Motors", "Rivian", "Lucid"],
-            "competitive_landscape": "Increasingly crowded. Tesla is a pioneer but faces growing competition from legacy automakers and new EV startups.",
-            "market_share_dynamics": "Historically dominant in premium EVs, but market share is gradually being eroded by new entrants.",
-            "pricing_power": "Has shown willingness to cut prices to maintain volume, impacting pricing power."
-        },
-        "economic_factors": {
-            "macro_influence": "Sensitive to consumer purchasing power for high-ticket items, availability of financing, and commodity prices (lithium, cobalt for batteries).",
-            "interest_rates": "Higher interest rates significantly impact car affordability and the cost of capital for expansion.",
-            "gdp_growth": "Correlates with global GDP growth, but also with specific trends in EV adoption and renewable energy.",
-            "fx_impact": "Significant exposure to currency fluctuations due to global manufacturing and sales."
-        },
-        "revenue_drivers": [
-            "Electric Vehicle Sales (Model S, 3, X, Y)",
-            "Energy Generation and Storage (Solar Roof, Powerwall)",
-            "Automotive Leasing",
-            "Automotive Software and Services (FSD, Premium Connectivity)",
-            "Regulatory Credits"
-        ],
-        "financial_highlights": {
-            "income_statement": {
-                "revenue": "$96.77 Billion (FY22)",
-                "gross_profit": "$21.58 Billion (FY22)",
-                "net_income": "$12.59 Billion (FY22)"
-            },
-            "balance_sheet": {
-                "total_assets": "$67.45 Billion (FY22)",
-                "total_liabilities": "$23.56 Billion (FY22)",
-                "total_equity": "$43.89 Billion (FY22)"
-            },
-            "cash_flow": {
-                "operating_cash_flow": "$14.71 Billion (FY22)",
-                "free_cash_flow": "$7.57 Billion (FY22)"
-            }
-        },
-        "valuation_context": {
-            "pe_ratio": 75.0,
-            "ps_ratio": 8.0,
-            "ev_ebitda": 30.0,
-            "peer_comparison": "Trades at a significant premium to traditional automakers due to its growth prospects, technology leadership, and perceived future potential (robotaxis, AI)."
-        },
-        "risks_scenarios": {
-            "key_risks": [
-                "Intense competition from established and new EV players",
-                "Production ramp-up challenges and quality control issues",
-                "Reliance on Elon Musk's leadership and public persona",
-                "Regulatory hurdles and safety recalls",
-                "Supply chain disruptions (especially batteries)",
-                "Execution risk for ambitious projects (FSD, Optimus)",
-                "Interest rate sensitivity affecting consumer demand"
-            ],
-            "upside_scenarios": [
-                "Breakthroughs in autonomous driving (FSD)",
-                "Successful launch and scaling of new models (Cybertruck, new platform)",
-                "Significant growth in energy storage business",
-                "Profitability from robotaxi network or AI services",
-                "Successful battery cost reductions and production scaling"
-            ],
-            "sensitivity": "Extremely sensitive to news flow, production numbers, regulatory pronouncements, and Elon Musk's actions."
-        },
-        "catalyst_calendar": {
-            "upcoming_events": [
-                "Q4 2023 Earnings (expected Jan 2024)",
-                "Delivery/Production Updates (quarterly)",
-                "New Model Announcements/Launches (e.g., Cybertruck)",
-                "Updates on FSD Beta progress"
-            ]
-        },
-        "suggested_next_steps": [
-            "Monitor production and delivery numbers closely.",
-            "Track competitor EV launches and market share shifts.",
-            "Read Musk's Twitter/X feed and official company updates.",
-            "Analyze the impact of regulatory changes on EV incentives.",
-            "Assess progress and timeline for FSD and other ambitious projects."
-        ]
-    }
-}
+    num = float(num)
+    if abs(num) >= 1e12:
+        return f"{num / 1e12:.2f}T"
+    elif abs(num) >= 1e9:
+        return f"{num / 1e9:.2f}B"
+    elif abs(num) >= 1e6:
+        return f"{num / 1e6:.2f}M"
+    elif abs(num) >= 1e3:
+        return f"{num / 1e3:.2f}K"
+    else:
+        return f"{num:.2f}"
 
 
 # --- Streamlit App Layout ---
-st.title("Financial Analysis Dashboard")
+st.title("📈 Financial Ecosystem Analyzer")
 
-st.sidebar.header("Analysis Configuration")
-ticker_input = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL, TSLA)", "AAPL")
-analysis_detail = st.sidebar.selectbox(
-    "Level of Detail",
-    ["High-Level Overview", "Deep Quantitative Analysis"],
-    index=0
-)
-timeframe = st.sidebar.selectbox(
-    "Timeframe/Focus",
-    ["Near-term Catalysts", "12-24 Month Outlook", "Long-term Secular View"],
-    index=1
-)
-specific_concerns = st.sidebar.multiselect(
-    "Specific Concerns",
-    ["Valuation", "Dividend Safety", "Debt", "FX", "Commodity Exposure", "Cyclical Risk", "Regulatory Risk", "Competition"]
+st.sidebar.header("Input Ticker")
+ticker_input = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL, MSFT, TSLA)", "AAPL").upper()
+analyze_button = st.sidebar.button("Analyze Stock")
+
+st.markdown(
+    """
+    This app provides a comprehensive financial ecosystem analysis for a given stock ticker.
+    It extracts key financial metrics, visualizes trends, and outlines the various qualitative factors
+    that influence a company's performance and market standing.
+    """
 )
 
-# --- Load Data ---
-analysis_data = sample_analysis.get(ticker_input.upper())
+if analyze_button and ticker_input:
+    with st.spinner(f"Fetching data for {ticker_input}..."):
+        (ticker, info, history, balance_sheet, income_stmt,
+         cash_flow, recommendations, dividends) = get_stock_data(ticker_input)
 
-if not analysis_data:
-    st.warning(f"No analysis found for ticker: {ticker_input}. Please try AAPL or TSLA for a sample.")
-else:
-    # --- Main Content Area ---
-    st.header(f"Financial Analysis for {ticker_input.upper()}")
+    if info:
+        st.header(f"Analysis for {info.get('longName', ticker_input)}")
+        st.markdown(f"**Ticker:** `{ticker_input}`")
 
-    # --- Section: Overview ---
-    st.subheader(format_section_title("Company Overview"))
-    st.write(clean_text(analysis_data.get("overview", "N/A")))
-
-    # --- Section: Key Financial Metrics ---
-    st.subheader(format_section_title("Key Financial Metrics & Relationships"))
-    key_metrics = analysis_data.get("key_financial_relationships", {})
-    if key_metrics:
-        metrics_df = pd.DataFrame(list(key_metrics.items()), columns=['Metric', 'Value'])
-        # Attempt to convert values for charting
-        metrics_df['Numeric_Value'] = pd.to_numeric(metrics_df['Value'].str.replace('%', '').str.replace(',', ''), errors='coerce')
-        metrics_df['Type'] = metrics_df['Metric'].apply(lambda x: 'Percentage' if '%' in x else ('Ratio' if 'Ratio' in x or 'Level' in x else 'Growth'))
-
-        col1, col2 = st.columns([2, 1])
+        # --- Section 1: Company Overview ---
+        st.subheader("1. Company Overview")
+        col1, col2 = st.columns([1, 2])
         with col1:
-            st.dataframe(metrics_df[['Metric', 'Value']].to_html(escape=False), use_container_width=True)
-
+            if 'logo_url' in info:
+                st.image(info['logo_url'], width=100)
+            st.metric("Current Price", f"${info.get('currentPrice', 'N/A'):.2f}")
+            st.metric("Market Cap", format_large_number(info.get('marketCap')))
+            st.metric("Sector", info.get('sector', 'N/A'))
+            st.metric("Industry", info.get('industry', 'N/A'))
         with col2:
-            # Filter for numeric values to plot
-            numeric_metrics_df = metrics_df.dropna(subset=['Numeric_Value'])
+            st.write(f"**Business Summary:**")
+            st.write(info.get('longBusinessSummary', 'No business summary available.'))
+            st.write(f"**Website:** [{info.get('website', 'N/A')}]({info.get('website', '#')})")
 
-            # Pie chart for percentages (margins, ROE)
-            percentage_metrics = numeric_metrics_df[numeric_metrics_df['Type'] == 'Percentage']
-            if not percentage_metrics.empty:
-                fig_pie = px.pie(percentage_metrics,
-                                 values='Numeric_Value',
-                                 names='Metric',
-                                 title='Key Percentage Metrics')
-                st.plotly_chart(fig_pie, use_container_width=True)
+        st.markdown("---")
 
-            # Bar chart for growth and ratios
-            other_metrics = numeric_metrics_df[numeric_metrics_df['Type'] != 'Percentage']
-            if not other_metrics.empty:
-                fig_bar = px.bar(other_metrics,
-                                 x='Metric',
-                                 y='Numeric_Value',
-                                 color='Type',
-                                 title='Growth & Ratio Metrics')
-                st.plotly_chart(fig_bar, use_container_width=True)
-    else:
-        st.info("No specific key financial relationships detailed in this sample.")
+        # --- Section 2: Key Financial Relationships ---
+        st.subheader("2. Key Financial Relationships")
+        
+        current_price = info.get('currentPrice', None)
+        if current_price:
+            financial_ratios = calculate_financial_ratios(balance_sheet, income_stmt, cash_flow, current_price, info)
+        else:
+            financial_ratios = pd.DataFrame()
+            st.warning("Could not fetch current price to calculate all valuation ratios.")
 
-    # --- Section: Market Dependencies ---
-    st.subheader(format_section_title("Market Dependencies"))
-    market_deps = analysis_data.get("market_dependencies", {})
-    if market_deps:
-        st.write(f"**Market Sentiment:** {clean_text(market_deps.get('market_sentiment'))}")
-        st.write(f"**Beta vs. S&P 500:** {market_deps.get('beta_vs_sp500', 'N/A')}")
-        st.write(f"**Volatility:** {clean_text(market_deps.get('volatility'))}")
-        st.write(f"**Key Drivers:** {', '.join(market_deps.get('key_drivers', ['N/A']))}")
-        if 'beta_vs_sp500' in market_deps:
-            beta = market_deps['beta_vs_sp500']
-            if beta > 1.2:
-                st.warning("High Beta: Stock is more volatile than the broader market.")
-            elif beta < 0.8:
-                st.info("Low Beta: Stock is less volatile than the broader market.")
+        # Display latest ratios in a summary
+        if not financial_ratios.empty:
+            st.markdown("##### Latest Key Financial Ratios")
+            latest_ratios = financial_ratios.iloc[0].dropna()
+            
+            # Group ratios by type
+            profitability_ratios = latest_ratios[[col for col in latest_ratios.index if 'Profit Margin' in col or 'Return on' in col]]
+            liquidity_ratios = latest_ratios[[col for col in latest_ratios.index if 'Ratio' in col and ('Current' in col or 'Quick' in col)]]
+            solvency_ratios = latest_ratios[[col for col in latest_ratios.index if 'Debt-to-Equity' in col or 'Interest Coverage' in col]]
+            efficiency_ratios = latest_ratios[[col for col in latest_ratios.index if 'Turnover' in col]]
+            valuation_ratios = latest_ratios[[col for col in latest_ratios.index if 'P/E' in col or 'P/S' in col or 'EV/EBITDA' in col]]
+            growth_ratios = latest_ratios[[col for col in latest_ratios.index if 'Growth' in col]]
+
+            col_ratios1, col_ratios2, col_ratios3 = st.columns(3)
+            with col_ratios1:
+                st.markdown("**Profitability**")
+                for ratio, value in profitability_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}%`")
+                st.markdown("**Liquidity**")
+                for ratio, value in liquidity_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}`")
+            with col_ratios2:
+                st.markdown("**Solvency/Leverage**")
+                for ratio, value in solvency_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}`")
+                st.markdown("**Efficiency**")
+                for ratio, value in efficiency_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}`")
+            with col_ratios3:
+                st.markdown("**Valuation (Current)**")
+                for ratio, value in valuation_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}`")
+                st.markdown("**Growth**")
+                for ratio, value in growth_ratios.items():
+                    st.write(f"- {ratio}: `{value:.2f}%`")
+            st.markdown("---")
+
+
+        # Detailed Financial Statements & Ratios
+        with st.expander("Detailed Financial Statements & Ratio Trends"):
+            tab1, tab2, tab3, tab4 = st.tabs(["Income Statement", "Balance Sheet", "Cash Flow", "Ratio Trends"])
+
+            with tab1:
+                st.markdown("##### Quarterly Income Statement")
+                if not income_stmt.empty:
+                    st.dataframe(income_stmt.head(), use_container_width=True)
+                    # Chart for key income statement items
+                    inc_stmt_chart_data = income_stmt[['Total Revenue', 'Gross Profit', 'Net Income']].dropna()
+                    if not inc_stmt_chart_data.empty:
+                        st.plotly_chart(plot_historical_data(inc_stmt_chart_data, "Quarterly Revenue, Gross Profit, Net Income", "Amount"), use_container_width=True)
+                else:
+                    st.info("No income statement data available.")
+
+            with tab2:
+                st.markdown("##### Quarterly Balance Sheet")
+                if not balance_sheet.empty:
+                    st.dataframe(balance_sheet.head(), use_container_width=True)
+                    # Chart for key balance sheet items
+                    bal_sheet_chart_data = balance_sheet[['Total Assets', 'Total Liabilities', 'Stockholders Equity']].dropna()
+                    if not bal_sheet_chart_data.empty:
+                        st.plotly_chart(plot_historical_data(bal_sheet_chart_data, "Quarterly Assets, Liabilities, Equity", "Amount"), use_container_width=True)
+                else:
+                    st.info("No balance sheet data available.")
+
+            with tab3:
+                st.markdown("##### Quarterly Cash Flow Statement")
+                if not cash_flow.empty:
+                    st.dataframe(cash_flow.head(), use_container_width=True)
+                    # Chart for key cash flow items
+                    cf_chart_data = cash_flow[['Total Cash From Operating Activities', 'Total Cash From Investing Activities', 'Total Cash From Financing Activities', 'Change In Cash']].dropna()
+                    if not cf_chart_data.empty:
+                        st.plotly_chart(plot_historical_data(cf_chart_data, "Quarterly Cash Flow Activities", "Amount"), use_container_width=True)
+                else:
+                    st.info("No cash flow data available.")
+
+            with tab4:
+                st.markdown("##### Key Ratio Trends Over Time")
+                if not financial_ratios.empty:
+                    st.dataframe(financial_ratios, use_container_width=True)
+                    
+                    st.markdown("**Profitability Ratios**")
+                    profit_ratio_cols = [col for col in financial_ratios.columns if 'Profit Margin' in col or 'Return on' in col]
+                    if profit_ratio_cols:
+                        st.plotly_chart(plot_historical_data(financial_ratios[profit_ratio_cols], "Profitability Ratios", "%"), use_container_width=True)
+                    
+                    st.markdown("**Liquidity & Solvency Ratios**")
+                    liq_solv_ratio_cols = [col for col in financial_ratios.columns if 'Ratio' in col and not ('P/E' in col or 'P/S' in col or 'EV/EBITDA' in col)]
+                    if liq_solv_ratio_cols:
+                        st.plotly_chart(plot_historical_data(financial_ratios[liq_solv_ratio_cols], "Liquidity & Solvency Ratios", "Ratio"), use_container_width=True)
+                    
+                    st.markdown("**Growth Ratios**")
+                    growth_ratio_cols = [col for col in financial_ratios.columns if 'Growth' in col]
+                    if growth_ratio_cols:
+                        st.plotly_chart(plot_historical_data(financial_ratios[growth_ratio_cols], "Growth Ratios", "%"), use_container_width=True)
+                else:
+                    st.info("No financial ratio data to display trends.")
+        
+        st.markdown("---")
+
+        # --- Section 3: Market Dependencies ---
+        st.subheader("3. Market Dependencies")
+
+        col3_1, col3_2 = st.columns(2)
+        with col3_1:
+            st.markdown("##### Market Performance")
+            if not history.empty:
+                fig = px.line(history, x=history.index, y='Close', title=f"{ticker_input} Historical Close Price (5 Years)")
+                fig.update_layout(xaxis_rangeslider_visible=True)
+                st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("Moderate Beta: Stock volatility is similar to the broader market.")
-    else:
-        st.info("No specific market dependencies detailed in this sample.")
+                st.info("No historical price data available.")
+        
+        with col3_2:
+            st.markdown("##### Investor Sentiment & Dividend Policy")
+            if not recommendations.empty:
+                st.write("**Analyst Ratings:**")
+                st.dataframe(recommendations.head(5), use_container_width=True)
+            else:
+                st.info("No recent analyst recommendations available via yfinance.")
+            
+            st.write("**Dividend Policy:**")
+            dividend_yield = info.get('dividendYield', 'N/A')
+            if dividend_yield != 'N/A':
+                st.write(f"- Dividend Yield: `{dividend_yield:.2%}`")
+            else:
+                st.write("- Dividend Yield: `N/A`")
+            
+            if not dividends.empty:
+                st.write("- Has paid dividends historically.")
+                fig_div = px.bar(dividends.reset_index(), x='Date', y='Dividends', title="Historical Dividends Paid")
+                st.plotly_chart(fig_div, use_container_width=True)
+            else:
+                st.write("- No historical dividend payments found.")
+            
+            # Placeholder for correlation with indices, news sentiment, social media buzz
+            st.write(f"")
+            st.info("""
+            **Overall Market Performance & Investor Sentiment:**
+            A full analysis would involve calculating correlation with major indices (e.g., S&P 500, Nasdaq Composite),
+            analyzing recent news sentiment using NLP techniques, and monitoring social media buzz.
+            (Data for these aspects would require additional APIs and processing.)
+            """)
 
-    # --- Section: Sector Connections ---
-    st.subheader(format_section_title("Sector Connections"))
-    sector_conns = analysis_data.get("sector_connections", {})
-    if sector_conns:
-        st.write(f"**Sector:** {clean_text(sector_conns.get('sector'))}")
-        st.write(f"**Industry Trends:** {clean_text(sector_conns.get('industry_trends'))}")
-        st.write(f"**Sector Performance:** {clean_text(sector_conns.get('sector_performance'))}")
-        st.write(f"**Regulatory Impact:** {clean_text(sector_conns.get('regulatory_impact'))}")
-    else:
-        st.info("No specific sector connections detailed in this sample.")
+        st.markdown("---")
 
-    # --- Section: Competitor Relationships ---
-    st.subheader(format_section_title("Competitor Relationships"))
-    competitor_rels = analysis_data.get("competitor_relationships", {})
-    if competitor_rels:
-        st.write(f"**Major Competitors:** {', '.join(competitor_rels.get('major_competitors', ['N/A']))}")
-        st.write(f"**Competitive Landscape:** {clean_text(competitor_rels.get('competitive_landscape'))}")
-        st.write(f"**Market Share Dynamics:** {clean_text(competitor_rels.get('market_share_dynamics'))}")
-        st.write(f"**Pricing Power:** {clean_text(competitor_rels.get('pricing_power'))}")
-    else:
-        st.info("No specific competitor relationships detailed in this sample.")
+        # --- Section 4: Sector Connections ---
+        st.subheader("4. Sector Connections")
+        st.write(f"**Industry Classification:** The company belongs to the **{info.get('sector', 'N/A')}** sector, specifically the **{info.get('industry', 'N/A')}** industry.")
+        
+        st.markdown("##### Sector Trends & Supply Chain")
+        st.info(f"""
+        **Broader Industry Trends:** For a company in the **{info.get('industry', 'N/A')}** industry, key trends to consider include:
+        *   **Technological Advancements:** How innovations (e.g., AI, automation, new materials) are impacting production, product development, and competitive landscape.
+        *   **Regulatory Changes:** New government policies, environmental regulations, or industry-specific compliance requirements.
+        *   **Consumer Preferences:** Shifting tastes, demand for sustainability, or changes in purchasing power.
+        *   **Supply Chain Dynamics:** Geopolitical stability affecting material sourcing, logistics costs, and labor availability.
 
-    # --- Section: Economic Factors ---
-    st.subheader(format_section_title("Economic Factors"))
-    economic_factors = analysis_data.get("economic_factors", {})
-    if economic_factors:
-        st.write(f"**Macro Influence:** {clean_text(economic_factors.get('macro_influence'))}")
-        st.write(f"**Interest Rates Sensitivity:** {clean_text(economic_factors.get('interest_rates'))}")
-        st.write(f"**GDP Growth Correlation:** {clean_text(economic_factors.get('gdp_growth'))}")
-        st.write(f"**FX Impact:** {clean_text(economic_factors.get('fx_impact'))}")
-    else:
-        st.info("No specific economic factors detailed in this sample.")
+        **Supply Chain Dependencies:** Identifying key suppliers and their financial health is crucial. For instance, a tech company might depend on specific semiconductor manufacturers, or a retail company on a global network of logistics providers.
+        
+        **Customer Base:** Analyzing customer concentration (e.g., reliance on a few large clients) and their economic sensitivity. Is the product/service discretionary or essential?
+        (A detailed analysis requires industry reports and company-specific disclosures beyond standard financial data.)
+        """)
+        st.markdown("---")
 
-    # --- Section: Financial Highlights ---
-    st.subheader(format_section_title("Financial Highlights (Illustrative)"))
-    financial_highlights = analysis_data.get("financial_highlights", {})
-    if financial_highlights:
-        col1, col2, col3 = st.columns(3)
+        # --- Section 5: Competitor Relationships ---
+        st.subheader("5. Competitor Relationships")
+        st.markdown("##### Competitive Landscape")
+        st.info(f"""
+        **Direct Competitors:** Companies offering similar products/services in the same market (e.g., Apple vs. Samsung, Coca-Cola vs. Pepsi).
+        **Indirect Competitors:** Companies vying for the same customer wallet, even if their products are different (e.g., streaming services vs. movie theaters).
+        
+        **Competitive Advantages/Disadvantages:**
+        *   **Moat:** What gives the company a sustainable advantage (e.g., brand, patents, network effects, cost leadership)?
+        *   **Brand Strength:** How recognizable and trusted is the brand?
+        *   **Innovation:** R&D investment, new product pipeline, ability to adapt.
+        *   **Cost Structure:** Is the company a low-cost producer or a premium provider?
 
-        with col1:
-            st.write("**Income Statement**")
-            for key, value in financial_highlights.get("income_statement", {}).items():
-                st.write(f"*{key}:* {value}")
+        **Market Share:** Understanding the company's position relative to its competitors in key markets.
+        (This section typically requires market research reports, industry news, and competitor financial analysis.)
+        """)
+        st.markdown("---")
 
-        with col2:
-            st.write("**Balance Sheet**")
-            for key, value in financial_highlights.get("balance_sheet", {}).items():
-                st.write(f"*{key}:* {value}")
+        # --- Section 6: Economic Factors ---
+        st.subheader("6. Economic Factors")
+        st.markdown("##### Macroeconomic & Regulatory Environment")
+        st.info("""
+        **Macroeconomic Indicators:**
+        *   **GDP Growth:** Impact on overall consumer and business spending.
+        *   **Inflation Rates:** Affects cost of goods, pricing power, and consumer spending.
+        *   **Interest Rate Policies (Monetary Policy):** Influences borrowing costs, capital expenditure, and valuation multiples (especially for growth stocks).
+        *   **Unemployment Rates:** Indicates consumer confidence and spending capacity.
 
-        with col3:
-            st.write("**Cash Flow**")
-            for key, value in financial_highlights.get("cash_flow", {}).items():
-                st.write(f"*{key}:* {value}")
-    else:
-        st.info("No specific financial highlights detailed in this sample.")
+        **Consumer Spending:** Differentiating between discretionary (e.g., luxury goods, entertainment) and non-discretionary (e.g., food, utilities) spending patterns helps understand resilience during economic downturns.
 
-    # --- Section: Valuation Context ---
-    st.subheader(format_section_title("Valuation Context"))
-    valuation_context = analysis_data.get("valuation_context", {})
-    if valuation_context:
-        valuation_metrics = {k: v for k, v in valuation_context.items() if k not in ['peer_comparison']}
-        if valuation_metrics:
-            val_df = pd.DataFrame(list(valuation_metrics.items()), columns=['Metric', 'Value'])
-            val_df['Numeric_Value'] = pd.to_numeric(val_df['Value'], errors='coerce')
-            st.dataframe(val_df.to_html(escape=False), use_container_width=True)
+        **Global Economic Conditions:** Geopolitical events (e.g., trade wars, regional conflicts), international trade relations, and currency fluctuations (for multinational corporations) can significantly impact performance.
 
-            numeric_val_df = val_df.dropna(subset=['Numeric_Value'])
-            if not numeric_val_df.empty:
-                fig_val = px.bar(numeric_val_df, x='Metric', y='Numeric_Value', title='Common Valuation Multiples')
-                st.plotly_chart(fig_val, use_container_width=True)
+        **Regulatory Environment:** Government policies, taxes, tariffs, environmental regulations, and industry-specific rules can create opportunities or impose significant costs and restrictions.
+        (A complete analysis here would integrate data from economic indicators, central bank reports, and geopolitical analyses.)
+        """)
 
-        st.write(f"**Peer Comparison:** {clean_text(valuation_context.get('peer_comparison'))}")
-    else:
-        st.info("No specific valuation context detailed in this sample.")
+        st.markdown("---")
+        st.success("Analysis complete!")
 
-    # --- Section: Risks and Scenarios ---
-    st.subheader(format_section_title("Key Risks and Upside Scenarios"))
-    risks_scenarios = analysis_data.get("risks_scenarios", {})
-    if risks_scenarios:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Key Risks**")
-            for risk in risks_scenarios.get("key_risks", []):
-                st.write(format_summary_point(clean_text(risk)))
-        with col2:
-            st.write("**Upside Scenarios**")
-            for scenario in risks_scenarios.get("upside_scenarios", []):
-                st.write(format_summary_point(clean_text(scenario)))
-        st.write(f"**Sensitivity:** {clean_text(risks_scenarios.get('sensitivity'))}")
-    else:
-        st.info("No specific risks and scenarios detailed in this sample.")
+    elif analyze_button:
+        st.error(f"Could not retrieve data for ticker: **{ticker_input}**. Please check the ticker symbol and try again.")
+else:
+    st.info("Please enter a stock ticker in the sidebar and click 'Analyze Stock' to begin.")
 
-    # --- Section: Catalyst Calendar ---
-    st.subheader(format_section_title("Catalyst Calendar (Illustrative)"))
-    catalyst_calendar = analysis_data.get("catalyst_calendar", {})
-    if catalyst_calendar:
-        st.write("**Upcoming Events:**")
-        for event in catalyst_calendar.get("upcoming_events", []):
-            st.write(format_summary_point(clean_text(event)))
-    else:
-        st.info("No specific catalyst calendar detailed in this sample.")
-
-    # --- Section: Suggested Next Steps ---
-    st.subheader(format_section_title("Suggested Next Steps"))
-    next_steps = analysis_data.get("suggested_next_steps", [])
-    if next_steps:
-        for step in next_steps:
-            st.write(format_summary_point(clean_text(step)))
-    else:
-        st.info("No specific next steps provided in this sample.")
-
-# --- Footer ---
-st.markdown("---")
-st.markdown("This is a simplified financial analysis dashboard. Real-world analysis requires access to live data and more advanced NLP/quantitative methods.")
+st.sidebar.markdown("---")
+st.sidebar.markdown("Developed by a Senior Python Developer")
