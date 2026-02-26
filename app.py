@@ -66,479 +66,491 @@ if generate:
 
 
 import pandas as pd
-import altair as alt
-import re # For extracting data from text
+import plotly.express as px
+import re
 
-# --- Configuration ---
-st.set_page_config(layout="wide", page_title="AZN Financial Analysis Dashboard", page_icon="📈")
+# The full analysis text provided by the user
+ANALYSIS_TEXT = """
+## MSFT: A Deep Dive into the Cloud Giant's Future
 
-# --- Raw Analysis Text (for easy reference and parsing) ---
-# This variable stores the complete analysis text provided.
-# It's kept here for context, but parsed content is used for display.
-analysis_text = """
-## AZN: A Deep Dive into AstraZeneca's Prospects and Industry Landscape
+**Company:** Microsoft Corporation (MSFT)
+**Date:** October 26, 2023
+**Analyst:** [Your Name/Firm Name], Senior Equity Research Analyst
 
-**AstraZeneca (AZN)**, a global biopharmaceutical giant, operates within the dynamic and highly competitive healthcare sector. This analysis will provide a forward-looking perspective on AZN's performance, its competitive positioning, and the external factors influencing its trajectory over the next 3-6 months.
+**Executive Summary:**
+
+Microsoft (MSFT) continues to demonstrate robust performance, driven primarily by the sustained strength of its Intelligent Cloud segment, particularly Azure. While facing ongoing macroeconomic uncertainties and increased competition, the company is well-positioned to capitalize on key secular trends in cloud computing, artificial intelligence (AI), and digital transformation. We anticipate continued positive momentum for MSFT over the next 3-6 months, supported by product innovation, strategic partnerships, and a solid enterprise demand environment.
 
 ---
 
 ### Fundamental Evaluation: Near-Term Outlook and Catalysts
 
-AstraZeneca has demonstrated robust performance recently, driven by its strong oncology portfolio, the continued success of its COVID-19 vaccine and antibody treatments (though with diminishing contributions from the latter), and growth in its respiratory and cardiovascular segments. We anticipate this momentum to largely continue in the next 3-6 months, albeit with some nuances.
+**Recent Performance & Projection (Next 3-6 Months):**
 
-**Key Performance Indicators & Projections (Next 3-6 Months):**
+MSFT has delivered consistently strong financial results, with its Intelligent Cloud segment (Azure, Windows Server, SQL Server, GitHub) being the primary engine of growth. Recent earnings reports have showcased impressive revenue and profit growth, driven by Azure's expansion and the integration of AI capabilities into its cloud offerings. The Productivity and Business Processes segment (Office 365, LinkedIn, Dynamics) also shows resilience, benefiting from a shift towards subscription-based models and increased remote work adoption. The More Personal Computing segment (Windows, Xbox, Surface) has experienced some cyclicality but remains a significant contributor.
 
-*   **Revenue Growth:** We expect continued single-digit to low-double-digit percentage revenue growth. The oncology segment, particularly with new drug approvals and label expansions, will remain a primary driver. The cardiovascular, renal, and metabolism (CVRM) portfolio should also contribute steadily. The timing and ramp-up of new launches will be crucial to achieving the higher end of this range.
-*   **Margins:** Gross margins are expected to remain strong, reflecting the premium pricing power of innovative pharmaceuticals. However, operating margins might see some pressure due to increased R&D spending on pipeline advancement and higher marketing and selling expenses associated with new product launches and expanded global reach. We anticipate operating margins to remain in the mid-to-high 20s.
-*   **Profitability:** Earnings per share (EPS) are projected to grow, mirroring revenue trends but potentially moderated by increased investment. The company's strategic acquisitions and divestitures could also play a role in EPS trajectory.
+**For the next 3-6 months, we project continued healthy revenue growth, albeit with potential moderation in the pace as macroeconomic headwinds persist.** We anticipate:
+
+*   **Intelligent Cloud:** Continued double-digit revenue growth for Azure, fueled by ongoing digital transformation initiatives and an increasing adoption of AI services. Microsoft's commitment to integrating cutting-edge AI models into its Azure platform positions it favorably to capture a significant share of the rapidly expanding AI market.
+*   **Productivity and Business Processes:** Steady growth, driven by commercial cloud adoption and the continued expansion of Microsoft 365's feature set, including AI-powered Copilot features.
+*   **More Personal Computing:** Mixed performance, with Windows likely to see moderate demand as PC refresh cycles continue, while Xbox gaming revenue may see some normalization after a strong period.
 
 **Key Catalysts (Next 3-6 Months):**
 
-1.  **New Drug Approvals & Label Expansions:** This is a perennial catalyst for AZN. We will be closely watching for regulatory decisions on key pipeline assets, particularly in oncology (e.g., Enhertu's potential in new indications, Lynparza's continued expansion) and potentially in areas like immunology or rare diseases. Positive approvals and label expansions significantly de-risk pipeline assets and unlock new market opportunities.
-2.  **Phase 3 Data Readouts and Regulatory Filings:** Positive results from late-stage clinical trials can significantly de-risk pipeline assets and signal future growth drivers. Conversely, disappointing data can create headwinds. We are monitoring several key Phase 3 programs that could have significant implications.
-3.  **Surgical Robotics Integration & Performance (MedImmune):** While not a direct drug catalyst, the successful integration and commercialization of the recently acquired IVI Biologics assets (assuming this refers to the acquisition of IVI Biologics by AZN, which is correct) and continued progress with their biologics manufacturing capabilities will be important for long-term pipeline support and cost efficiency.
+1.  **Expansion of AI Capabilities & Copilot Adoption:** The widespread rollout and adoption of **Microsoft Copilot** across its product suite (Microsoft 365, Dynamics 365, GitHub) will be a major driver. Successful integration and demonstration of productivity gains for businesses will lead to increased adoption and potentially higher ARPU (Average Revenue Per User). Positive customer testimonials and early success stories will be critical.
+2.  **Continued Azure Momentum & Enterprise Cloud Spending:** Despite economic uncertainties, enterprises remain committed to cloud migration and digital transformation. We expect **continued robust demand for Azure services** as companies seek to optimize costs, enhance scalability, and leverage advanced analytics and AI capabilities. Any signs of enterprise IT spending resilience or acceleration would be a significant tailwind.
+3.  **Strategic Partnerships & Ecosystem Growth:** Microsoft's ongoing investments in strategic partnerships, particularly with AI leaders like OpenAI, and its ability to integrate these capabilities seamlessly into its cloud and software offerings, will continue to strengthen its competitive moat. New product integrations or expanded cloud partnerships could emerge as positive catalysts.
 
 ---
 
-### Peer Benchmarking: AZN vs. Competitors
+### Peer Benchmarking:
 
-AstraZeneca operates in a highly competitive landscape. Here's a comparative snapshot against its key peers:
+| Metric              | MSFT      | GOOGL     | AMZN      | CRM       |
+| :------------------ | :-------- | :-------- | :-------- | :-------- |
+| **P/E Ratio (TTM)** | ~31x      | ~25x      | ~70x      | ~60x      |
+| **YoY Revenue Growth** | ~7%       | ~7%       | ~11%      | ~19%      |
+| **Market Share (Cloud)** | ~23-25%   | ~9-11%    | ~32-35%   | N/A       |
+| **Gross Margin**    | ~69%      | ~56%      | ~42%      | ~76%      |
+| **Operating Margin**| ~42%      | ~27%      | ~3%       | ~24%      |
 
-| Metric             | AstraZeneca (AZN) | Pfizer (PFE) | Novartis (NVS) | Roche (RHHBY) |
-| :----------------- | :---------------- | :----------- | :------------- | :------------ |
-| **P/E Ratio (TTM)** | ~19-21x           | ~12-14x      | ~15-17x        | ~18-20x       |
-| **YoY Revenue Growth (LTM)** | ~5-8%             | ~0-2%        | ~2-4%          | ~3-5%         |
-| **Market Share (Global Pharma)** | ~3-4%             | ~5-6%        | ~4-5%          | ~5-6%         |
-| **R&D as % of Revenue** | ~20-23%           | ~12-15%      | ~14-17%        | ~16-19%       |
-| **Oncology Revenue Contribution** | High              | Moderate     | Moderate       | High          |
+*Note: Market share figures are estimates and can vary depending on the source and segment. P/E and growth figures are dynamic and subject to change based on latest earnings and market conditions. CRM (Salesforce) is a key competitor in the productivity and CRM space, with a significant cloud presence, though not directly comparable in the cloud infrastructure market to AWS and Azure.*
 
-*Note: Metrics are estimates and can fluctuate based on reporting periods and market conditions. P/E ratios are forward-looking multiples that consider expected earnings. YoY Revenue Growth is based on trailing twelve months (LTM) performance. Market Share is a broad estimate for the global pharmaceutical market.*
-
-**Analysis:**
-
-*   **Valuation:** AZN generally trades at a premium P/E relative to some peers like Pfizer, likely reflecting its stronger recent growth trajectory and a more robust pipeline. Novartis and Roche trade in a similar range.
-*   **Growth:** AZN's revenue growth has been more consistent and robust than Pfizer and Novartis recently, driven by its strong product portfolio, particularly in oncology. Roche also exhibits steady growth, often fueled by its diagnostics division alongside pharmaceuticals.
-*   **Market Share:** AZN holds a significant but not dominant market share, competing fiercely across multiple therapeutic areas.
-*   **R&D Investment:** AZN maintains a high level of R&D investment, crucial for sustaining its innovation-driven business model and filling its pipeline for future growth.
+**Analysis:** MSFT trades at a premium valuation compared to Alphabet (GOOGL) but is significantly cheaper than Amazon (AMZN) on a P/E basis, despite similar cloud market share. Its revenue growth is solid, but lags behind Salesforce (CRM). However, MSFT's superior operating and gross margins highlight its efficiency and strong profitability, particularly in its cloud operations. This suggests a more mature and highly profitable cloud business compared to some peers.
 
 ---
 
-### Adjacent Industry Analysis: Upstream & Downstream Impacts
+### Adjacent Industry Analysis:
 
-Understanding the broader ecosystem is critical. For AZN, two key adjacent industries provide valuable insights:
+**1. Semiconductor Industry (Upstream):**
 
-1.  **Biotech & Pharmaceutical Services (Upstream):** This includes Contract Research Organizations (CROs), Contract Development and Manufacturing Organizations (CDMOs), and raw material suppliers (e.g., active pharmaceutical ingredients - APIs, excipients).
-    *   **Current Sentiment:** **Tailwind.** The demand for outsourced R&D and manufacturing services remains strong as biopharma companies, including AZN, look to accelerate drug development and manage complex supply chains. We are seeing a healthy pipeline of early-stage drug candidates being advanced by smaller biotechs, which drives demand for CRO/CDMO services. Supply chain resilience remains a focus, but major disruptions are less prevalent than a year ago.
-    *   **Impact on AZN:** This sector's health generally supports AZN's ability to efficiently conduct clinical trials and manufacture its products. Favorable pricing and capacity from CDMOs can positively impact cost of goods sold (COGS) and accelerate R&D timelines.
+*   **Current State:** The semiconductor industry, particularly for AI-focused chips (e.g., GPUs), is experiencing immense demand. Companies like NVIDIA are facing supply constraints as demand for their advanced chips, crucial for AI training and inference, surges.
+*   **Tailwinds/Headwinds for MSFT:**
+    *   **Tailwind:** The demand for advanced semiconductors directly fuels Microsoft's AI ambitions. MSFT's strategic partnerships with chip manufacturers and its ability to secure supply of these critical components will be key to its AI-driven cloud growth. However, *any easing of supply chain constraints for GPUs and other AI accelerators would be a significant tailwind for Azure's AI service expansion.*
+    *   **Headwind:** High chip prices and limited availability can impact the cost and speed of deployment for new AI infrastructure within Azure, potentially affecting margins or the pace of new service rollouts if supply is severely constrained. Conversely, the current tightness creates a strong environment for chipmakers, which could lead to higher costs for MSFT if they are a significant purchaser.
 
-2.  **Healthcare Payers & Providers (Downstream):** This encompasses insurance companies, government health programs (e.g., Medicare, Medicaid), hospitals, and physician networks.
-    *   **Current Sentiment:** **Mixed, leaning towards Headwind.** Payer consolidation and increasing pressure on drug pricing from governments and insurance providers remain significant concerns. However, the shift towards value-based care and outcomes-based reimbursement models could benefit innovative therapies with demonstrable efficacy and cost-effectiveness. Geopolitical factors and inflation can also impact healthcare spending.
-    *   **Impact on AZN:** Pricing and reimbursement negotiations are crucial. The ability to demonstrate the economic value of AZN's new therapies will be paramount for market access and sustained revenue growth. Stricter formulary controls and reimbursement hurdles could slow down the adoption of new drugs, impacting near-term sales.
+**2. Business Software & Services (Downstream):**
+
+*   **Current State:** The market for business software, including CRM, ERP, and productivity tools, is undergoing a significant transformation with the integration of AI. Companies are increasingly looking for integrated solutions that can enhance productivity, automate tasks, and provide deeper insights.
+*   **Tailwinds/Headwinds for MSFT:**
+    *   **Tailwind:** MSFT's broad portfolio (Office 365, Dynamics 365, LinkedIn) and the integration of AI through Copilot create a powerful ecosystem advantage. As businesses seek to leverage AI across their operations, MSFT is well-positioned to offer a comprehensive suite of solutions, driving deeper customer engagement and higher recurring revenue.
+    *   **Headwind:** Intense competition from specialized software providers (like Salesforce in CRM, Oracle in ERP, and various AI-native startups) remains a challenge. Customers may opt for best-of-breed solutions rather than a fully integrated suite, especially if they have existing investments or specific needs not fully met by Microsoft's offerings. The adoption of Copilot will depend on demonstrating clear ROI and overcoming integration complexities within existing workflows.
 
 ---
 
-### Risk Assessment: Bull & Bear Cases for the Upcoming Quarter
+### Risk Assessment:
 
-**Bull Case:**
+**Bear Case (Next Quarter):**
 
-*   **Stronger-than-expected drug launch uptake:** Key new product launches exceed initial sales expectations due to superior clinical data, effective marketing, and favorable market access.
-*   **Positive regulatory decisions:** Multiple significant drug approvals or label expansions for pipeline assets receive expedited or favorable regulatory clearance, de-risking future revenue streams.
-*   **Robust clinical trial data:** Positive Phase 3 data readouts for promising pipeline candidates are announced, significantly boosting investor confidence in future growth.
-*   **Favorable geopolitical/macroeconomic shifts:** A reduction in global inflation or more stable economic conditions could lead to increased healthcare spending and less pressure on drug pricing.
+*   **Slower-than-expected AI monetization:** Despite strong underlying AI investment, the pace at which Microsoft can translate these investments into significant revenue growth and profit from its AI services (especially Copilot) could be slower than anticipated. This could be due to slower customer adoption, integration challenges, or competitive pressures forcing price concessions.
+*   **Deterioration in Enterprise IT Spending:** A more pronounced economic slowdown leading to significant cuts in enterprise IT budgets could impact Azure growth and the adoption of new software solutions across the board. This would directly affect both the Intelligent Cloud and Productivity segments.
+*   **Increased Regulatory Scrutiny:** Ongoing antitrust concerns and potential regulatory actions, particularly in cloud computing and AI, could lead to fines, operational restrictions, or forced divestitures, creating uncertainty and impacting investor sentiment.
 
-**Bear Case:**
+**Bull Case (Next Quarter):**
 
-*   **Clinical trial setbacks or regulatory rejections:** A key pipeline drug fails to meet efficacy endpoints in Phase 3 trials or faces a regulatory rejection, significantly impacting future growth prospects.
-*   **Increased pricing pressure and payer pushback:** Major payers (governments or large insurance companies) implement stricter reimbursement policies or demand significant price concessions for AZN's key drugs.
-*   **Competitive challenges intensify:** A competitor launches a highly effective new therapy that rapidly gains market share, eroding AZN's position in a key therapeutic area.
-*   **Supply chain disruptions or manufacturing issues:** Unexpected production problems or raw material shortages lead to product shortages or increased manufacturing costs.
+*   **Accelerated Copilot Adoption & Revenue Generation:** Demonstrating strong early success and rapid adoption of Microsoft Copilot across enterprise customers, leading to clear productivity gains and an upward revision of ARPU expectations for Microsoft 365. This could significantly boost investor confidence in Microsoft's AI monetization strategy.
+*   **Surge in Azure Demand Driven by AI Workloads:** A significant increase in demand for Azure's AI infrastructure and services as businesses accelerate their AI adoption, especially for training large language models and deploying AI applications. This would lead to stronger-than-expected Intelligent Cloud growth.
+*   **Positive Macroeconomic Indicators & Resilient Enterprise Spending:** Easing inflation, declining interest rates, or signs of an economic rebound could lead to increased enterprise confidence and sustained or even accelerated IT spending, benefiting all of Microsoft's segments.
 
 ---
 
 **Conclusion:**
 
-AstraZeneca remains a well-positioned player in the biopharmaceutical industry, underpinned by a strong oncology franchise and a promising pipeline. The next 3-6 months will be characterized by the execution of new drug launches, progress in clinical development, and ongoing navigation of the complex payer landscape. While potential headwinds from pricing pressures and competitive dynamics exist, the company's innovation engine and strategic focus offer a compelling outlook. Investors should closely monitor regulatory announcements, clinical trial results, and the commercial performance of recently approved therapies.
+Microsoft remains a core holding for investors seeking exposure to secular growth trends in cloud computing and artificial intelligence. While macroeconomic uncertainties and competitive pressures exist, the company's strong execution, expansive product portfolio, and strategic positioning in AI provide a compelling growth runway. We maintain a **positive outlook** on MSFT for the next 3-6 months, anticipating continued performance driven by the accelerating adoption of its cloud and AI offerings.
 
 ---
 
 Company overview
-- Ticker/company: AZN — AstraZeneca plc. Primary industry: global pharmaceutical / biopharmaceutical company with major franchises in oncology, cardiovascular/metabolic/renal (CVRM), respiratory, and immunology; significant presence in oncology biologics, small-molecule drugs, and large-scale global commercialization.
-- Core commercial drivers (mid‑2024 context): oncology (Imfinzi, Tagrisso exposure through EGFR franchise/related portfolio elements and partnered assets), SGLT2 class leader Farxiga (dapagliflozin) driving growth in diabetes, heart failure and chronic kidney disease indications, and a broad late‑stage pipeline supported by partnerships (e.g., collaborations with Daiichi Sankyo, MSD/Merck and others).
+- Ticker: MSFT — Microsoft Corporation.
+- Primary industry: Enterprise software and cloud computing; major activities also include productivity applications (Office 365), operating systems (Windows), professional social networking (LinkedIn), gaming (Xbox and content), developer tools (GitHub), and a growing AI platform/business layer (Copilot, Azure OpenAI Services).
+- Strategic position: Market leader across several high-margin enterprise segments (productivity suites, enterprise software, identity/security) and one of the two largest public cloud providers (Azure). Large installed base, strong recurring revenue from subscriptions, broad partner/developer ecosystem, and significant balance-sheet capacity for R&D and M&A.
 
-3–6 month outlook (near term)
-- Expected financial/operating direction: Over the next 3–6 months AstraZeneca is likely to show continued top‑line growth driven primarily by the ongoing uptake of Farxiga in expanded cardiometabolic and renal indications and continued momentum in key oncology products and partnered medicines. Given the company’s scale and diversified portfolio, cash flow and margins should remain resilient absent any major one‑off charges.
-- Key fundamentals and drivers:
-  - Revenue trajectory: Mid‑single to high‑single digit organic revenue growth is a reasonable baseline expectation in the absence of large M&A or major regulatory shock, assuming continued uptake of SGLT2 and oncology volumes.
-  - Margins/cash flows: Operating margins should remain healthy, supported by high-margin biologics and mature franchises; R&D spending will remain substantial but is skewed toward high‑value oncology and CVRM programs.
-  - Balance sheet/FX: AstraZeneca’s balance sheet is strong relative to peers; nevertheless, reported results can show FX volatility (sterling/euro vs. USD) and interest‑rate driven discounting can affect investor sentiment toward long‑dated R&D prospects.
-- Macroeconomic and policy influences:
-  - Pricing and reimbursement headwinds remain a risk in major markets. Continued cost‑containment efforts (Europe) and U.S. policy developments (expanded Medicare negotiation timelines/coverage decisions) could influence outlook for specific high‑revenue drugs.
-  - A mild global growth slowdown would likely have limited immediate impact on demand for AstraZeneca’s chronic and oncology therapies but could affect elective procedures and some uptake dynamics.
-- Company‑specific catalysts and timing:
-  - Upcoming regulatory decisions or late‑stage trial readouts (oncology and CVRM indications) are the main event risks/opportunities in the 3–6 month window. Positive readouts or label expansions (e.g., new Farxiga indications, positive oncology trial data) would be direct upside catalysts; disappointing data or regulatory setbacks would be material negatives.
-  - Business development activity (partnerships, bolt‑on M&A) could also move sentiment if disclosed.
-Overall near‑term view: cautiously constructive. AstraZeneca’s underlying commercial momentum and deep pipeline give it a reasonable probability of modest outperformance versus the broad market over the next few months, conditional on trial readouts and no major adverse regulatory surprises.
+3–6 month outlook
 
-Competitive comparison (selected peers: Pfizer, Roche, Novartis)
-- Pfizer (PFE)
-  - Strengths: Enormous scale, strong vaccine and novel platform capability (mRNA), diversified commercial base, strong near‑term cash generation from vaccines and antiviral sales when relevant.
-  - Weaknesses vs AZN: Pfizer has less exposure to the high‑growth SGLT2/heart‑failure space and weaker oncology franchise depth relative to AstraZeneca’s focused oncology pipeline; Pfizer’s pipeline has improved post‑2020 but AstraZeneca is more oncology‑centric.
-  - Relative position: Pfizer is more platform/diversified and event‑driven (vaccines/antivirals), whereas AZN has steadier growth from durable specialty franchises.
-- Roche (ROG / RHHBY)
-  - Strengths: Best‑in‑class oncology portfolio and diagnostics integration, very high margins, deep biologics expertise and stable cash flows from oncology blockbusters.
-  - Weaknesses vs AZN: Roche’s growth is heavily dependent on oncology and diagnostics; it is less exposed to the cardiometabolic SGLT2 opportunity that is a major growth engine for AstraZeneca.
-  - Relative position: Roche is a premium margin, innovation‑heavy comparator in oncology and companion diagnostics; AstraZeneca competes strongly on late‑stage oncology assets but offers broader exposure to CVRM growth.
-- Novartis (NVS)
-  - Strengths: Broad therapeutic mix, strong in ophthalmology and gene/cell therapy investments, disciplined cost base.
-  - Weaknesses vs AZN: Novartis is less centered on oncology immunotherapy biology and less exposed to SGLT2 expansion; its growth profile differs and can be more tied to lifecycle management and generics/biologics management.
-  - Relative position: Novartis is a diversified pharma with complementary strengths; AstraZeneca’s near‑term growth profile is arguably stronger because of Farxiga and oncology momentum.
-Summary of relative strengths/weaknesses for AZN
-- Strengths: Faster near‑term commercial growth from SGLT2 and oncology; deep late‑stage pipeline and meaningful partnerships; robust cash generation; established global commercial footprint.
-- Weaknesses: Exposure to regulatory/pricing risk in major markets; clinical trial binary risks in oncology; some legacy franchises maturing which require offsetting pipeline success.
+Expected performance summary
+- Directionally positive but sensitive to macro sentiment: Over the next 3–6 months, Microsoft is likely to continue delivering top-line growth driven by Azure and AI-related services, steady recurring revenue from Microsoft 365 and enterprise agreements, and ongoing monetization of AI features. Near-term performance will be influenced heavily by (1) enterprise IT spending trends, (2) the pace of enterprise adoption and monetization of AI features (Copilot, Azure OpenAI), and (3) investor risk appetite toward growth/AI narratives versus macro concerns.
 
-Adjacent industries and transmission channels
-- Diagnostics and precision medicine: Companion diagnostics and molecular testing directly influence uptake of targeted oncology treatments (testing → patient identification → prescription volumes). Growth in diagnostics expands addressable patient populations for AZ oncology drugs.
-- Contract manufacturing and CDMOs: Supply continuity and launch timing depend on CDMO capacity for biologics and ADCs. Manufacturing constraints or quality issues at suppliers can delay launches or limit volumes.
-- Payers/insurers and health policy: Payer coverage decisions, HTA outcomes and reimbursement negotiations (especially in the U.S. and EU) are direct transmission channels for revenue. Policies such as Medicare price negotiation or national cost‑effectiveness rules materially affect margins on high‑priced specialty drugs.
-- Guideline committees and medical societies: Updates to clinical practice guidelines (cardiology, nephrology, oncology) materially affect uptake speeds for Farxiga and other drugs; favorable guideline changes can accelerate adoption.
-- Biotechnology/technology ecosystem: Advances in ADCs, bispecifics, and gene‑editing technologies shape competition and partner opportunities; AZ’s collaborations position it to capture some of these gains but also require scientific execution.
-- Macro supply chain (APIs, logistics): Geopolitical disruptions or commodity inflation can increase COGS and affect margins; AZ’s scale mitigates but does not eliminate these risks.
+Drivers supporting modest outperformance
+- Cloud + AI demand: Continued migration to cloud and accelerating pilot-to-production adoption of generative AI services should translate into higher consumption of Azure compute, platform, and managed AI services.
+- Recurring revenue resilience: Large share of subscription-based revenue (Office 365, Azure support contracts, enterprise agreements) provides revenue visibility and margin leverage.
+- Scale and cross-sell: Microsoft’s breadth (security, identity, productivity, infrastructure) enables cross-selling and stickiness, which tends to sustain margins even in slower macro periods.
+
+Constraining factors that could temper near-term gains
+- Enterprise budget caution: If corporations pull back on non-essential IT spend because of macro or sector-specific weakness, consumption growth could slow, particularly for big-ticket cloud migrations and premium AI deployments requiring high compute.
+- Compute cost and capex dynamics: Rapid AI adoption increases demand for high-end GPUs/accelerators; supply constraints or rising prices for cloud compute can compress gross margins unless Microsoft passes costs to customers.
+- Market sentiment and rates: Short-term equity performance will remain tied to risk-on/risk-off swings driven by macro surprises (inflation, central bank moves). Elevated rates raise discounting of growth expectations.
+
+Company-specific catalysts (next 3–6 months)
+- Product rollouts and enterprise deals: Broader enterprise launches, pricing/packaging changes for Copilot and enterprise AI offerings, and large multi-year deals will be positive catalysts.
+- Developer and partner ecosystem announcements (GitHub, Visual Studio integrations) can boost long-term monetization prospects.
+- Any visible improvement in Azure gross margins (through pricing or cost efficiencies) would be a near-term positive.
+
+Company-specific risks
+- Execution on AI monetization (pricing, uptake) and margin control on compute costs.
+- Regulatory or contractual uncertainty (privacy, data residency, competition/antitrust scrutiny) that could affect product features or deal timelines.
+- Large-scale cyber incidents or major gaming/content integration issues could create one-off hits or reputational costs.
+
+Competitive comparison
+Selected peers: Amazon (AMZN – AWS), Alphabet (GOOGL – Google Cloud), Nvidia (NVDA), Oracle (ORCL).
+
+1) Amazon (AWS)
+- Strengths: Market share leader in cloud infrastructure; extremely broad service portfolio and global footprint; strong operational scalability and pricing flexibility.
+- Weaknesses relative to Microsoft: Less vertical enterprise software integration (Office, Windows, Dynamics, LinkedIn); weaker enterprise SaaS ecosystem for productivity and security.
+- Comparative view: Microsoft’s advantage is enterprise relationships and software incumbency that drive hybrid-cloud and SaaS cross-sell; AWS remains a stronger pure-play infrastructure provider and often the low-cost leader. Over 3–6 months, competition will center on large enterprise deals and differentiated AI services.
+
+2) Alphabet (Google Cloud)
+- Strengths: Leadership in data analytics, AI/ML tooling, and open-source technologies; strength in developer mindshare for AI workloads.
+- Weaknesses relative to Microsoft: Less entrenched in enterprise productivity and desktop/server OS markets; advertising revenue exposure creates a different macro sensitivity profile.
+- Comparative view: Google Cloud is a key competitor in AI infrastructure and developer services; Microsoft competes on packaged enterprise AI and end-to-end solutions. Near-term, partnerships and exclusive AI models/features could shift workload choices.
+
+3) Nvidia (NVDA)
+- Strengths: Dominant supplier of high-performance GPUs that underpin modern generative AI workloads; powerful moat in AI training/inference hardware and ecosystem.
+- Weaknesses relative to Microsoft: Not a cloud/platform vendor — more cyclical and capital-goods exposure, with revenue tied to semiconductor cycles.
+- Comparative view: Nvidia is more of an upstream enabler/partner than a direct competitor. Microsoft’s access to GPUs (supply and cost) and any proprietary hardware initiatives (e.g., custom accelerators) will materially affect Azure’s unit economics. Over 3–6 months, GPU supply dynamics and pricing can influence Microsoft’s margins and capacity to scale AI offerings.
+
+4) Oracle (ORCL)
+- Strengths: Strong enterprise relationships in databases and ERP, attractive high-margin SaaS offerings for legacy workloads; increasingly competitive cloud compute for enterprise applications.
+- Weaknesses relative to Microsoft: Smaller footprint in productivity and developer tools; less diversified consumer-facing offerings.
+- Comparative view: Oracle competes for large enterprise deals—especially where database and ERP are central. Microsoft’s advantage is a wider horizontal stack; Oracle competes on price/performance in core enterprise workloads.
+
+Adjacent industries impact (transmission channels)
+
+1) Semiconductors / AI accelerators
+- Channel: Supply and pricing of GPUs/accelerators affect Azure capacity/costs and the economics of offering AI services. Shortages or price increases raise Microsoft’s cloud gross costs; oversupply helps margins.
+
+2) Enterprise IT spending / Services industry
+- Channel: Macro-driven corporate capex and IT budgets determine pace of cloud migrations and purchases of premium AI solutions. Consulting and systems integrators (Accenture, Deloitte) mediate large enterprise transformations—Microsoft’s partner relationships are critical.
+
+3) Cybersecurity
+- Channel: Rising cyber threats increase demand for identity and security services (Azure AD, Defender), bolstering Microsoft’s security revenue and stickiness.
+
+4) Advertising & Consumer Tech
+- Channel: Slower consumer ad spend can indirectly affect LinkedIn ad revenue, and consumer device cycles (PC sales, Windows OEM) feed Windows licensing and surface device demand.
+
+5) Telecom / Edge computing
+- Channel: 5G and edge deployments create opportunities for Azure edge services and low-latency AI offerings; partnerships with telecoms can open new enterprise workloads.
 
 Key risks and opportunities
-- Opportunities
-  - Indication expansion for Farxiga (HF, CKD, earlier diabetes prevention) → durable revenue upside and higher share of wallet in CVRM.
-  - Positive late‑stage oncology readouts or new approvals (including ADCs and immuno-oncology combinations) → meaningful upward re-rating potential.
-  - Strategic partnerships or bolt-on M&A to shore up pipeline or fill capability gaps.
-- Risks
-  - Clinical trial failures or disappointing regulatory outcomes in key late-stage programs, particularly oncology (binary events with outsized impact).
-  - Policy/regulatory pricing pressure (U.S. drug pricing reforms, EU cost containment, tender dynamics) that reduce realized prices or delay launches.
-  - Competitive displacement from other oncology entrants, biosimilars, or class rivals (SGLT2 competitors expanding label sets).
-  - FX volatility and macro slowdown that indirectly depress growth or complicate forecasting.
-  - Manufacturing or supply disruptions for key biologics/ADC products.
+
+Risks
+- Macroeconomic contraction leading to IT budget cuts, slowing Azure and new AI deployments.
+- Rising compute costs (GPU pricing) compressing cloud gross margins.
+- Execution risk on AI pricing/monetization and integration complexities across large enterprise clients.
+- Increased regulatory scrutiny (competition, data privacy) in the U.S., EU, and other jurisdictions.
+- Concentration risk if reliance on a small set of AI models/providers creates supplier bargaining power.
+
+Opportunities
+- Strong monetization runway for generative-AI features embedded across productivity, developer, and business applications (Copilot for enterprise, GitHub Copilot).
+- Cross-sell synergies: bundling AI with Microsoft 365, Dynamics, and security suites can lift ARPU and reduce churn.
+- Expansion of managed AI services (Azure OpenAI) and industry cloud solutions (healthcare, finance, manufacturing).
+- Leveraging balance sheet for strategic M&A to accelerate vertical offerings or secure tech/supply.
 
 Summary judgment
-AstraZeneca enters the 3–6 month horizon with a favorable fundamental setup: diversified, high‑growth drivers in both cardiometabolic (Farxiga) and oncology, a deep late‑stage pipeline and solid balance sheet. Near‑term performance will be shaped by clinical/regulatory readouts, reimbursement developments, and the macro environment. Relative to peers, AZN combines stronger near‑term organic growth potential than some large diversified peers (because of SGLT2 and oncology momentum) but also faces the typical binary trial/regulatory risks of an innovation‑heavy company. For stakeholders, the most consequential near‑term monitorables are upcoming trial readouts and regulatory filings, payer coverage/HTA developments in key markets, and any material guidance updates from management. This is a balanced constructive view conditional on continued successful clinical execution and manageable policy headwinds.
+Microsoft enters the next 3–6 months from a position of structural strength: diversified, recurring revenue streams; leading enterprise relationships; and a central role in cloud and enterprise AI transitions. Short-term performance will be a function of how quickly enterprises convert AI pilots into higher-consumption, monetized deployments and how well Microsoft manages compute costs and pricing. Compared with peers, Microsoft’s unique combination of productivity software, enterprise software, and cloud infrastructure gives it an advantage in cross-selling AI across the enterprise stack; AWS will remain the benchmark for raw infrastructure scale, Google for AI/ML tooling, Nvidia for hardware supply, and Oracle for core enterprise apps.
+
+Bottom line (non-investment view): Over 3–6 months expect continued revenue resilience and upside potential tied to AI adoption, but also meaningful sensitivity to macro-driven IT budget shifts and compute-cost dynamics. For investors or stakeholders, focus should be on sequential metrics: Azure consumption growth, AI product monetization cadence, gross-margin trends (compute cost pass-through), and large enterprise contract announcements as the clearest near-term indicators of trajectory.
 
 ---
 
-# **Company Analysis: AstraZeneca PLC (AZN)**
+# **Analysis of Microsoft Corporation (MSFT)**
+*Analysis conducted based on information from Q4 2023 and Q1 2024. Sources include recent earnings reports, analyst notes from Morgan Stanley, Goldman Sachs, and Wedbush, financial news (CNBC, Bloomberg, Reuters), industry publications, and commentary from tech forums.*
 
-## **1. Market Sentiment & Expectations (Next 3-6 Months)**
+---
 
-Overall sentiment for AstraZeneca is cautiously optimistic, with a strong emphasis on its robust pipeline offsetting near-term challenges.
+### **1. Market Sentiment & Expectations**
+Overall sentiment is **decidedly bullish**, with Microsoft being viewed as a top-tier "must-own" mega-cap stock, largely due to its leadership in Artificial Intelligence (AI).
 
-*   **Bullish Perspectives:**
-    *   **Pipeline Powerhouse:** The dominant theme is excitement around the company's deep and diverse late-stage pipeline. Analysts frequently cite upcoming Phase III data readouts and regulatory submissions as key catalysts. Morgan Stanley notes AZN has one of the "most attractive pipelines in pharma," with significant potential in oncology, rare diseases, and cardiometabolic areas.
-    *   **Beyond COVID-19:** The company has successfully decoupled its growth story from its COVID-19 vaccine/Vyndaqel. Strong double-digit revenue growth (ex-COVID) in recent quarters is seen as sustainable, driven by core blockbusters like Tagrisso (cancer), Farxiga (diabetes/heart failure), and newer launches such as Ultomiris, Enhertu (with Daiichi Sankyo), and Calquence.
-    *   **Upward Revisions:** Several analysts (e.g., from Barclays, Jefferies) have recently raised their price targets, citing better-than-expected Q1 2024 performance and confidence in management's guidance for high single-digit to low double-digit percentage revenue growth through 2026.
+*   **Bullish Perspectives (Dominant View):**
+    *   **AI Monetization Leader:** Microsoft is seen as the clearest and most immediate beneficiary of generative AI through its partnership with OpenAI and its integration of Copilot across its product suite (Azure, Office 365, Windows, Security). Analysts at **Wedbush** have called it a "1995 Moment" for the company.
+    *   **Azure Growth Engine:** The Azure cloud segment is expected to re-accelerate, fueled by new AI workloads. The company reported **30% constant currency growth** in Azure in Q1 FY24, with 3 points of growth attributed directly to AI services.
+    *   **Strong Financials:** Consistent double-digit revenue and earnings growth, robust profit margins (~44% operating margin), and a fortress balance sheet ($144 billion in cash and short-term investments as of Dec 2023) provide a solid foundation.
+    *   **Analyst Ratings:** Overwhelmingly positive. The consensus price target is ~$465 (as of late April 2024), implying significant upside. **Morgan Stanley** named MSFT its "Top Pick," citing durable growth and AI leadership.
 
 *   **Bearish/Cautious Perspectives:**
-    *   **China Pricing Pressure:** A recurring concern is the ongoing impact of volume-based procurement (VBP) policies in China, which exert significant price pressure on mature drugs. While AZN's diversified portfolio mitigates this, it remains a headwind for certain segments of its business in a key market.
-    *   **Pipeline Execution Risk:** The bullish thesis is heavily dependent on successful clinical trial outcomes and regulatory approvals. Any significant setbacks in key pipeline assets (e.g., datopotamab deruxtecan in lung cancer) could negatively impact the stock.
-    *   **Competitive Intensity:** In core areas like oncology (PD-(L)1 inhibitors, ADC therapies) and diabetes, competition is fierce. The ability of drugs like Enhertu and Farxiga to maintain growth against existing and new rivals is closely watched.
+    *   **Valuation Concerns:** The stock trades at a premium (P/E ~36), reflecting high expectations. Any stumble in AI monetization or cloud growth could lead to a sharp correction.
+    *   **Regulatory Scrutiny:** The company faces increasing antitrust attention, particularly regarding its OpenAI partnership and cloud computing practices in Europe and the UK.
+    *   **Execution Risk:** Successfully integrating AI across all products and convincing enterprises to pay premium prices for Copilot features is not guaranteed. Competition is intensifying.
 
-**Summary:** The consensus expects steady, pipeline-driven growth. The stock is often viewed as a "defensive growth" pick in pharma, with near-term performance hinging on clinical catalysts rather than broad economic cycles.
+---
 
-## **2. Competitive Positioning (vs. Key Pharma Peers)**
+### **2. Competitive Positioning**
+Microsoft operates from a position of significant strength in its core markets.
 
-AstraZeneca competes primarily with other global pharmaceutical giants like **Roche, Merck & Co. (MSD), Pfizer, Novartis, and Johnson & Johnson.**
+*   **Strengths:**
+    *   **Unmatched Enterprise Ecosystem:** The seamless integration of Azure, Microsoft 365, Dynamics 365, and LinkedIn creates a powerful "stickiness" with corporate clients.
+    *   **Diversified Revenue Streams:** Balanced across Productivity & Business Processes (Office), Intelligent Cloud (Azure), and More Personal Computing (Windows, Xbox). This reduces reliance on any single market.
+    *   **First-Mover Advantage in AI:** The multi-year, multi-billion-dollar partnership with OpenAI gives it a technological and branding edge over competitors in commercializing AI.
 
-*   **Strengths (Relative to Peers):**
-    *   **Oncology Leadership:** A top-tier oncology franchise, particularly in targeted therapies (Tagrisso) and through its groundbreaking ADC collaboration on **Enhertu**, where it leads in breast and gastric cancers and is expanding into lung cancer.
-    *   **High-Growth Core:** Exceptional growth from its "CVRM" (Cardiovascular, Renal & Metabolism) unit, led by **Farxiga** (an SGLT2 inhibitor), which has become a standard-of-care in heart failure and chronic kidney disease, giving it a durable advantage.
-    *   **Strategic R&D Focus:** A disciplined R&D strategy focused on high-science areas (oncology, biopharmaceuticals, rare diseases) with clear biological pathways, which has improved R&D productivity.
+*   **Weaknesses (Relative):**
+    *   **Consumer Hardware:** The Surface device line and Xbox gaming console business are not market leaders and face intense competition (Apple, Sony).
+    *   **Mobile:** Remains a minor player in mobile operating systems and app stores compared to Google and Apple.
 
-*   **Weaknesses (Relative to Peers):**
-    *   **Limited Diversification:** Compared to peers like **Johnson & Johnson** (with its massive MedTech and Consumer divisions) or **Novartis** (with a strong generics arm in Sandoz, now spun off), AZN is a more pure-play innovative pharma company. This can lead to higher volatility if pipeline events disappoint.
-    *   **Late to Immuno-Oncology:** While it has caught up, AZN's own PD-L1 inhibitor, **Imfinzi**, entered the market later than Keytruda (Merck) and Opdivo (BMS), ceding first-mover advantage in some major indications.
+*   **Competitive Landscape (Key Peers):**
+    *   **vs. Amazon (AWS):** In cloud, AWS is the market share leader, but Azure is growing faster and is considered more advanced in AI/ML offerings for enterprises. Microsoft's hybrid cloud strategy (Azure Arc) is also a key differentiator.
+    *   **vs. Google (Google Cloud, Workspace):** Google Cloud is a strong #3 with its own AI prowess (Gemini). Competition is fiercest in AI-powered productivity tools (Copilot vs. Duet AI) and cloud services for startups/AI-native companies.
+    *   **vs. Salesforce/Oracle:** In enterprise software, Microsoft's Dynamics 365 is a growing challenger to Salesforce's CRM dominance, leveraging its integrated ecosystem.
+    *   **vs. Apple:** Primarily in consumer ecosystems (PC vs. Mac) and services. Microsoft is stronger in enterprise, Apple in premium consumer hardware.
 
-*   **Opportunities:**
-    *   **Rare Disease Expansion:** The acquisition of Alexion provided a leading rare disease platform. Integrating this and expanding the pipeline (e.g., Ultomiris) into new indications is a major growth vector.
-    *   **Geographic Expansion:** Continued penetration in emerging markets, especially beyond China (e.g., Latin America, Middle East), leveraging its established commercial footprint.
+---
 
-*   **Threats:**
-    *   **Patent Expiries:** Like all large pharma, it faces future patent cliffs. Key drugs like Tagrisso (2028-2032, varies by region) and Farxiga (mid-2030s) will eventually face generic/biosimilar competition, though the timeline provides a long runway.
-    *   **Pricing & Access Scrutiny:** Intense global pressure on drug pricing and access, particularly in the US (IRA drug price negotiations) and Europe.
+### **3. Adjacent Industry Impact**
+Several external sectors are significantly influencing Microsoft's trajectory.
 
-## **3. Adjacent Industry Impact**
+*   **Positive Impacts:**
+    *   **Semiconductor Industry (e.g., NVIDIA, AMD):** Advances in GPU technology are the fuel for AI. Microsoft's massive investment in NVIDIA H100/A100 clusters is a direct enabler of its Azure AI infrastructure. Stronger, more efficient chips directly benefit Azure's capabilities and cost structure.
+    *   **Cybersecurity Industry:** The escalating threat landscape drives demand for Microsoft's integrated security solutions (Sentinel, Defender, Entra), which are becoming a major growth pillar ($20+ billion annual revenue).
+    *   **Professional Networking & Talent Market (LinkedIn):** LinkedIn provides unique data and a distribution channel for Microsoft's enterprise and learning tools, benefiting from trends in remote work and skills-based hiring.
 
-Several adjacent industries significantly influence AstraZeneca's performance:
+*   **Negative/Risk Impacts:**
+    *   **Global Regulatory Environment:** Increased data sovereignty laws (e.g., in the EU) and digital market regulations can increase compliance costs and force changes to business practices, particularly for Azure and Windows.
+    *   **Energy & Utilities Sector:** The enormous power demands of AI data centers pose a challenge. Microsoft's ability to secure sustainable, reliable, and cost-effective energy is a critical long-term operational factor. The company is investing heavily in nuclear and renewable energy deals.
+    *   **Gaming Industry Consolidation:** The recent completion of the Activision Blizzard acquisition makes Microsoft the world's third-largest gaming company by revenue. This exposes it to the cyclical and hit-driven nature of the gaming industry, as well as regulatory pushback on future M&A.
 
-*   **Biotechnology & Drug Discovery:** AZN's success is deeply intertwined with the biotech sector.
-    *   **Positive Impact:** Its aggressive business development strategy relies on partnerships and acquisitions (e.g., Daiichi Sankyo for ADCs, Fusion Pharma for radioconjugates) to in-validate cutting-edge science. A vibrant biotech innovation ecosystem is a direct feedstock for its pipeline.
-    *   **Negative Impact:** High valuations in biotech can make acquisitions more expensive. Also, competition from agile, science-focused biotechs forces continuous innovation.
-
-*   **Healthcare Technology & Data Science:**
-    *   **Positive Impact:** Utilization of **AI and real-world data (RWD)** accelerates drug discovery (target identification), improves clinical trial design (patient recruitment), and supports value demonstrations to payers. AZN is actively investing in this space.
-    *   **Impact:** Advances in **diagnostics**, particularly in oncology (companion diagnostics, liquid biopsies), are critical for the targeted therapies AZN develops. More precise diagnostics expand the addressable market for its drugs.
-
-*   **Supply Chain & Manufacturing:**
-    *   **Negative Impact:** Global supply chain complexities and geopolitical tensions can affect the cost and reliability of sourcing raw materials and manufacturing complex biologics and ADCs. The industry learned this acutely during the pandemic.
-
-*   **Policy & Regulatory Environment:**
-    *   **Negative Impact:** The most direct adjacent "industry" is government policy. The US **Inflation Reduction Act (IRA)** directly impacts AZN by subjecting key drugs like Farxiga to Medicare price negotiations, potentially affecting long-term revenue projections in its largest market. Changes in trade policies or IP protections in key markets also pose risks.
-
-**Conclusion:** AstraZeneca is positioned as a growth-oriented pharmaceutical leader with a highly regarded pipeline that is expected to drive performance over the next 6-12 months. Its main challenges are external (policy, pricing) and execution-based (pipeline results), while its competitive strengths in oncology and CVRM provide a solid foundation. Its performance is increasingly dependent on successful navigation of the biotechnology and health-tech landscapes.
+### **Critical Findings & Summary**
+*   **Major Opportunity:** Microsoft is the market's preferred vehicle for investing in the enterprise AI transformation. Successful rollout and adoption of **Microsoft Copilot** across its portfolio is the single most important driver for stock performance over the next 12-24 months.
+*   **Major Risk:** **High valuation and execution pressure.** The stock price assumes flawless execution and rapid adoption of AI products. Any sign of a slowdown in Azure growth or disappointing Copilot uptake would likely trigger a significant negative reaction.
+*   **Conclusion:** Microsoft is exceptionally well-positioned due to its diversified model, enterprise dominance, and AI leadership. While not without risks (regulation, valuation), the consensus view is that its strengths and market positioning will allow it to navigate challenges and capitalize on the AI megatrend better than nearly any other large-cap company.
 """
 
-# --- Data Extraction and Processing for Charts ---
+def extract_section(text, start_keyword, end_keyword=None, is_regex=False):
+    """
+    Extracts a section of text between a start_keyword and an optional end_keyword.
+    If no end_keyword, it goes to the next major heading (defined by --- or ###).
+    """
+    start_match = re.search(re.escape(start_keyword) if not is_regex else start_keyword, text, re.IGNORECASE)
+    if not start_match:
+        return ""
 
-# Function to extract numeric mid-points from text ranges (e.g., "19-21x" -> 20.0, "5-8%" -> 6.5)
-def extract_midpoint_from_range(text):
-    # Regex to find numbers or number ranges like '19-21', '5-8', '20-23'
-    # Handles optional '~' prefix and 'x' or '%' suffix
-    match = re.search(r'~?(\d+\.?\d*)(?:-(\d+\.?\d*))?', text)
-    if match:
-        lower = float(match.group(1))
-        upper = float(match.group(2)) if match.group(2) else lower
-        return (lower + upper) / 2 # Return midpoint for visualization
-    return None # If no numerical range or single number found
+    start_index = start_match.end()
 
+    if end_keyword:
+        end_match = re.search(re.escape(end_keyword) if not is_regex else end_keyword, text[start_index:], re.IGNORECASE)
+        if end_match:
+            return text[start_index : start_index + end_match.start()].strip()
+        else:
+            return text[start_index:].strip() # If end keyword not found, take till end of text
 
-# Peer Benchmarking Raw Data
-peer_data = {
-    "Metric": ["P/E Ratio (TTM)", "YoY Revenue Growth (LTM)", "Market Share (Global Pharma)", "R&D as % of Revenue", "Oncology Revenue Contribution"],
-    "AstraZeneca (AZN)": ["~19-21x", "~5-8%", "~3-4%", "~20-23%", "High"],
-    "Pfizer (PFE)": ["~12-14x", "~0-2%", "~5-6%", "~12-15%", "Moderate"],
-    "Novartis (NVS)": ["~15-17x", "~2-4%", "~4-5%", "~14-17%", "Moderate"],
-    "Roche (RHHBY)": ["~18-20x", "~3-5%", "~5-6%", "~16-19%", "High"]
-}
-df_peers_raw = pd.DataFrame(peer_data).set_index("Metric")
+    # If no explicit end_keyword, find the next '---' or a new main section header
+    # and take content until then.
+    next_separator_match = re.search(r'\n---\n|\n# |\n## |\n### ', text[start_index:])
+    if next_separator_match:
+        return text[start_index : start_index + next_separator_match.start()].strip()
+    return text[start_index:].strip()
 
-# Create a chartable DataFrame by converting text ranges to numerical midpoints
-df_peers_chartable = df_peers_raw.copy()
-for col in df_peers_chartable.columns:
-    # Only apply to metrics that have numerical ranges
-    df_peers_chartable[col] = df_peers_chartable[col].apply(
-        lambda x: extract_midpoint_from_range(x) if isinstance(x, str) and ('x' in x or '%' in x) else x
-    )
+def extract_key_metrics(text):
+    """Extracts key numerical metrics from the analysis text."""
+    metrics = {}
+    # Azure Growth
+    azure_growth_match = re.search(r'reported \*\*(?P<total_growth>\d+)% constant currency growth\*\* in Azure in Q1 FY24, with (?P<ai_contribution>\d+) points of growth attributed directly to AI services', text)
+    if azure_growth_match:
+        metrics['Azure Q1 FY24 Growth'] = float(azure_growth_match.group('total_growth'))
+        metrics['Azure AI Contribution to Growth'] = float(azure_growth_match.group('ai_contribution'))
 
-# Melt the DataFrame for Altair charting - only include numerical metrics
-chart_metrics = ["P/E Ratio (TTM)", "YoY Revenue Growth (LTM)", "R&D as % of Revenue"]
-df_peers_melted = df_peers_chartable.loc[chart_metrics].reset_index().melt(
-    id_vars="Metric", var_name="Company", value_name="Value"
-)
+    # Operating Margin
+    op_margin_match = re.search(r'robust profit margins \(\~(?P<margin>\d+)% operating margin\)', text)
+    if op_margin_match:
+        metrics['Operating Margin'] = float(op_margin_match.group('margin'))
+
+    # Cash and Investments
+    cash_match = re.search(r'\$(?P<cash>[\d,]+) billion in cash and short-term investments as of Dec 2023', text)
+    if cash_match:
+        metrics['Cash & Short-term Investments (Dec 2023)'] = float(cash_match.group('cash').replace(',', ''))
+
+    # Security Revenue
+    security_rev_match = re.search(r'becoming a major growth pillar \(\$(?P<revenue>[\d,]+)\+ billion annual revenue\)', text)
+    if security_rev_match:
+        metrics['Annual Security Revenue'] = float(security_rev_match.group('revenue').replace(',', ''))
+
+    # P/E Ratio (from sentiment section)
+    pe_sentiment_match = re.search(r'stock trades at a premium \(P/E \~(?P<pe>\d+)\)', text)
+    if pe_sentiment_match:
+        metrics['Current P/E Ratio (Sentiment)'] = float(pe_sentiment_match.group('pe'))
+
+    # Consensus Price Target
+    pt_match = re.search(r'consensus price target is \~\$(?P<target>\d+) \(as of late April 2024\)', text)
+    if pt_match:
+        metrics['Consensus Price Target'] = float(pt_match.group('target'))
+
+    return metrics
+
+def get_peer_benchmarking_data():
+    """Manually parses the peer benchmarking table for robustness."""
+    data = {
+        'Metric': ['P/E Ratio (TTM)', 'YoY Revenue Growth', 'Cloud Market Share', 'Gross Margin', 'Operating Margin'],
+        'MSFT': [31, 7, '23-25%', 69, 42],
+        'GOOGL': [25, 7, '9-11%', 56, 27],
+        'AMZN': [70, 11, '32-35%', 42, 3],
+        'CRM': [60, 19, 'N/A', 76, 24]
+    }
+    df = pd.DataFrame(data)
+
+    # Clean up numerical columns and handle 'N/A' or ranges
+    for col in ['MSFT', 'GOOGL', 'AMZN', 'CRM']:
+        df[col] = df[col].astype(str).str.replace('~', '').str.replace('x', '').str.replace('%', '')
+        # For ranges like '23-25%', take the lower bound for consistency in visualization
+        df[col] = df[col].apply(lambda x: float(x.split('-')[0]) if '-' in str(x) else (float(x) if x not in ['N/A'] else pd.NA))
+    return df
 
 # --- Streamlit App Layout ---
+st.set_page_config(layout="wide", page_title="MSFT Financial Analysis", icon="📊")
 
-st.title("📈 AstraZeneca (AZN) Financial Analysis Dashboard")
-st.markdown("A deep dive into AZN's prospects, competitive positioning, and industry landscape over the next 3-6 months.")
+st.title("📊 MSFT: A Deep Dive into the Cloud Giant's Future")
 st.markdown("---")
 
-# --- Key Metrics and Company Overview ---
-st.header("Company Overview & Key Financial Projections (Next 3-6 Months)")
-overview_col1, overview_col2 = st.columns([1, 2])
+# Extracting general info for sidebar
+company_info_match = re.search(r"\*\*Company:\*\* (.*)\n\*\*Date:\*\* (.*)\n\*\*Analyst:\*\* (.*)", ANALYSIS_TEXT)
+if company_info_match:
+    st.sidebar.markdown(f"**Company:** {company_info_match.group(1)}")
+    st.sidebar.markdown(f"**Ticker:** MSFT")
+    st.sidebar.markdown(f"**Analysis Date:** {company_info_match.group(2)}")
+    st.sidebar.markdown(f"**Analyst:** {company_info_match.group(3)}")
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Quick Navigation")
+    st.sidebar.markdown("- [Key Metrics](#key-financial-performance-metrics)")
+    st.sidebar.markdown("- [Peer Benchmarking](#peer-benchmarking-analysis)")
+    st.sidebar.markdown("- [Detailed Analysis Sections](#detailed-analysis-sections)")
 
-with overview_col1:
-    st.subheader("AstraZeneca PLC (AZN)")
-    st.markdown("""
-    **Primary Industry:** Global pharmaceutical / biopharmaceutical company.
-    **Major Franchises:** Oncology, Cardiovascular/Metabolic/Renal (CVRM), Respiratory, Immunology.
-    **Key Focus:** Oncology biologics, small-molecule drugs, and global commercialization.
-    """)
-    st.info("Overall near-term view: **Cautiously Constructive**")
+# --- Key Metrics Extraction and Display ---
+st.header("📈 Key Financial & Performance Metrics")
+metrics = extract_key_metrics(ANALYSIS_TEXT)
 
-with overview_col2:
-    st.subheader("Near-Term Financial Outlook")
-    st.markdown("""
-    *   **Revenue Growth:** Expected continued **single-digit to low-double-digit percentage** growth, driven by oncology and CVRM.
-    *   **Gross Margins:** Expected to remain strong due to premium pricing.
-    *   **Operating Margins:** Anticipated in the **mid-to-high 20s**, with potential pressure from increased R&D and marketing investments.
-    *   **Profitability (EPS):** Projected to grow, possibly moderated by increased strategic investments.
-    *   **Balance Sheet:** Strong relative to peers; however, subject to FX volatility.
-    """)
+metrics_display_data = []
+for metric, value in metrics.items():
+    unit = ''
+    if 'Growth' in metric or 'Margin' in metric:
+        unit = '%'
+        value_str = f"{value:.1f}{unit}"
+    elif 'Cash' in metric or 'Revenue' in metric:
+        value_str = f"${value:,.0f} Billion"
+    elif 'Target' in metric:
+        value_str = f"${value:,.0f}"
+    elif 'P/E' in metric:
+        value_str = f"{value:.0f}x"
+    metrics_display_data.append({'Metric': metric, 'Value': value_str})
 
+# Display metrics using st.columns
+cols = st.columns(3)
+for i, metric_item in enumerate(metrics_display_data):
+    with cols[i % 3]:
+        st.metric(label=metric_item['Metric'], value=metric_item['Value'])
 st.markdown("---")
 
-# --- Key Catalysts ---
-st.header("Key Catalysts (Next 3-6 Months)")
-st.markdown("""
-*   **New Drug Approvals & Label Expansions:** Watch for regulatory decisions on key pipeline assets in oncology (e.g., Enhertu, Lynparza) and other areas. Positive outcomes de-risk pipeline assets and open new market opportunities.
-*   **Phase 3 Data Readouts and Regulatory Filings:** Favorable late-stage clinical trial results are crucial indicators of future growth drivers.
-*   **Surgical Robotics Integration & Performance:** Successful integration and commercialization of recently acquired assets (e.g., IVI Biologics) for long-term pipeline support and operational efficiency.
-""")
-st.markdown("---")
+# Chart for Azure growth breakdown
+if 'Azure Q1 FY24 Growth' in metrics and 'Azure AI Contribution to Growth' in metrics:
+    azure_growth_data = {
+        'Category': ['Total Azure Growth', 'AI Contribution to Growth'],
+        'Growth (%)': [metrics['Azure Q1 FY24 Growth'], metrics['Azure AI Contribution to Growth']]
+    }
+    azure_df = pd.DataFrame(azure_growth_data)
+
+    fig_azure = px.bar(
+        azure_df,
+        x='Category',
+        y='Growth (%)',
+        text='Growth (%)',
+        title='Azure Q1 FY24 Constant Currency Growth',
+        labels={'Growth (%)': 'Growth (%)', 'Category': ''},
+        color='Category',
+        color_discrete_map={'Total Azure Growth': '#1f77b4', 'AI Contribution to Growth': '#ff7f0e'},
+        height=400
+    )
+    fig_azure.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
+    fig_azure.update_layout(xaxis={'categoryorder':'array', 'categoryarray':['Total Azure Growth', 'AI Contribution to Growth']},
+                            yaxis_title='Growth (%)')
+    st.plotly_chart(fig_azure, use_container_width=True)
+    st.markdown("---")
+
 
 # --- Peer Benchmarking ---
-st.header("Peer Benchmarking: AZN vs. Competitors")
-st.markdown("A comparative snapshot against key global pharmaceutical peers.")
+st.header("👥 Peer Benchmarking Analysis")
+peer_df = get_peer_benchmarking_data()
 
-st.subheader("Comparative Metrics Table")
-st.dataframe(df_peers_raw, use_container_width=True)
+# Display the raw data table
+st.subheader("Comparative Peer Metrics Table")
+# Custom formatting for the dataframe
+styled_peer_df = peer_df.copy()
+for col in ['MSFT', 'GOOGL', 'AMZN', 'CRM']:
+    styled_peer_df[col] = styled_peer_df.apply(lambda row: f"{row[col]:.0f}x" if "P/E" in row['Metric'] and pd.notna(row[col]) else \
+                                                      (f"{row[col]:.0f}%" if pd.notna(row[col]) else 'N/A'), axis=1)
 
-st.subheader("Key Performance Indicators Comparison (Mid-point Estimates for Visualization)")
+st.dataframe(styled_peer_df, use_container_width=True)
 
-# Create charts for selected numerical metrics
-chart_cols = st.columns(3)
+st.subheader("Visualizing Peer Comparisons")
+# Create charts for each metric
+metrics_to_chart = ['P/E Ratio (TTM)', 'YoY Revenue Growth', 'Cloud Market Share', 'Gross Margin', 'Operating Margin']
+chart_cols = st.columns(2) # Two columns for charts
 
-for i, metric in enumerate(chart_metrics):
-    with chart_cols[i]:
-        st.markdown(f"**{metric}**")
-        chart_data = df_peers_melted[df_peers_melted['Metric'] == metric]
-        
-        # Define chart properties based on metric
-        y_axis_label = metric.replace(" (TTM)", "").replace(" (LTM)", "")
-        tooltip_format = ".1f"
-        suffix = "x" if "P/E Ratio" in metric else "%"
+for i, metric in enumerate(metrics_to_chart):
+    chart_data = peer_df[peer_df['Metric'] == metric].drop(columns='Metric').transpose().reset_index()
+    chart_data.columns = ['Company', 'Value']
+    chart_data['Value'] = pd.to_numeric(chart_data['Value'], errors='coerce') # Ensure numeric
+    chart_data = chart_data.dropna(subset=['Value']) # Drop N/A for charting
 
-        chart = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('Company:N', sort=alt.EncodingSortField(field="Value", op="average", order='descending'), title=None),
-            y=alt.Y('Value:Q', title=f'{y_axis_label} {suffix}'),
-            color=alt.condition(
-                alt.datum.Company == 'AstraZeneca (AZN)',
-                alt.value('#63B02A'),  # AZN color: a distinctive green
-                alt.value('#4682B4')    # Other companies color: steelblue
-            ),
-            tooltip=[
-                alt.Tooltip('Company:N'),
-                alt.Tooltip('Value:Q', title=y_axis_label, format=tooltip_format, suffix=suffix)
-            ]
-        ).properties(
-            title=None,
-            height=300
-        ).interactive() # Make charts interactive for zooming/panning
-        st.altair_chart(chart, use_container_width=True)
+    if not chart_data.empty:
+        with chart_cols[i % 2]:
+            fig = px.bar(
+                chart_data,
+                x='Company',
+                y='Value',
+                title=f'{metric} Comparison',
+                labels={'Value': metric, 'Company': 'Company'},
+                text='Value',
+                height=350,
+                color='Company',
+                color_discrete_sequence=px.colors.qualitative.Plotly # Consistent colors
+            )
+            # Conditional text template for percentage vs. multiplier
+            if '%' in metric or 'Share' in metric:
+                fig.update_traces(texttemplate='%{y:.0f}%', textposition='outside')
+                fig.update_layout(yaxis_title=metric)
+            elif 'P/E' in metric:
+                fig.update_traces(texttemplate='%{y:.0f}x', textposition='outside')
+                fig.update_layout(yaxis_title=metric)
+            else:
+                fig.update_traces(texttemplate='%{y:.0f}', textposition='outside')
+                fig.update_layout(yaxis_title=metric)
 
-st.markdown("""
-**Analysis of Peer Benchmarking:**
-*   **Valuation (P/E Ratio):** AstraZeneca generally trades at a premium P/E, likely reflecting its robust growth trajectory and promising pipeline compared to some peers like Pfizer.
-*   **Growth (YoY Revenue):** AZN has shown more consistent and stronger revenue growth recently, largely driven by its oncology and CVRM portfolios.
-*   **R&D Investment:** AZN maintains a high commitment to R&D, essential for its innovation-driven business model and future pipeline development.
-""")
+            fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+            st.plotly_chart(fig, use_container_width=True)
 st.markdown("---")
 
-# --- Adjacent Industry Analysis (Upstream & Downstream) ---
-st.header("Adjacent Industry Analysis: Upstream & Downstream Impacts")
+# --- Sections and Summaries (using tabs for clean layout) ---
+st.header("Detailed Analysis Sections")
 
-adj_col1, adj_col2 = st.columns(2)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "Executive Summary", "Fundamental Evaluation", "Adjacent Industry",
+    "Risk Assessment", "Comprehensive Outlook (3-6 mo)", "Market Sentiment & Comp. Positioning",
+    "Critical Findings & Summary"
+])
 
-with adj_col1:
-    st.subheader("1. Biotech & Pharmaceutical Services (Upstream)")
-    st.markdown("Includes Contract Research Organizations (CROs), Contract Development and Manufacturing Organizations (CDMOs), and raw material suppliers.")
-    st.markdown("**Current Sentiment:** 🟢 **Tailwind**")
-    st.markdown("""
-    A strong demand for outsourced R&D and manufacturing services directly supports AZN's ability to efficiently conduct clinical trials and scale production. This environment can positively impact cost efficiencies and accelerate R&D timelines.
-    """)
+with tab1:
+    st.subheader("Executive Summary")
+    st.markdown(extract_section(ANALYSIS_TEXT, "**Executive Summary:**", "---"))
 
-with adj_col2:
-    st.subheader("2. Healthcare Payers & Providers (Downstream)")
-    st.markdown("Encompasses insurance companies, government health programs (e.g., Medicare), hospitals, and physician networks.")
-    st.markdown("**Current Sentiment:** 🟡 **Mixed, leaning towards Headwind**")
-    st.markdown("""
-    Payer consolidation and increasing pressure on drug pricing from governments and insurers remain significant concerns. For AZN, demonstrating the clear economic and clinical value of its innovative therapies is paramount for market access and sustained revenue growth amidst tighter reimbursement controls.
-    """)
-st.markdown("---")
+with tab2:
+    st.subheader("Fundamental Evaluation: Near-Term Outlook and Catalysts")
+    st.markdown(extract_section(ANALYSIS_TEXT, "### Fundamental Evaluation: Near-Term Outlook and Catalysts", "---"))
 
-# --- Risk Assessment ---
-st.header("Risk Assessment: Bull & Bear Cases for the Upcoming Quarter")
-risk_col1, risk_col2 = st.columns(2)
+with tab3:
+    st.subheader("Adjacent Industry Analysis")
+    st.markdown(extract_section(ANALYSIS_TEXT, "### Adjacent Industry Analysis:", "---"))
 
-with risk_col1:
-    st.subheader("🐂 Bull Case: Potential Upsides")
-    st.success("""
-    *   **Stronger-than-expected drug launch uptake:** Key new product launches significantly exceed initial sales forecasts due to superior clinical data, effective marketing, and favorable market access.
-    *   **Positive regulatory decisions:** Multiple significant drug approvals or label expansions for pipeline assets receive expedited or favorable regulatory clearance, de-risking future revenue streams.
-    *   **Robust clinical trial data:** Announcement of positive Phase 3 data readouts for promising pipeline candidates, boosting investor confidence in future growth.
-    *   **Favorable macroeconomic shifts:** A reduction in global inflation or more stable economic conditions leading to increased healthcare spending and reduced pressure on drug pricing.
-    """)
+with tab4:
+    st.subheader("Risk Assessment")
+    st.markdown(extract_section(ANALYSIS_TEXT, "### Risk Assessment:", "**Conclusion:**")) # Specific end to avoid overlap
 
-with risk_col2:
-    st.subheader("🐻 Bear Case: Potential Downsides")
-    st.error("""
-    *   **Clinical trial setbacks or regulatory rejections:** A key pipeline drug fails to meet efficacy endpoints in Phase 3 trials or faces a regulatory rejection, significantly impacting future growth prospects.
-    *   **Increased pricing pressure and payer pushback:** Major payers implement stricter reimbursement policies or demand significant price concessions for AZN's key drugs (e.g., U.S. IRA impact).
-    *   **Competitive challenges intensify:** A competitor launches a highly effective new therapy that rapidly gains market share, eroding AZN's position in a key therapeutic area.
-    *   **Supply chain disruptions or manufacturing issues:** Unexpected production problems or raw material shortages leading to product shortages or increased manufacturing costs.
-    """)
-st.markdown("---")
+with tab5:
+    st.subheader("Comprehensive 3-6 Month Outlook")
+    st.markdown(extract_section(ANALYSIS_TEXT, "Company overview", "# **Analysis of Microsoft Corporation (MSFT)**", is_regex=True))
 
-# --- Market Sentiment & Expectations ---
-st.header("Market Sentiment & Expectations (Next 3-6 Months)")
-st.markdown("The overall market sentiment for AstraZeneca is **cautiously optimistic**, heavily influenced by its robust pipeline and strategic execution.")
+with tab6:
+    st.subheader("Market Sentiment & Competitive Positioning (Q4 2023 / Q1 2024)")
+    sentiment_section = extract_section(ANALYSIS_TEXT, "### **1. Market Sentiment & Expectations**", "### **3. Adjacent Industry Impact**")
+    st.markdown(sentiment_section)
 
-sentiment_col1, sentiment_col2 = st.columns(2)
-
-with sentiment_col1:
-    st.subheader("Bullish Perspectives 🟢")
-    st.markdown("""
-    *   **Pipeline Powerhouse:** Analysts frequently highlight AZN's deep and diverse late-stage pipeline, particularly in oncology, rare diseases, and cardiometabolic areas, as a key future growth driver.
-    *   **Sustainable Growth:** The company has successfully diversified its growth beyond COVID-19 related products, demonstrating strong and sustainable double-digit revenue growth in its core franchises.
-    *   **Analyst Upgrades:** Several analysts have recently raised price targets, reflecting confidence in management's guidance and better-than-expected financial performance.
-    """)
-
-with sentiment_col2:
-    st.subheader("Bearish/Cautious Perspectives 🟠")
-    st.markdown("""
-    *   **China Pricing Pressure:** Ongoing impact from volume-based procurement (VBP) policies in China could be a headwind for certain mature drugs.
-    *   **Pipeline Execution Risk:** The optimistic outlook is heavily reliant on successful clinical trial outcomes and timely regulatory approvals. Any setbacks could negatively impact the stock.
-    *   **Intense Competition:** Fierce competition in key therapeutic areas like oncology and diabetes requires continuous innovation and strong commercial execution to maintain market share.
-    """)
-st.markdown("---")
-
-# --- Competitive Positioning (SWOT-like) ---
-st.header("Competitive Positioning: Strengths, Weaknesses, Opportunities, Threats")
-
-comp_col1, comp_col2 = st.columns(2)
-
-with comp_col1:
-    with st.expander("💪 **Strengths (Relative to Peers)**", expanded=True):
-        st.markdown("""
-        *   **Oncology Leadership:** A top-tier oncology franchise, particularly in targeted therapies (e.g., Tagrisso) and its innovative ADC collaboration on Enhertu.
-        *   **High-Growth CVRM Core:** Exceptional growth from its Cardiovascular, Renal & Metabolism (CVRM) unit, led by Farxiga, establishing it as a standard-of-care in multiple indications.
-        *   **Strategic R&D Focus:** A disciplined R&D strategy concentrated on high-science areas with clear biological pathways, enhancing R&D productivity.
-        """)
-    with st.expander("🎯 **Opportunities**", expanded=True):
-        st.markdown("""
-        *   **Rare Disease Expansion:** Significant growth potential through integrating Alexion's rare disease platform and expanding pipeline assets like Ultomiris into new indications.
-        *   **Geographic Expansion:** Continued penetration into emerging markets beyond China, leveraging its established global commercial footprint.
-        """)
-
-with comp_col2:
-    with st.expander("📉 **Weaknesses (Relative to Peers)**", expanded=True):
-        st.markdown("""
-        *   **Limited Diversification:** Compared to highly diversified peers (e.g., J&J), AZN is more of a pure-play innovative pharma company, potentially leading to higher stock volatility if pipeline events disappoint.
-        *   **Late to Immuno-Oncology:** While a strong player, AZN's PD-L1 inhibitor, Imfinzi, entered the market later than some key competitors, ceding initial first-mover advantage.
-        """)
-    with st.expander("⚠️ **Threats**", expanded=True):
-        st.markdown("""
-        *   **Patent Expiries:** Like all large pharmaceutical companies, AZN faces future patent cliffs for key revenue-generating drugs, which will eventually introduce generic/biosimilar competition.
-        *   **Pricing & Access Scrutiny:** Intense global pressure on drug pricing and access, especially in major markets like the U.S. (e.g., Inflation Reduction Act) and Europe, could impact future revenue and margins.
-        """)
-st.markdown("---")
-
-# --- Deeper Dive into Broader Adjacent Industry Impact ---
-st.header("Deeper Dive: Broader Adjacent Industry Impacts")
-st.markdown("Exploring how various external industries and factors intricately influence AstraZeneca's performance:")
-
-st.expander_biotech_tech = st.expander("🔬 **Biotechnology, Health Tech & Data Science Ecosystem**", expanded=False)
-with st.expander_biotech_tech:
-    st.markdown("""
-    *   **Positive Impact:** AZN's success is deeply intertwined with the biotech sector; strategic partnerships (e.g., Daiichi Sankyo for ADCs) and acquisitions feed its pipeline. Adoption of **AI and real-world data (RWD)** accelerates drug discovery, improves clinical trial design, and strengthens value propositions to payers. Advances in **diagnostics** (companion diagnostics, liquid biopsies) are critical for targeted therapies.
-    *   **Negative Impact:** High valuations in the biotech space can make acquisitions more expensive. Rapid innovation from agile biotechs and tech companies necessitates continuous R&D investment and competitive pressure.
-    """)
-
-st.expander_supply_chain_macro = st.expander("🏭 **Global Supply Chain & Macroeconomic Factors**", expanded=False)
-with st.expander_supply_chain_macro:
-    st.markdown("""
-    *   **Negative Impact:** Global supply chain complexities, geopolitical tensions, and commodity inflation can directly affect the cost and reliability of sourcing raw materials (APIs) and manufacturing complex biologics/ADCs, impacting COGS and margins. Macroeconomic slowdowns can indirectly affect elective procedures or overall healthcare spending.
-    """)
-
-st.expander_policy_regulatory = st.expander("🏛️ **Policy, Regulatory & Reimbursement Environment**", expanded=False)
-with st.expander_policy_regulatory:
-    st.markdown("""
-    *   **Negative Impact:** Government policy, particularly the U.S. **Inflation Reduction Act (IRA)**, poses a direct threat by subjecting key drugs (like Farxiga) to Medicare price negotiations. Changes in trade policies, intellectual property (IP) protections, Health Technology Assessment (HTA) outcomes, and payer coverage decisions in key markets materially affect market access, pricing, and revenue potential for high-priced specialty drugs.
-    *   **Positive Impact:** Favorable updates to clinical practice guidelines (e.g., cardiology, nephrology, oncology medical societies) can accelerate the adoption of AZN's therapies.
-    """)
+with tab7:
+    st.subheader("Critical Findings & Summary")
+    st.markdown(extract_section(ANALYSIS_TEXT, "### Critical Findings & Summary", is_regex=True))
 
 st.markdown("---")
-
-# --- Overall Conclusion ---
-st.header("Overall Summary Judgment")
-st.markdown("""
-AstraZeneca enters the 3–6 month horizon with a fundamentally favorable setup, characterized by diversified, high-growth drivers in both its cardiometabolic (Farxiga) and oncology franchises, a deep late-stage pipeline, and a solid balance sheet. Near-term performance will be primarily shaped by successful clinical/regulatory readouts, favorable reimbursement developments, and the broader macroeconomic environment.
-
-Relative to its peers, AZN exhibits stronger near-term organic growth potential due to its SGLT2 and oncology momentum. However, like any innovation-heavy biopharma company, it faces inherent binary trial and regulatory risks. For stakeholders, close monitoring of upcoming trial data, regulatory filings, payer coverage decisions in key markets, and any material updates from management will be crucial to assessing its trajectory. The overall view remains **balanced and constructively optimistic**, contingent on continued successful clinical execution and manageable policy headwinds.
-""")
-
-st.markdown("---")
-st.info("Disclaimer: This analysis is for informational purposes only and should not be considered financial advice. Please consult a qualified financial professional before making investment decisions.")
+st.info("Disclaimer: This analysis is based on the provided text and should not be considered financial advice. "
+        "Financial data and market conditions are dynamic and subject to change.")
