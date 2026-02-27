@@ -65,619 +65,385 @@ if generate:
         st.rerun()
 
 
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import pandas as pd
-from datetime import datetime
+from plotly.subplots import make_subplots
 
-# Page configuration
-st.set_page_config(
-    page_title="UAL Stock Analysis Dashboard",
-    page_icon="✈️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Page config
+st.set_page_config(page_title="Zscaler (ZS) Financial Analysis", layout="wide", page_icon="📊")
 
-# Custom CSS
-st.markdown("""
-    <style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #0A2463;
-        text-align: center;
-        padding: 1rem 0;
-    }
-    .sub-header {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #3E92CC;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #3E92CC;
-    }
-    .bullish {
-        color: #00B050;
-        font-weight: bold;
-    }
-    .bearish {
-        color: #C00000;
-        font-weight: bold;
-    }
-    .neutral {
-        color: #FFA500;
-        font-weight: bold;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Title
-st.markdown('<div class="main-header">✈️ United Airlines Holdings (UAL) - Financial Analysis Dashboard</div>', unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    st.image("https://via.placeholder.com/150x50/0A2463/FFFFFF?text=UAL", use_container_width=True)
-    st.markdown("### Analysis Overview")
-    st.markdown("**Ticker:** UAL")
-    st.markdown("**Industry:** Passenger Air Transportation")
-    st.markdown("**Outlook:** <span class='bullish'>Moderately Bullish</span>", unsafe_allow_html=True)
-    st.markdown("**Time Horizon:** 3-6 Months")
-    st.markdown("---")
-    st.markdown("**Analysis Date:** Q2 2024")
-    st.markdown("**Report Type:** Equity Research")
+# Title and header
+st.title("📊 Zscaler (ZS) - Comprehensive Financial Analysis")
+st.markdown("### Cloud Security & Zero Trust Network Access Leader")
+st.markdown("---")
 
 # Key Metrics Section
-st.markdown('<div class="sub-header">📊 Key Financial Metrics (Q1 2024)</div>', unsafe_allow_html=True)
-
+st.header("🎯 Key Financial Metrics (Q3 FY24)")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric(
-        label="Operating Revenue",
-        value="$12.4B",
-        delta="9.7% YoY",
-        delta_color="normal"
-    )
-
+    st.metric("Revenue", "$553.0M", "32% YoY", delta_color="normal")
 with col2:
-    st.metric(
-        label="Net Loss (Q1)",
-        value="$124M",
-        delta="Improved vs Prior Year",
-        delta_color="normal"
-    )
-
+    st.metric("Calculated Billings", "$628.2M", "29% YoY", delta_color="normal")
 with col3:
-    st.metric(
-        label="Operating Margin (TTM)",
-        value="4.8%",
-        delta="Industry Competitive"
-    )
-
+    st.metric("Non-GAAP Op. Margin", "20.3%", help="Strong profitability focus")
 with col4:
-    st.metric(
-        label="Market Cap",
-        value="$16.5B",
-        delta="Stable"
-    )
+    st.metric("Free Cash Flow", "$134.4M", "24% of revenue", delta_color="normal")
 
-# Peer Comparison Section
-st.markdown('<div class="sub-header">🏆 Peer Comparison Analysis</div>', unsafe_allow_html=True)
+col5, col6, col7, col8 = st.columns(4)
+with col5:
+    st.metric("RPO", "$3.90B", "31% YoY", delta_color="normal")
+with col6:
+    st.metric("Market Cap", "~$27B", help="Approximate as of mid-2024")
+with col7:
+    st.metric("Forward P/E", "70-80x", help="Premium valuation")
+with col8:
+    st.metric("Revenue Growth", "32%", help="Latest quarter YoY")
 
-peer_data = pd.DataFrame({
-    'Airline': ['United (UAL)', 'Delta (DAL)', 'American (AAL)', 'Southwest (LUV)'],
-    'Market Cap ($B)': [16.5, 31.5, 10.0, 16.5],
-    'Forward P/E': [5.1, 6.0, 4.6, 20.0],
-    'Revenue Growth (%)': [9.7, 7.8, 3.1, 1.1],
-    'Operating Margin (%)': [4.8, 8.3, 4.2, 3.4],
-    'Net Debt/EBITDA': [2.5, 1.9, 3.2, 1.0]
-})
+st.markdown("---")
 
-# Create tabs for different visualizations
-tab1, tab2, tab3 = st.tabs(["📈 Revenue & Growth", "💰 Profitability & Valuation", "📊 Leverage & Balance Sheet"])
+# Revenue Growth Trend
+st.header("📈 Revenue & Growth Trajectory")
+quarters = ['Q1 FY24', 'Q2 FY24', 'Q3 FY24', 'Q4 FY24E', 'Q1 FY25E']
+revenue = [430, 490, 553, 610, 670]
+yoy_growth = [35, 33, 32, 30, 29]
 
-with tab1:
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Revenue Growth Chart
-        fig_revenue = go.Figure(data=[
-            go.Bar(
-                x=peer_data['Airline'],
-                y=peer_data['Revenue Growth (%)'],
-                marker_color=['#3E92CC', '#6CA6CD', '#90CAF9', '#B3E5FC'],
-                text=peer_data['Revenue Growth (%)'],
-                textposition='auto',
-            )
-        ])
-        fig_revenue.update_layout(
-            title='YoY Revenue Growth Comparison (Q1 2024)',
-            yaxis_title='Growth (%)',
-            xaxis_title='Airline',
-            height=400,
-            showlegend=False
-        )
-        st.plotly_chart(fig_revenue, use_container_width=True)
-    
-    with col2:
-        # Market Cap Comparison
-        fig_mcap = go.Figure(data=[
-            go.Bar(
-                x=peer_data['Airline'],
-                y=peer_data['Market Cap ($B)'],
-                marker_color=['#0A2463', '#1E3A5F', '#3E5C76', '#6C8299'],
-                text=peer_data['Market Cap ($B)'],
-                textposition='auto',
-            )
-        ])
-        fig_mcap.update_layout(
-            title='Market Capitalization Comparison',
-            yaxis_title='Market Cap ($B)',
-            xaxis_title='Airline',
-            height=400,
-            showlegend=False
-        )
-        st.plotly_chart(fig_mcap, use_container_width=True)
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+fig.add_trace(
+    go.Bar(x=quarters, y=revenue, name="Revenue ($M)", marker_color='#1f77b4'),
+    secondary_y=False,
+)
+fig.add_trace(
+    go.Scatter(x=quarters, y=yoy_growth, name="YoY Growth (%)", 
+               marker_color='#ff7f0e', mode='lines+markers', line=dict(width=3)),
+    secondary_y=True,
+)
+fig.update_xaxes(title_text="Quarter")
+fig.update_yaxes(title_text="Revenue ($ Millions)", secondary_y=False)
+fig.update_yaxes(title_text="YoY Growth (%)", secondary_y=True)
+fig.update_layout(height=400, hovermode='x unified')
+st.plotly_chart(fig, use_container_width=True)
 
-with tab2:
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Operating Margin Chart
-        fig_margin = go.Figure(data=[
-            go.Bar(
-                x=peer_data['Airline'],
-                y=peer_data['Operating Margin (%)'],
-                marker_color=['#FFA500', '#00B050', '#FF6B6B', '#FFD93D'],
-                text=peer_data['Operating Margin (%)'],
-                textposition='auto',
-            )
-        ])
-        fig_margin.update_layout(
-            title='Operating Margin Comparison (TTM)',
-            yaxis_title='Operating Margin (%)',
-            xaxis_title='Airline',
-            height=400,
-            showlegend=False
-        )
-        st.plotly_chart(fig_margin, use_container_width=True)
-    
-    with col2:
-        # P/E Ratio Chart
-        fig_pe = go.Figure(data=[
-            go.Scatter(
-                x=peer_data['Airline'],
-                y=peer_data['Forward P/E'],
-                mode='markers+lines',
-                marker=dict(size=15, color=['#3E92CC', '#6CA6CD', '#90CAF9', '#B3E5FC']),
-                line=dict(color='#0A2463', width=2),
-                text=peer_data['Forward P/E'],
-                textposition='top center'
-            )
-        ])
-        fig_pe.update_layout(
-            title='Forward P/E Ratio Comparison',
-            yaxis_title='Forward P/E',
-            xaxis_title='Airline',
-            height=400,
-            showlegend=False
-        )
-        st.plotly_chart(fig_pe, use_container_width=True)
-
-with tab3:
-    # Leverage Chart
-    fig_leverage = go.Figure(data=[
-        go.Bar(
-            x=peer_data['Airline'],
-            y=peer_data['Net Debt/EBITDA'],
-            marker_color=['#FFA500', '#00B050', '#C00000', '#90EE90'],
-            text=peer_data['Net Debt/EBITDA'],
-            textposition='auto',
-        )
-    ])
-    fig_leverage.update_layout(
-        title='Net Debt/EBITDA Comparison',
-        yaxis_title='Net Debt/EBITDA Ratio',
-        xaxis_title='Airline',
-        height=400,
-        showlegend=False
-    )
-    fig_leverage.add_hline(y=2.5, line_dash="dash", line_color="red", 
-                           annotation_text="Industry Threshold")
-    st.plotly_chart(fig_leverage, use_container_width=True)
-    
-    st.info("💡 **Insight:** UAL's leverage (2.5x) is competitive with DAL but better than AAL. Continued deleveraging is a key focus.")
-
-# Outlook Section
-st.markdown('<div class="sub-header">🔮 3-6 Month Outlook</div>', unsafe_allow_html=True)
+# Peer Comparison
+st.markdown("---")
+st.header("🔍 Competitive Peer Benchmarking")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("#### 🐂 Bull Case Drivers")
-    bull_factors = [
-        ("International Summer Demand", 85),
-        ("Premium Cabin Growth", 75),
-        ("Moderating Fuel Prices", 60),
-        ("Ancillary Revenue Growth", 70),
-        ("Business Travel Recovery", 65)
-    ]
+    # Market Cap and Growth Comparison
+    peer_data = {
+        'Company': ['Zscaler (ZS)', 'Palo Alto (PANW)', 'CrowdStrike (CRWD)', 'Fortinet (FTNT)'],
+        'Market Cap ($B)': [27, 98, 90, 48],
+        'YoY Revenue Growth (%)': [32, 15, 33, 6]
+    }
+    df_peers = pd.DataFrame(peer_data)
     
-    for factor, probability in bull_factors:
-        st.markdown(f"**{factor}**")
-        st.progress(probability / 100)
-        st.markdown(f"<small>Impact Probability: {probability}%</small>", unsafe_allow_html=True)
-        st.markdown("")
+    fig = px.scatter(df_peers, x='Market Cap ($B)', y='YoY Revenue Growth (%)', 
+                     text='Company', size='Market Cap ($B)',
+                     color='YoY Revenue Growth (%)',
+                     color_continuous_scale='Viridis',
+                     title='Market Cap vs Revenue Growth')
+    fig.update_traces(textposition='top center', marker=dict(line=dict(width=2, color='white')))
+    fig.update_layout(height=400)
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
-    st.markdown("#### 🐻 Bear Case Risks")
-    bear_factors = [
-        ("Fuel Price Surge", 55),
-        ("Boeing Delivery Delays", 75),
-        ("Demand Weakness", 40),
-        ("Operational Disruptions", 50),
-        ("Labor Cost Pressures", 65)
-    ]
+    # P/E Ratio Comparison
+    pe_data = {
+        'Company': ['Zscaler', 'Palo Alto', 'CrowdStrike', 'Fortinet'],
+        'Forward P/E (Mid)': [75, 45, 75, 35],
+        'Category': ['Premium', 'Moderate', 'Premium', 'Value']
+    }
+    df_pe = pd.DataFrame(pe_data)
     
-    for factor, probability in bear_factors:
-        st.markdown(f"**{factor}**")
-        st.progress(probability / 100)
-        st.markdown(f"<small>Risk Probability: {probability}%</small>", unsafe_allow_html=True)
-        st.markdown("")
+    fig = px.bar(df_pe, x='Company', y='Forward P/E (Mid)', 
+                 color='Category',
+                 title='Forward P/E Ratio Comparison',
+                 color_discrete_map={'Premium': '#e74c3c', 'Moderate': '#f39c12', 'Value': '#27ae60'})
+    fig.update_layout(height=400, showlegend=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-# Strategic Positioning
-st.markdown('<div class="sub-header">🎯 Strategic Positioning & Competitive Advantages</div>', unsafe_allow_html=True)
+# Detailed Peer Table
+st.subheader("Detailed Peer Comparison Table")
+peer_detailed = {
+    'Metric': ['Market Cap', 'Forward P/E', 'YoY Revenue Growth', 'Market Position'],
+    'Zscaler (ZS)': ['~$27B', '70-80x', '32%', '🥇 Leader (SSE/ZTNA)'],
+    'Palo Alto (PANW)': ['~$98B', '40-50x', '15%', '💪 Strong (Prisma)'],
+    'CrowdStrike (CRWD)': ['~$90B', '70-80x', '33%', '🚀 Emerging (Cloud Sec)'],
+    'Fortinet (FTNT)': ['~$48B', '30-40x', '6%', '⚙️ Mid-tier (FortiSASE)']
+}
+df_peer_detail = pd.DataFrame(peer_detailed)
+st.dataframe(df_peer_detail, use_container_width=True, hide_index=True)
+
+# Key Catalysts
+st.markdown("---")
+st.header("🚀 Key Catalysts & Growth Drivers")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("##### ✅ Strengths")
+    st.subheader("🤖 AI Integration")
     st.markdown("""
-    - **Global Hub Network**: Dominant international presence
-    - **Premium Focus**: United Polaris & Premium Plus
-    - **Star Alliance**: Largest global partnership
-    - **United Next Plan**: Fleet modernization
-    - **Strong Revenue Growth**: Leading peers at 9.7%
+    - AI-powered DLP
+    - Generative AI security
+    - Advanced threat detection
+    - ZDX monitoring enhancement
     """)
+    st.progress(0.85)
+    st.caption("Impact Score: 85/100")
 
 with col2:
-    st.markdown("##### ⚠️ Challenges")
+    st.subheader("🏢 Enterprise Consolidation")
     st.markdown("""
-    - **Boeing Dependency**: 737 MAX delays
-    - **Labor Costs**: Post-pandemic agreements
-    - **Operating Margin**: Gap vs Delta (4.8% vs 8.3%)
-    - **Leverage**: Higher debt than Delta
-    - **Operational Reliability**: Historical variability
+    - SASE platform adoption
+    - Cloud migration acceleration
+    - Zero Trust architecture
+    - Legacy vendor displacement
     """)
+    st.progress(0.90)
+    st.caption("Impact Score: 90/100")
 
 with col3:
-    st.markdown("##### 🎲 Key Risks")
+    st.subheader("💰 Macro Environment")
     st.markdown("""
-    - **Fuel Price Volatility**: Major cost exposure
-    - **Economic Slowdown**: Demand sensitivity
-    - **Geopolitical Events**: Route disruptions
-    - **Regulatory Changes**: Compliance costs
-    - **Fleet Constraints**: Capacity limitations
+    - IT budget normalization
+    - Economic stabilization
+    - Pent-up demand unlock
+    - Non-discretionary security spend
     """)
+    st.progress(0.70)
+    st.caption("Impact Score: 70/100")
+
+# Sentiment Analysis
+st.markdown("---")
+st.header("📊 Market Sentiment Analysis")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    sentiment_data = {
+        'Factor': ['Strong Fundamentals', 'Platform Leadership', 'Large Deal Momentum', 
+                   'Analyst Support', 'Billings Deceleration', 'Competition (PANW)', 
+                   'Macro Headwinds', 'Valuation Premium'],
+        'Sentiment': [90, 85, 80, 75, -60, -70, -55, -50],
+        'Type': ['Bullish', 'Bullish', 'Bullish', 'Bullish', 
+                 'Bearish', 'Bearish', 'Bearish', 'Bearish']
+    }
+    df_sentiment = pd.DataFrame(sentiment_data)
+    
+    fig = px.bar(df_sentiment, x='Sentiment', y='Factor', 
+                 orientation='h',
+                 color='Type',
+                 title='Bullish vs Bearish Factors',
+                 color_discrete_map={'Bullish': '#27ae60', 'Bearish': '#e74c3c'})
+    fig.update_layout(height=400)
+    st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+    # Risk/Opportunity Matrix
+    risk_opp = {
+        'Factor': ['SASE Migration', 'Net Retention', 'New Modules', 'PANW Competition', 
+                   'Macro Slowdown', 'Execution Risk', 'Security Incident'],
+        'Impact': [9, 8, 7, 8, 7, 6, 9],
+        'Probability': [8, 8, 7, 7, 6, 4, 2],
+        'Type': ['Opportunity', 'Opportunity', 'Opportunity', 'Risk', 'Risk', 'Risk', 'Risk']
+    }
+    df_risk = pd.DataFrame(risk_opp)
+    
+    fig = px.scatter(df_risk, x='Probability', y='Impact', 
+                     text='Factor', size='Impact',
+                     color='Type',
+                     title='Risk/Opportunity Matrix',
+                     color_discrete_map={'Opportunity': '#3498db', 'Risk': '#e67e22'})
+    fig.update_traces(textposition='top center', textfont_size=9)
+    fig.update_layout(height=400, xaxis_range=[0, 10], yaxis_range=[0, 10])
+    st.plotly_chart(fig, use_container_width=True)
 
 # Adjacent Industries Impact
-st.markdown('<div class="sub-header">🔗 Adjacent Industry Analysis</div>', unsafe_allow_html=True)
+st.markdown("---")
+st.header("🌐 Adjacent Industry Impact Analysis")
 
-industry_impact = pd.DataFrame({
-    'Industry': ['Oil & Gas (Jet Fuel)', 'Aerospace Mfg (Boeing/Airbus)', 
-                 'Leisure & Hospitality', 'Corporate Travel', 'Payments/Credit Cards'],
-    'Impact': ['High Headwind', 'High Headwind', 'Strong Tailwind', 'Moderate Tailwind', 'Moderate Tailwind'],
-    'Trend': ['↑ Rising Costs', '↓ Delivery Delays', '↑ Strong Demand', '↑ Gradual Recovery', '↑ Loyalty Growth'],
-    'Priority': [95, 90, 85, 70, 65]
-})
-
-# Create horizontal bar chart for industry impact
-fig_industry = go.Figure()
-
-colors = ['#C00000', '#C00000', '#00B050', '#FFA500', '#FFA500']
-
-fig_industry.add_trace(go.Bar(
-    y=industry_impact['Industry'],
-    x=industry_impact['Priority'],
-    orientation='h',
-    marker_color=colors,
-    text=industry_impact['Trend'],
-    textposition='auto',
-))
-
-fig_industry.update_layout(
-    title='Adjacent Industry Impact Priority Matrix',
-    xaxis_title='Impact Priority Score',
-    yaxis_title='Industry Sector',
-    height=400,
-    showlegend=False
-)
-
-st.plotly_chart(fig_industry, use_container_width=True)
-
-# Financial Projections
-st.markdown('<div class="sub-header">📈 Projected Performance (Q2-Q3 2024)</div>', unsafe_allow_html=True)
-
-quarters = ['Q1 2024\n(Actual)', 'Q2 2024\n(Projected)', 'Q3 2024\n(Projected)']
-revenue = [12.4, 13.8, 14.2]
-margin = [-1.0, 6.5, 7.8]
-
-fig_projection = go.Figure()
-
-fig_projection.add_trace(go.Bar(
-    name='Revenue ($B)',
-    x=quarters,
-    y=revenue,
-    yaxis='y',
-    marker_color='#3E92CC',
-    text=revenue,
-    textposition='auto',
-))
-
-fig_projection.add_trace(go.Scatter(
-    name='Operating Margin (%)',
-    x=quarters,
-    y=margin,
-    yaxis='y2',
-    mode='lines+markers',
-    marker=dict(size=12, color='#FFA500'),
-    line=dict(width=3, color='#FFA500'),
-    text=margin,
-    textposition='top center'
-))
-
-fig_projection.update_layout(
-    title='Revenue & Operating Margin Projection',
-    yaxis=dict(title='Revenue ($B)', side='left'),
-    yaxis2=dict(title='Operating Margin (%)', side='right', overlaying='y'),
-    height=450,
-    hovermode='x unified',
-    legend=dict(x=0.01, y=0.99)
-)
-
-st.plotly_chart(fig_projection, use_container_width=True)
-
-# Investment Thesis Summary
-st.markdown('<div class="sub-header">📋 Investment Thesis Summary</div>', unsafe_allow_html=True)
-
-col1, col2 = st.columns([2, 1])
+col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("""
-    ### Overall Rating: <span class='bullish'>MODERATELY BULLISH</span>
+    adj_industries = {
+        'Industry': ['Cloud Infrastructure', 'AI/ML Sector', 'Remote Work Tech', 
+                     'Regulatory/Compliance', 'SD-WAN Market'],
+        'Impact Score': [85, 75, 90, 80, 70],
+        'Direction': ['Positive', 'Positive', 'Positive', 'Positive', 'Mixed']
+    }
+    df_adj = pd.DataFrame(adj_industries)
     
-    **Key Investment Highlights:**
-    
-    1. **Strong Revenue Momentum**: UAL leads network carrier peers with 9.7% YoY revenue growth, 
-       driven by robust international demand and premium cabin strength.
-    
-    2. **Summer Seasonality Tailwind**: Q2-Q3 2024 peak travel season expected to drive significant 
-       sequential improvement in profitability and load factors.
-    
-    3. **Strategic Network Advantage**: Largest international network among U.S. carriers provides 
-       competitive moat and access to high-yield routes.
-    
-    4. **Balanced Risk-Reward**: While Boeing delays and fuel costs present headwinds, disciplined 
-       capacity management and strong forward bookings support positive outlook.
-    
-    **Target Price Justification:**
-    - Forward P/E of 5.1x remains attractive vs. historical average
-    - Expected EPS growth from seasonal strength and operational leverage
-    - Valuation discount to Delta (6.0x) may compress as margins improve
-    
-    **Recommended Action**: ACCUMULATE on weakness; suitable for investors with moderate risk tolerance 
-    seeking exposure to travel recovery with 3-6 month horizon.
-    """, unsafe_allow_html=True)
+    fig = px.bar(df_adj, x='Industry', y='Impact Score', 
+                 color='Direction',
+                 title='Adjacent Industry Impact Scores',
+                 color_discrete_map={'Positive': '#27ae60', 'Mixed': '#f39c12', 'Negative': '#e74c3c'})
+    fig.update_layout(height=400)
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
-    st.markdown("### Rating Breakdown")
+    st.subheader("Industry Transmission Channels")
+    st.markdown("""
+    #### ☁️ Cloud Infrastructure (AWS, Azure, GCP)
+    - **Impact**: Strong Positive Tailwind (85/100)
+    - Cloud migration drives Zero Trust adoption
+    - Co-selling and marketplace distribution
     
-    # Rating gauge
-    fig_rating = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=7.2,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "Conviction Score", 'font': {'size': 20}},
-        number={'suffix': "/10", 'font': {'size': 40}},
-        gauge={
-            'axis': {'range': [0, 10], 'tickwidth': 1},
-            'bar': {'color': "#3E92CC"},
-            'steps': [
-                {'range': [0, 4], 'color': "#FFE5E5"},
-                {'range': [4, 7], 'color': "#FFF4E5"},
-                {'range': [7, 10], 'color': "#E5F5E5"}],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 8}}))
+    #### 🤖 Enterprise IT Spending
+    - **Impact**: Mixed (60/100)
+    - Security remains top priority
+    - Budget scrutiny lengthens sales cycles
     
-    fig_rating.update_layout(height=250, margin=dict(l=20, r=20, t=40, b=20))
-    st.plotly_chart(fig_rating, use_container_width=True)
-    
-    st.markdown("#### Timeframe")
-    st.info("**3-6 Months** (Q2-Q3 2024)")
-    
-    st.markdown("#### Risk Level")
-    st.warning("**Moderate-High** (Operational & Cost Volatility)")
+    #### 🔐 Identity & Access Management
+    - **Impact**: Positive with Competition (70/100)
+    - IAM accelerates Zero Trust adoption
+    - Potential encroachment risk
+    """)
 
-# Key Catalysts Timeline
-st.markdown('<div class="sub-header">📅 Key Catalysts & Events</div>', unsafe_allow_html=True)
+# Financial Projections
+st.markdown("---")
+st.header("📅 3-6 Month Outlook & Projections")
 
-timeline_data = {
-    'Event': [
-        'Q2 2024 Earnings',
-        'Summer Travel Peak',
-        'Boeing 737 MAX Updates',
-        'Labor Agreement Reviews',
-        'Q3 2024 Earnings',
-        'Fuel Price Trends'
-    ],
-    'Timing': [
-        'July 2024',
-        'June-August 2024',
-        'Ongoing',
-        'Q3 2024',
-        'October 2024',
-        'Continuous'
-    ],
-    'Impact': [
-        'High - Guidance & Performance',
-        'Very High - Revenue Driver',
-        'High - Capacity Constraints',
-        'Medium - Cost Implications',
-        'High - Profitability Validation',
-        'Very High - Margin Impact'
-    ],
-    'Sentiment': ['Positive', 'Positive', 'Negative', 'Neutral', 'Positive', 'Negative']
+projection_data = {
+    'Metric': ['Revenue Growth', 'Billings Growth', 'Operating Margin', 'Free Cash Flow Margin'],
+    'Q3 FY24 Actual': ['32%', '29%', '20.3%', '24%'],
+    'Q4 FY24 Estimate': ['28-30%', '27-30%', '20-21%', '24-25%'],
+    'Q1 FY25 Estimate': ['27-29%', '26-29%', '21-22%', '25-26%']
 }
+df_projection = pd.DataFrame(projection_data)
+st.dataframe(df_projection, use_container_width=True, hide_index=True)
 
-timeline_df = pd.DataFrame(timeline_data)
+col1, col2 = st.columns(2)
 
-st.dataframe(
-    timeline_df,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        "Event": st.column_config.TextColumn("Catalyst Event", width="medium"),
-        "Timing": st.column_config.TextColumn("Expected Timing", width="small"),
-        "Impact": st.column_config.TextColumn("Impact Assessment", width="large"),
-        "Sentiment": st.column_config.TextColumn("Sentiment", width="small")
+with col1:
+    st.subheader("🐂 Bull Case Scenario")
+    st.success("""
+    **Key Drivers:**
+    - Economic improvement unlocks pent-up demand
+    - Strong AI feature adoption drives upsell
+    - Shortened sales cycles accelerate billings
+    - Competitive wins against legacy vendors
+    - Margin expansion from operational leverage
+    
+    **Expected Impact**: Revenue growth >32%, stock appreciation
+    """)
+
+with col2:
+    st.subheader("🐻 Bear Case Scenario")
+    st.error("""
+    **Key Risks:**
+    - Deeper economic slowdown tightens budgets
+    - Elongated sales cycles beyond expectations
+    - Aggressive competitor discounting (PANW)
+    - Pressure on deal sizes and billings
+    - Execution missteps or security incidents
+    
+    **Expected Impact**: Revenue growth <25%, valuation pressure
+    """)
+
+# Competitive Strengths/Weaknesses
+st.markdown("---")
+st.header("⚔️ Competitive Position Analysis")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("✅ Competitive Strengths")
+    strengths = {
+        'Strength': ['Pure-Cloud Architecture', 'Zero Trust Pioneer', 'Global Network Scale', 
+                     'Platform Breadth', 'FedRAMP Authorization'],
+        'Score': [95, 90, 88, 85, 92]
     }
-)
+    df_strengths = pd.DataFrame(strengths)
+    fig = px.bar(df_strengths, x='Score', y='Strength', orientation='h',
+                 color='Score', color_continuous_scale='Greens')
+    fig.update_layout(height=350, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 
-# Comparative Advantage Matrix
-st.markdown('<div class="sub-header">⚖️ Competitive Advantage Matrix</div>', unsafe_allow_html=True)
+with col2:
+    st.subheader("⚠️ Competitive Challenges")
+    weaknesses = {
+        'Challenge': ['Limited EDR/Endpoint', 'No Network Hardware', 'Premium Pricing', 
+                      'PANW Bundling Threat', 'Microsoft Integration'],
+        'Risk Level': [65, 60, 70, 85, 75]
+    }
+    df_weaknesses = pd.DataFrame(weaknesses)
+    fig = px.bar(df_weaknesses, x='Risk Level', y='Challenge', orientation='h',
+                 color='Risk Level', color_continuous_scale='Reds')
+    fig.update_layout(height=350, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 
-categories = ['International\nNetwork', 'Premium\nProduct', 'Operational\nReliability', 
-              'Cost\nEfficiency', 'Balance\nSheet', 'Digital/Tech']
-ual_scores = [9, 8, 6, 6, 6, 7]
-dal_scores = [8, 9, 9, 8, 9, 8]
-aal_scores = [7, 6, 5, 5, 4, 5]
-
-fig_radar = go.Figure()
-
-fig_radar.add_trace(go.Scatterpolar(
-    r=ual_scores,
-    theta=categories,
-    fill='toself',
-    name='United (UAL)',
-    line_color='#3E92CC'
-))
-
-fig_radar.add_trace(go.Scatterpolar(
-    r=dal_scores,
-    theta=categories,
-    fill='toself',
-    name='Delta (DAL)',
-    line_color='#00B050'
-))
-
-fig_radar.add_trace(go.Scatterpolar(
-    r=aal_scores,
-    theta=categories,
-    fill='toself',
-    name='American (AAL)',
-    line_color='#C00000'
-))
-
-fig_radar.update_layout(
-    polar=dict(
-        radialaxis=dict(visible=True, range=[0, 10])
-    ),
-    showlegend=True,
-    height=500,
-    title='Competitive Positioning Radar (Score out of 10)'
-)
-
-st.plotly_chart(fig_radar, use_container_width=True)
-
-# Risk Matrix
-st.markdown('<div class="sub-header">🎲 Risk-Return Matrix</div>', unsafe_allow_html=True)
-
-risk_return = pd.DataFrame({
-    'Factor': ['Summer Demand Upside', 'International Premium Growth', 'Fuel Stabilization', 
-               'Ancillary Revenue', 'Boeing Delays', 'Fuel Price Spike', 
-               'Demand Deterioration', 'Labor Disputes'],
-    'Probability': [75, 70, 50, 65, 70, 50, 35, 30],
-    'Impact': [8, 7, 9, 5, 8, 9, 9, 7],
-    'Type': ['Opportunity', 'Opportunity', 'Opportunity', 'Opportunity', 
-             'Risk', 'Risk', 'Risk', 'Risk']
-})
-
-fig_scatter = px.scatter(
-    risk_return,
-    x='Probability',
-    y='Impact',
-    size='Impact',
-    color='Type',
-    text='Factor',
-    title='Risk-Return Assessment Matrix',
-    labels={'Probability': 'Probability of Occurrence (%)', 
-            'Impact': 'Financial Impact (1-10)'},
-    color_discrete_map={'Opportunity': '#00B050', 'Risk': '#C00000'},
-    height=500
-)
-
-fig_scatter.update_traces(textposition='top center')
-fig_scatter.update_layout(showlegend=True)
-fig_scatter.add_hline(y=7, line_dash="dash", line_color="gray", opacity=0.5)
-fig_scatter.add_vline(x=50, line_dash="dash", line_color="gray", opacity=0.5)
-
-st.plotly_chart(fig_scatter, use_container_width=True)
-
-# Conclusion
-st.markdown('<div class="sub-header">🎯 Final Verdict</div>', unsafe_allow_html=True)
+# Summary Dashboard
+st.markdown("---")
+st.header("📋 Executive Summary & Investment Thesis")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
+    st.metric("Overall Rating", "BUY", help="Cautiously Optimistic")
+    st.metric("Growth Trajectory", "Strong", help="High 20s to low 30s % YoY")
+    st.metric("Competitive Moat", "Robust", help="Leader in SSE/ZTNA")
+
+with col2:
+    st.metric("Valuation", "Premium", help="70-80x forward P/E")
+    st.metric("Risk Level", "Moderate", help="Competitive & macro pressures")
+    st.metric("Time Horizon", "3-6 Months", help="Near-term outlook")
+
+with col3:
+    st.metric("Primary Catalyst", "AI Integration", help="Key growth driver")
+    st.metric("Primary Risk", "PANW Competition", help="Main threat")
+    st.metric("Margin Trend", "Expanding", help="Improving profitability")
+
+st.markdown("---")
+st.subheader("🎯 Key Takeaways")
+
+col1, col2 = st.columns(2)
+
+with col1:
     st.markdown("""
-    <div class="metric-card">
-    <h4>📈 Upside Potential</h4>
-    <h2 class="bullish">+20-25%</h2>
-    <p>Based on strong summer demand, international recovery, and potential fuel moderation</p>
-    </div>
-    """, unsafe_allow_html=True)
+    #### Positive Factors
+    - ✅ **32% revenue growth** with strong fundamentals
+    - ✅ **Leader in Zero Trust/SASE** market segment
+    - ✅ **Expanding margins** show operational leverage
+    - ✅ **$3.90B RPO** provides revenue visibility
+    - ✅ **Secular tailwinds** from cloud migration
+    - ✅ **AI integration** drives product innovation
+    """)
 
 with col2:
     st.markdown("""
-    <div class="metric-card">
-    <h4>📉 Downside Risk</h4>
-    <h2 class="bearish">-15-20%</h2>
-    <p>If fuel spikes, Boeing issues worsen, or demand deteriorates significantly</p>
-    </div>
-    """, unsafe_allow_html=True)
+    #### Watch Points
+    - ⚠️ **Billings deceleration** needs monitoring
+    - ⚠️ **PANW competitive threat** intensifying
+    - ⚠️ **Premium valuation** sensitive to misses
+    - ⚠️ **Macro headwinds** affecting enterprise IT
+    - ⚠️ **Sales cycle elongation** risk
+    - ⚠️ **Execution critical** for maintaining growth
+    """)
 
-with col3:
-    st.markdown("""
-    <div class="metric-card">
-    <h4>⚖️ Risk-Reward</h4>
-    <h2 class="bullish">FAVORABLE</h2>
-    <p>Asymmetric upside from seasonal strength and strategic positioning</p>
-    </div>
-    """, unsafe_allow_html=True)
-
+# Investment Considerations
 st.markdown("---")
-st.markdown("""
-**Disclaimer:** This analysis is for informational purposes only and does not constitute investment advice. 
-Past performance is not indicative of future results. Investors should conduct their own due diligence and 
-consult with financial advisors before making investment decisions.
+st.info("""
+**📌 Investment Consideration**
 
-**Data Sources:** Company earnings reports (Q1 2024), analyst commentary, industry research, and public filings.
+Zscaler represents a **high-conviction long-term play** on the secular shift to cloud-native security and Zero Trust architectures. 
+The company's pure-cloud platform, market leadership, and strong financial execution position it well for sustained growth.
 
-**Analysis Date:** May 2024 | **Next Review:** Post Q2 2024 Earnings (July 2024)
+**Near-term (3-6 months)**: Expect continued solid performance with revenue growth in the high 20s to low 30s percent range. 
+Key catalysts include AI feature adoption, enterprise consolidation wins, and potential macro improvement.
+
+**Primary risk**: Intensifying competition from Palo Alto Networks through aggressive bundling and pricing, combined with macro-driven 
+budget scrutiny that could elongate sales cycles.
+
+**Verdict**: Suitable for growth-oriented investors with moderate risk tolerance. Monitor quarterly billings, large deal traction, 
+and competitive dynamics closely.
+
+⚠️ *This analysis is for informational purposes only and does not constitute investment advice.*
 """)
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: #666; padding: 2rem 0;'>
-    <p><strong>United Airlines Holdings, Inc. (UAL) - Equity Research Analysis Dashboard</strong></p>
-    <p>Senior Equity Research Analyst Report | Airline Sector | Q2 2024</p>
-</div>
-""", unsafe_allow_html=True)
+st.caption("Data sources: Company filings (Q3 FY24), analyst reports, market research. Last updated: Mid-2024")
+st.caption("Analysis generated from comprehensive equity research reports on Zscaler (ZS)")
